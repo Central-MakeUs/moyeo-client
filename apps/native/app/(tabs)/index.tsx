@@ -2,8 +2,11 @@ import { WebView } from 'react-native-webview';
 import Constants from 'expo-constants';
 import { StyleSheet } from 'react-native';
 
+const devHost = Constants.expoConfig?.hostUri?.split(':')[0];
+const WEB_URL = __DEV__ && devHost ? `http://${devHost}:3000` : 'https://moyeo.app';
+
 export default function HomeScreen() {
-    return <WebView style={styles.container} source={{ uri: 'http://192.168.0.8:3000' }} />;
+    return <WebView style={styles.container} source={{ uri: WEB_URL }} />;
 }
 
 const styles = StyleSheet.create({
