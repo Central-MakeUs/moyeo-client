@@ -1,0 +1,204 @@
+.page {
+  min-height: 100svh;
+  background: #f7f8fa;
+  color: #171717;
+}
+
+.container {
+  width: min(100%, 1040px);
+  margin: 0 auto;
+  padding: 48px 24px 72px;
+}
+
+.backLink {
+  display: inline-flex;
+  margin-bottom: 32px;
+  color: #2452a3;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.header {
+  margin-bottom: 34px;
+}
+
+.eyebrow {
+  margin-bottom: 10px;
+  color: #2452a3;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.header h1 {
+  max-width: 800px;
+  margin-bottom: 16px;
+  font-size: 42px;
+  line-height: 1.14;
+}
+
+.header p,
+.section p {
+  color: #444b55;
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 26px;
+}
+
+.toc a {
+  padding: 9px 11px;
+  border: 1px solid #d8dee8;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #2452a3;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.section {
+  scroll-margin-top: 24px;
+  padding: 34px 0;
+  border-top: 1px solid #dde2ea;
+}
+
+.section h2 {
+  margin-bottom: 18px;
+  font-size: 24px;
+}
+
+.stepNumber {
+  margin-bottom: 8px;
+  color: #2b7a78;
+  font-family: var(--font-geist-mono);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.structure {
+  display: grid;
+  gap: 10px;
+}
+
+.structureRow {
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.structureRow code {
+  font-family: var(--font-geist-mono);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.structureRow span {
+  color: #444b55;
+  line-height: 1.6;
+}
+
+.list {
+  margin-top: 16px;
+  padding-left: 20px;
+  color: #303741;
+  line-height: 1.75;
+}
+
+.codeBlock,
+.command pre {
+  overflow-x: auto;
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #111827;
+  color: #b7f7d8;
+  font-family: var(--font-geist-mono);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.notes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.notes article,
+.command {
+  padding: 18px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.notes h3,
+.command strong {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.commandGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.command pre {
+  margin-top: 0;
+  white-space: pre-wrap;
+}
+
+.referenceList {
+  display: grid;
+  gap: 12px;
+  padding-left: 0;
+  list-style: none;
+}
+
+.referenceList li {
+  display: grid;
+  gap: 5px;
+  padding: 16px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.referenceList a {
+  color: #2452a3;
+  font-weight: 700;
+}
+
+.referenceList span {
+  color: #637086;
+  font-family: var(--font-geist-mono);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 720px) {
+  .container {
+    padding: 32px 18px 56px;
+  }
+
+  .header h1 {
+    font-size: 32px;
+  }
+
+  .structureRow,
+  .notes,
+  .commandGrid {
+    grid-template-columns: 1fr;
+  }
+}
