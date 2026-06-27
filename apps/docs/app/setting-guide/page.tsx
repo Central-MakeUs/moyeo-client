@@ -30,6 +30,16 @@ const setupSteps = [
       "create-expo-app 기본 템플릿이 포함하는 Expo Router, TypeScript 설정, AGENTS.md, CLAUDE.md, VS Code 권장 설정이 함께 생성됐다.",
     ],
   },
+  {
+    title: "4. apps/native에 react-native-webview 설치",
+    body: "Expo SDK 54가 권장하는 native module 버전을 맞추기 위해 native 앱 위치에서 Expo install 명령을 사용했다.",
+    items: [
+      "실행 위치: apps/native",
+      "실행 명령: pnpm expo install react-native-webview",
+      "설치 결과: apps/native/package.json에 react-native-webview 13.15.0이 추가됐다.",
+      "pnpm-lock.yaml에는 Expo SDK 54와 React Native 0.81.5 조합에 맞는 resolution이 반영됐다.",
+    ],
+  },
 ];
 
 const references = [
@@ -118,11 +128,29 @@ export default function SettingGuidePage() {
           </p>
         </section>
 
+        <section className={styles.section} aria-labelledby="dev-scripts">
+          <h2 id="dev-scripts">개발 서버 실행 방식</h2>
+          <p>
+            루트의 <code>pnpm dev</code>는 Next.js 기반의 <code>apps/web</code>과{" "}
+            <code>apps/docs</code>만 실행한다. 두 앱은 Turborepo의 persistent dev task와 잘
+            맞고, 각각 3000번과 3001번 포트에서 동작한다.
+          </p>
+          <p>
+            Expo native 앱은 QR 코드, Expo Go 연결, Metro 인터랙션, 기기 상태 확인이 필요하므로
+            루트 dev task에 묶지 않는다. native는 별도 터미널에서 <code>pnpm dev:native</code>
+            또는 <code>cd apps/native</code> 후 <code>npx expo start</code>로 실행한다.
+          </p>
+          <p>
+            이 분리는 Expo CLI의 dependency validation 결과를 숨기지 않으면서, WebView 화면과
+            문서 앱은 Turborepo로 빠르게 함께 띄우기 위한 선택이다.
+          </p>
+        </section>
+
         <section className={styles.section} aria-labelledby="next">
           <h2 id="next">다음에 결정할 것</h2>
           <ul className={styles.nextList}>
             <li>native 앱 이름과 slug를 최종 서비스명으로 바꿀지 결정한다.</li>
-            <li>react-native-webview를 설치하고 @repo/types 기반 bridge를 native 쪽에 연결한다.</li>
+            <li>@repo/types 기반 bridge를 native 쪽 WebView 화면에 연결한다.</li>
             <li>Next.js 앱을 WebView 전용 화면으로 정리하고 RN에서 로드할 URL 전략을 정한다.</li>
             <li>Expo SDK 56 업그레이드는 Expo Go, EAS Build, WebView 의존성 검증 후 별도 작업으로 진행한다.</li>
           </ul>
