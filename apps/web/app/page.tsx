@@ -1,102 +1,115 @@
-import Image, { type ImageProps } from "next/image";
-import { Button } from "@repo/ui/button";
-import styles from "./page.module.css";
+'use client';
 
-type Props = Omit<ImageProps, "src"> & {
-  srcLight: string;
-  srcDark: string;
-};
+import { useEffect, useMemo, useState } from 'react';
+import { usePostMessage } from '../shared/model/use-bridge';
+import type { WebToNativeMessage } from '@repo/types';
+import styles from './page.module.css';
 
-const ThemeImage = (props: Props) => {
-  const { srcLight, srcDark, ...rest } = props;
+const setupItems = [
+    { label: 'Web', value: 'Next.js 16', detail: 'WebView 화면' },
+    { label: 'Native', value: 'Expo SDK 54', detail: 'React Native host' },
+    { label: 'Bridge', value: '@repo/types', detail: '메시지 계약 공유' },
+];
 
-  return (
-    <>
-      <Image {...rest} src={srcLight} className="imgLight" />
-      <Image {...rest} src={srcDark} className="imgDark" />
-    </>
-  );
-};
+const actions: Array<{ label: string; message: WebToNativeMessage; description: string }> = [
+    {
+        label: 'Ready',
+        message: { type: 'READY' },
+        description: '웹 앱이 로드됐음을 native에 알립니다.',
+    },
+    {
+        label: 'Camera',
+        message: { type: 'OPEN_CAMERA' },
+        description: 'native 카메라 플로우를 요청합니다.',
+    },
+    {
+        label: 'Haptic',
+        message: { type: 'HAPTIC_FEEDBACK', payload: { style: 'light' } },
+        description: '가벼운 햅틱 피드백을 요청합니다.',
+    },
+];
 
 export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <ThemeImage
-          className={styles.logo}
-          srcLight="turborepo-dark.svg"
-          srcDark="turborepo-light.svg"
-          alt="Turborepo logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>apps/web/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    const postMessage = usePostMessage();
+    const [lastMessage, setLastMessage] = useState<WebToNativeMessage>({ type: 'READY' });
+    const [isWebView, setIsWebView] = useState(false);
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://turborepo.dev/docs?utm_source"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-        <Button appName="web" className={styles.secondary}>
-          Open alert
-        </Button>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://turborepo.dev?utm_source=create-turbo"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to turborepo.dev →
-        </a>
-      </footer>
-    </div>
-  );
+    useEffect(() => {
+        setIsWebView(Boolean(window.ReactNativeWebView));
+    }, []);
+
+    const environment = useMemo(() => {
+        if (isWebView) {
+            return 'React Native WebView';
+        }
+
+        return 'Browser preview';
+    }, [isWebView]);
+
+    const sendMessage = (message: WebToNativeMessage) => {
+        setLastMessage(message);
+        postMessage(message);
+    };
+
+    return (
+        <main className={styles.page}>
+            <section className={styles.hero} aria-labelledby="page-title">
+                <div className={styles.topbar}>
+                    <strong>모여</strong>
+                    <span>{environment}</span>
+                </div>
+
+                <div className={styles.heroContent}>
+                    <p className={styles.eyebrow}>Next.js + RN WebView Turborepo</p>
+                    <h1 id="page-title">웹은 Next.js로 만들고, native는 Expo WebView로 감쌉니다.</h1>
+                    <p>
+                        이 화면은 <code>apps/web</code>에서 실행되는 WebView 전용 첫 페이지입니다.
+                        native 앱은 <code>react-native-webview</code>로 이 화면을 로드하고,
+                        양쪽 메시지 타입은 <code>@repo/types</code>에서 공유합니다.
+                    </p>
+                </div>
+            </section>
+
+            <section className={styles.contentGrid} aria-label="Project status">
+                <div className={styles.panel}>
+                    <h2>세팅 상태</h2>
+                    <div className={styles.stack}>
+                        {setupItems.map((item) => (
+                            <div className={styles.statusRow} key={item.label}>
+                                <span>{item.label}</span>
+                                <strong>{item.value}</strong>
+                                <small>{item.detail}</small>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className={styles.panel}>
+                    <h2>Bridge 테스트</h2>
+                    <div className={styles.actionList}>
+                        {actions.map((action) => (
+                            <button
+                                className={styles.actionButton}
+                                key={action.label}
+                                type="button"
+                                onClick={() => sendMessage(action.message)}
+                            >
+                                <span>{action.label}</span>
+                                <small>{action.description}</small>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className={styles.panelWide}>
+                    <h2>마지막 전송 메시지</h2>
+                    <pre className={styles.messageBox}>{JSON.stringify(lastMessage, null, 2)}</pre>
+                    <p>
+                        브라우저에서 누르면 메시지 상태만 바뀌고, Expo WebView 안에서 누르면
+                        <code>window.ReactNativeWebView.postMessage</code>로 native에 전달됩니다.
+                    </p>
+                </div>
+            </section>
+        </main>
+    );
 }

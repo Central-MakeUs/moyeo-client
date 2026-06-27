@@ -12,7 +12,9 @@ export function useNativeMessage(handler: (msg: NativeToWebMessage) => void) {
         const listener = (e: MessageEvent) => {
             try {
                 handler(JSON.parse(e.data));
-            } catch {}
+            } catch {
+                return;
+            }
         };
         window.addEventListener('message', listener);
         return () => window.removeEventListener('message', listener);
