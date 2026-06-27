@@ -5,7 +5,9 @@
   "license": "MIT",
   "exports": {
     "./base": "./base.json",
-    "./nextjs": "./nextjs.json"
+    "./base.json": "./base.json",
+    "./nextjs": "./nextjs.json",
+    "./nextjs.json": "./nextjs.json"
   },
   "publishConfig": {
     "access": "public"
