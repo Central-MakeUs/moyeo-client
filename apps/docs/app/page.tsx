@@ -1,106 +1,88 @@
-import Image, { type ImageProps } from "next/image";
-import { Button } from "@repo/ui/button";
 import Link from "next/link";
 import styles from "./page.module.css";
 
-type Props = Omit<ImageProps, "src"> & {
-  srcLight: string;
-  srcDark: string;
-};
-
-const ThemeImage = (props: Props) => {
-  const { srcLight, srcDark, ...rest } = props;
-
-  return (
-    <>
-      <Image {...rest} src={srcLight} className="imgLight" />
-      <Image {...rest} src={srcDark} className="imgDark" />
-    </>
-  );
-};
+const guideSteps = [
+  {
+    href: "/setting-guide#turborepo-next",
+    index: "01",
+    title: "Turborepo + Next.js",
+    detail: "Next.js apps, workspace packages, turbo tasks",
+  },
+  {
+    href: "/setting-guide#bridge-types",
+    index: "02",
+    title: "Bridge shared types",
+    detail: "@repo/types, web hooks, @repo/ui restore",
+  },
+  {
+    href: "/setting-guide#expo-sdk-54",
+    index: "03",
+    title: "Expo SDK 54 native app",
+    detail: "create-expo-app, SDK choice, generated files",
+  },
+  {
+    href: "/setting-guide#webview-install",
+    index: "04",
+    title: "react-native-webview",
+    detail: "Expo-compatible install and lockfile update",
+  },
+  {
+    href: "/setting-guide#dev-servers",
+    index: "05",
+    title: "Dev server policy",
+    detail: "web/docs through Turbo, native separately",
+  },
+  {
+    href: "/setting-guide#webview-preview",
+    index: "06",
+    title: "WebView preview",
+    detail: "native loads local Next.js and tests bridge messages",
+  },
+  {
+    href: "/setting-guide#troubleshooting",
+    index: "07",
+    title: "Troubleshooting",
+    detail: "Expo validation, cache, Node version, wrong cwd",
+  },
+];
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <ThemeImage
-          className={styles.logo}
-          srcLight="turborepo-dark.svg"
-          srcDark="turborepo-light.svg"
-          alt="Turborepo logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>apps/docs/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <Link href="/setting-guide" className={styles.primary}>
-            Setting guide
-          </Link>
-          <a
-            className={styles.secondary}
-            href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://turborepo.dev/docs?utm_source"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+    <main className={styles.page}>
+      <section className={styles.hero}>
+        <div className={styles.heroInner}>
+          <p className={styles.eyebrow}>Project docs</p>
+          <h1>Next.js + Expo WebView Turborepo 세팅 가이드</h1>
+          <p>
+            이 문서는 현재 레포지토리를 세팅하면서 실제로 실행한 명령어, 참고한 공식 문서,
+            발생한 문제와 선택한 해결 방식을 순서대로 추적하기 위한 내부 가이드입니다.
+          </p>
+          <div className={styles.commands}>
+            <code>pnpm dev</code>
+            <code>pnpm dev:native</code>
+            <code>pnpm --filter @repo/web check-types</code>
+          </div>
         </div>
-        <Button appName="docs" className={styles.secondary}>
-          Open alert
-        </Button>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://turborepo.dev?utm_source=create-turbo"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to turborepo.dev →
-        </a>
-      </footer>
-    </div>
+      </section>
+
+      <section className={styles.guideList} aria-labelledby="guide-list-title">
+        <div className={styles.sectionHeader}>
+          <h2 id="guide-list-title">세팅 순서</h2>
+          <Link href="/setting-guide" className={styles.fullGuideLink}>
+            전체 가이드 보기
+          </Link>
+        </div>
+
+        <div className={styles.cards}>
+          {guideSteps.map((step) => (
+            <Link href={step.href} className={styles.card} key={step.href}>
+              <span>{step.index}</span>
+              <strong>{step.title}</strong>
+              <small>{step.detail}</small>
+            </Link>
+          ))}
+        </div>
+      </section>
+    </main>
   );
 }
