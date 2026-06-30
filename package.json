@@ -6,10 +6,12 @@
     "dev": "turbo run dev --filter=@repo/web --filter=docs",
     "dev:native": "pnpm --filter native start",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "typecheck": "turbo run check-types"
   },
   "devDependencies": {
+    "@repo/prettier-config": "workspace:*",
     "prettier": "^3.7.4",
     "turbo": "^2.10.0",
     "typescript": "5.9.2"

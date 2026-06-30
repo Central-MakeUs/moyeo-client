@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@repo/prettier-config':
+        specifier: workspace:*
+        version: link:packages/prettier-config
       prettier:
         specifier: ^3.7.4
         version: 3.7.4
@@ -136,15 +139,18 @@ importers:
         specifier: 0.5.1
         version: 0.5.1(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
     devDependencies:
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
       '@types/react':
         specifier: ~19.1.0
         version: 19.1.17
       eslint:
         specifier: ^9.25.0
         version: 9.39.1
-      eslint-config-expo:
-        specifier: ~10.0.0
-        version: 10.0.0(eslint@9.39.1)(typescript@5.9.2)
       typescript:
         specifier: ~5.9.2
         version: 5.9.2
@@ -200,6 +206,9 @@ importers:
       eslint:
         specifier: ^9.39.1
         version: 9.39.1
+      eslint-config-expo:
+        specifier: ~10.0.0
+        version: 10.0.0(eslint@9.39.1)(typescript@5.9.2)
       eslint-config-prettier:
         specifier: ^10.1.1
         version: 10.1.1(eslint@9.39.1)
@@ -225,7 +234,11 @@ importers:
         specifier: ^8.50.0
         version: 8.50.0(eslint@9.39.1)(typescript@5.9.2)
 
-  packages/prettier-config: {}
+  packages/prettier-config:
+    dependencies:
+      prettier:
+        specifier: ^3.0.0
+        version: 3.7.4
 
   packages/types: {}
 
@@ -7441,7 +7454,7 @@ snapshots:
   eslint-import-resolver-node@0.3.10:
     dependencies:
       debug: 3.2.7
-      is-core-module: 2.16.1
+      is-core-module: 2.16.2
       resolve: 2.0.0-next.7
     transitivePeerDependencies:
       - supports-color
@@ -7493,8 +7506,8 @@ snapshots:
       eslint: 9.39.1
       eslint-import-resolver-node: 0.3.10
       eslint-module-utils: 2.13.0(@typescript-eslint/parser@8.50.0(eslint@9.39.1)(typescript@5.9.2))(eslint-import-resolver-node@0.3.10)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.1))(eslint@9.39.1)
-      hasown: 2.0.2
-      is-core-module: 2.16.1
+      hasown: 2.0.4
+      is-core-module: 2.16.2
       is-glob: 4.0.3
       minimatch: 3.1.2
       object.fromentries: 2.0.8
