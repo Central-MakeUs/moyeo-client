@@ -42,13 +42,7 @@
       ],
       "expo-secure-store",
       "expo-navigation-bar",
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/images/notification-icon.png",
-          "color": "#ffffff"
-        }
-      ],
+      "expo-notifications",
       "expo-updates",
       "@react-native-google-signin/google-signin",
       [
@@ -73,7 +67,9 @@
             "NSExtensionActivationSupportsWebURLWithMaxCount": 1,
             "NSExtensionActivationSupportsWebPageWithMaxCount": 1
           },
-          "androidIntentFilters": ["text/*"]
+          "androidIntentFilters": [
+            "text/*"
+          ]
         }
       ]
     ],
@@ -84,8 +80,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "f73528ae-f634-47c9-9ec4-b7d74355c6dd"
+        "projectId": "803023d0-2fee-4c1a-af40-728ea7521444"
       }
-    }
+    },
+    "owner": "moyeozo"
   }
 }
