@@ -44,6 +44,12 @@ const guideSteps = [
     title: 'Troubleshooting',
     detail: 'Expo validation, cache, Node version, wrong cwd',
   },
+  {
+    href: '/git-hooks',
+    index: '08',
+    title: 'Git hook validation',
+    detail: 'Husky, lint-staged, commitlint rules',
+  },
 ];
 
 export default function Home() {
