@@ -10,7 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.moyeo.app"
+      "bundleIdentifier": "com.moyeo.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.moyeo.app",
@@ -44,7 +47,7 @@
       "expo-secure-store",
       "expo-navigation-bar",
       "expo-notifications",
-      "expo-updates",
+      "expo-updates"
     ],
     "experiments": {
       "typedRoutes": true,
