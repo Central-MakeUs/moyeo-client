@@ -45,18 +45,6 @@
       "expo-navigation-bar",
       "expo-notifications",
       "expo-updates",
-      [
-        "expo-share-intent",
-        {
-          "iosActivationRules": {
-            "NSExtensionActivationSupportsWebURLWithMaxCount": 1,
-            "NSExtensionActivationSupportsWebPageWithMaxCount": 1
-          },
-          "androidIntentFilters": [
-            "text/*"
-          ]
-        }
-      ]
     ],
     "experiments": {
       "typedRoutes": true,
