@@ -39,6 +39,42 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      "expo-secure-store",
+      "expo-navigation-bar",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#ffffff"
+        }
+      ],
+      "expo-updates",
+      "@react-native-google-signin/google-signin",
+      [
+        "@react-native-kakao/core",
+        {
+          "nativeAppKey": "KAKAO_NATIVE_APP_KEY"
+        }
+      ],
+      [
+        "@react-native-seoul/naver-login",
+        {
+          "urlScheme": "NAVER_URL_SCHEME",
+          "consumerKey": "NAVER_CONSUMER_KEY",
+          "consumerSecret": "NAVER_CONSUMER_SECRET",
+          "serviceAppName": "Moyeo"
+        }
+      ],
+      [
+        "expo-share-intent",
+        {
+          "iosActivationRules": {
+            "NSExtensionActivationSupportsWebURLWithMaxCount": 1,
+            "NSExtensionActivationSupportsWebPageWithMaxCount": 1
+          },
+          "androidIntentFilters": ["text/*"]
+        }
       ]
     ],
     "experiments": {
