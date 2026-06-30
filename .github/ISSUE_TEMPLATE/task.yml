@@ -1,7 +1,7 @@
 name: Task
 description: 설정, 문서, 리팩토링, CI 등 기능 외 작업
-title: "[chore] "
-labels: ["chore"]
+title: '[chore] '
+labels: ['chore']
 assignees: []
 body:
   - type: dropdown
@@ -61,7 +61,7 @@ body:
     attributes:
       label: 의존성
       description: 선행 이슈나 관련 PR이 있다면 작성해 주세요.
-      placeholder: "예: #6 완료 필요"
+      placeholder: '예: #6 완료 필요'
     validations:
       required: false
 

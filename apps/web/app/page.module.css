@@ -9,8 +9,7 @@
   min-height: 52svh;
   padding: 24px;
   background:
-    linear-gradient(120deg, rgba(11, 35, 64, 0.86), rgba(21, 88, 89, 0.72)),
-    url("/window.svg");
+    linear-gradient(120deg, rgba(11, 35, 64, 0.86), rgba(21, 88, 89, 0.72)), url('/window.svg');
   background-color: #0b2340;
   background-position: center;
   background-repeat: no-repeat;
