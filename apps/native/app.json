@@ -45,22 +45,6 @@
       "expo-navigation-bar",
       "expo-notifications",
       "expo-updates",
-      "@react-native-google-signin/google-signin",
-      [
-        "@react-native-kakao/core",
-        {
-          "nativeAppKey": "KAKAO_NATIVE_APP_KEY"
-        }
-      ],
-      [
-        "@react-native-seoul/naver-login",
-        {
-          "urlScheme": "NAVER_URL_SCHEME",
-          "consumerKey": "NAVER_CONSUMER_KEY",
-          "consumerSecret": "NAVER_CONSUMER_SECRET",
-          "serviceAppName": "Moyeo"
-        }
-      ],
       [
         "expo-share-intent",
         {
