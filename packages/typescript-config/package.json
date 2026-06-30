@@ -7,7 +7,11 @@
     "./base": "./base.json",
     "./base.json": "./base.json",
     "./nextjs": "./nextjs.json",
-    "./nextjs.json": "./nextjs.json"
+    "./nextjs.json": "./nextjs.json",
+    "./react-native": "./react-native.json",
+    "./react-native.json": "./react-native.json",
+    "./react-library": "./react-library.json",
+    "./react-library.json": "./react-library.json"
   },
   "publishConfig": {
     "access": "public"
