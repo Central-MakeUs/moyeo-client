@@ -7,7 +7,7 @@
 .hero {
   background:
     linear-gradient(120deg, rgba(15, 42, 77, 0.9), rgba(36, 100, 94, 0.78)),
-    url("/turborepo-dark.svg");
+    url('/turborepo-dark.svg');
   background-color: #0f2a4d;
   background-position: center;
   background-repeat: no-repeat;

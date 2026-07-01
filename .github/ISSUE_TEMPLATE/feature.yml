@@ -1,7 +1,7 @@
 name: Feature
 description: 기능 추가 또는 기능 변경
-title: "[feat] "
-labels: ["feat"]
+title: '[feat] '
+labels: ['feat']
 assignees: []
 body:
   - type: textarea
@@ -41,7 +41,7 @@ body:
     attributes:
       label: 의존성
       description: 선행 이슈나 관련 PR이 있다면 작성해 주세요.
-      placeholder: "예: #6 완료 필요"
+      placeholder: '예: #6 완료 필요'
     validations:
       required: false
 
