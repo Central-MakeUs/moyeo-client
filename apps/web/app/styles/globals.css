@@ -9,3 +9,19 @@
     cursor: pointer;
   }
 }
+
+@layer components {
+  .app-viewport {
+    min-height: 100dvh;
+    width: 100%;
+  }
+
+  .app-shell {
+    min-height: 100dvh;
+    width: 100%;
+    max-width: 480px;
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+  }
+}
