@@ -5,13 +5,14 @@
   },
   "build": {
     "development": {
+      "developmentClient": true,
       "distribution": "internal",
       "android": {
-        "buildType": "apk",
-        "gradleCommand": ":app:assembleDebug"
+        "buildType": "apk"
       },
       "ios": {
-        "simulator": false
+        "simulator": false,
+        "buildConfiguration": "Debug"
       }
     },
     "preview": {
@@ -20,10 +21,13 @@
         "buildType": "apk"
       },
       "ios": {
-        "simulator": false
+        "simulator": false,
+        "buildConfiguration": "Release"
       }
     },
     "production": {
+      "autoIncrement": true,
+      "distribution": "store",
       "android": {
         "buildType": "app-bundle"
       },
