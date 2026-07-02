@@ -50,6 +50,12 @@ const guideSteps = [
     title: 'Git hook validation',
     detail: 'Husky, lint-staged, commitlint rules',
   },
+  {
+    href: '/frontend-styling',
+    index: '09',
+    title: 'Frontend styling',
+    detail: 'Tailwind v4, Prettier class sorting, Next font',
+  },
 ];
 
 export default function Home() {

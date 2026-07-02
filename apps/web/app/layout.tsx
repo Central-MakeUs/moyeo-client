@@ -1,20 +1,26 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
-import './globals.css';
+import './styles/globals.css';
 
-const geistSans = localFont({
-  src: './fonts/GeistVF.woff',
-  variable: '--font-geist-sans',
-});
-const geistMono = localFont({
-  src: './fonts/GeistMonoVF.woff',
-  variable: '--font-geist-mono',
+const suit = localFont({
+  src: './fonts/SUIT-Variable.woff2',
+  variable: '--font-suit',
+  display: 'swap',
+  weight: '100 900',
 });
 
 export const metadata: Metadata = {
   title: '모여 WebView',
   description: 'Next.js WebView surface for the Expo native app',
 };
+
+function AppViewport({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="app-viewport">
+      <div className="app-shell">{children}</div>
+    </div>
+  );
+}
 
 export default function RootLayout({
   children,
@@ -23,7 +29,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>{children}</body>
+      <body className={`${suit.variable}`}>
+        <AppViewport>{children}</AppViewport>
+      </body>
     </html>
   );
 }

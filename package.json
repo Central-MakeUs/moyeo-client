@@ -15,7 +15,10 @@
   "lint-staged": {
     "apps/web/**/*.{js,jsx,ts,tsx}": [
       "eslint --fix --config apps/web/eslint.config.mjs",
-      "prettier --write"
+      "prettier --write --config apps/web/prettier.config.mjs"
+    ],
+    "apps/web/**/*.{css,md,mdx,json}": [
+      "prettier --write --config apps/web/prettier.config.mjs"
     ],
     "apps/docs/**/*.{js,jsx,ts,tsx}": [
       "eslint --fix --config apps/docs/eslint.config.mjs",

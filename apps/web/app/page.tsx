@@ -11,7 +11,11 @@ const setupItems = [
   { label: 'Bridge', value: '@repo/types', detail: '메시지 계약 공유' },
 ];
 
-const actions: Array<{ label: string; message: WebToNativeMessage; description: string }> = [
+const actions: Array<{
+  label: string;
+  message: WebToNativeMessage;
+  description: string;
+}> = [
   {
     label: 'Ready',
     message: { type: 'READY' },
@@ -31,7 +35,9 @@ const actions: Array<{ label: string; message: WebToNativeMessage; description: 
 
 export default function Home() {
   const postMessage = usePostMessage();
-  const [lastMessage, setLastMessage] = useState<WebToNativeMessage>({ type: 'READY' });
+  const [lastMessage, setLastMessage] = useState<WebToNativeMessage>({
+    type: 'READY',
+  });
   const [isWebView, setIsWebView] = useState(false);
 
   useEffect(() => {
@@ -52,7 +58,7 @@ export default function Home() {
   };
 
   return (
-    <main className={styles.page}>
+    <main className="min-h-[100svh] bg-gray-100 text-[#162033]">
       <section className={styles.hero} aria-labelledby="page-title">
         <div className={styles.topbar}>
           <strong>모여</strong>
