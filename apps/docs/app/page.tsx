@@ -56,6 +56,12 @@ const guideSteps = [
     title: 'Frontend styling',
     detail: 'Tailwind v4, Prettier class sorting, Next font',
   },
+  {
+    href: '/fsd-architecture',
+    index: '10',
+    title: 'FSD architecture',
+    detail: 'Next App Router, aliases, public API, Steiger boundaries',
+  },
 ];
 
 export default function Home() {
