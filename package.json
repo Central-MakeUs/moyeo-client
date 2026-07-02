@@ -12,30 +12,6 @@
     "typecheck": "turbo run check-types",
     "prepare": "husky"
   },
-  "lint-staged": {
-    "apps/web/**/*.{js,jsx,ts,tsx}": [
-      "eslint --fix --config apps/web/eslint.config.mjs",
-      "prettier --write --config apps/web/prettier.config.mjs"
-    ],
-    "apps/web/**/*.{css,md,mdx,json}": [
-      "prettier --write --config apps/web/prettier.config.mjs"
-    ],
-    "apps/docs/**/*.{js,jsx,ts,tsx}": [
-      "eslint --fix --config apps/docs/eslint.config.mjs",
-      "prettier --write"
-    ],
-    "apps/native/**/*.{js,jsx,ts,tsx}": [
-      "eslint --fix --config apps/native/eslint.config.mjs",
-      "prettier --write"
-    ],
-    "packages/ui/**/*.{js,jsx,ts,tsx}": [
-      "eslint --fix --config packages/ui/eslint.config.mjs",
-      "prettier --write"
-    ],
-    "*.{js,mjs,json,md,mdx,yml,yaml,css}": [
-      "prettier --write"
-    ]
-  },
   "devDependencies": {
     "@commitlint/cli": "^21.2.0",
     "@commitlint/config-conventional": "^21.2.0",
