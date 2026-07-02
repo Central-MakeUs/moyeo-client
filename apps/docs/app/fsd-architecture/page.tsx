@@ -288,6 +288,18 @@ export default defineConfig([
     },
   },
 ]);`}</pre>
+
+          <div className={styles.note}>
+            <strong>lint-staged에서는 함수형 command로 실행</strong>
+            <p>
+              `lint-staged`는 문자열 command를 사용하면 매칭된 staged file 경로를 명령어 뒤에
+              자동으로 붙입니다. Steiger는 <code>steiger src</code>처럼 검사 대상 path를 하나만
+              받아야 하므로, 파일 경로가 추가로 붙으면 <code>Pass only one path to watch</code>{' '}
+              에러가 발생합니다.
+            </p>
+            <pre className={styles.codeBlock}>{`// lint-staged.config.mjs
+'apps/web/src/**/*.{js,jsx,ts,tsx}': () => 'pnpm --filter @repo/web lint:steiger',`}</pre>
+          </div>
         </section>
 
         <section className={styles.section} id="troubleshooting">
