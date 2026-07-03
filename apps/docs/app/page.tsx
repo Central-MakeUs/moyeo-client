@@ -56,6 +56,12 @@ const guideSteps = [
     title: 'Frontend styling',
     detail: 'Tailwind v4, Prettier class sorting, Next font',
   },
+  {
+    href: '/eas-build',
+    index: '10',
+    title: 'EAS Build',
+    detail: '빌드 프로파일, 빌드 명령어, 개발 시 핫리로드',
+  },
 ];
 
 export default function Home() {
