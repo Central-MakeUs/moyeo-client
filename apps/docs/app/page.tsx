@@ -62,6 +62,12 @@ const guideSteps = [
     title: 'FSD architecture',
     detail: 'Next App Router, aliases, public API, Steiger boundaries',
   },
+  {
+    href: '/steiger-prefixed-layers',
+    index: '11',
+    title: 'Steiger prefix layers',
+    detail: '_app, _pages prefix layer troubleshooting',
+  },
 ];
 
 export default function Home() {
