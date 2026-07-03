@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
-import '@/app/globals.css';
+import '@/_app/globals.css';
 import GlobalLayout from '@/shared/ui/layouts/global-layout';
 
 const suit = localFont({

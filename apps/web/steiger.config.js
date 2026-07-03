@@ -20,4 +20,10 @@ export default defineConfig([
       'fsd/insignificant-slice': 'off',
     },
   },
+  {
+    files: ['**/_pages/**', '**/_app/**'],
+    rules: {
+      'fsd/typo-in-layer-name': 'off',
+    },
+  },
 ]);

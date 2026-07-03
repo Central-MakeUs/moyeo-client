@@ -1,1 +1,1 @@
-export { ExamplePage as default, metadata } from '@/pages/example';
+export { ExamplePage as default, metadata } from '@/_pages/example';
