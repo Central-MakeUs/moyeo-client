@@ -57,8 +57,20 @@ const guideSteps = [
     detail: 'Tailwind v4, Prettier class sorting, Next font',
   },
   {
-    href: '/eas-build',
+    href: '/fsd-architecture',
     index: '10',
+    title: 'FSD architecture',
+    detail: 'Next App Router, aliases, public API, Steiger boundaries',
+  },
+  {
+    href: '/steiger-prefixed-layers',
+    index: '11',
+    title: 'Steiger prefix layers',
+    detail: '_app, _pages prefix layer troubleshooting',
+  },
+  {
+    href: '/eas-build',
+    index: '12',
     title: 'EAS Build',
     detail: '빌드 프로파일, 빌드 명령어, 개발 시 핫리로드',
   },
