@@ -1,10 +1,5 @@
 import { RoomPreviewSection } from '@/widgets/room-preview';
 
-export const metadata = {
-  title: 'FSD Example',
-  description: 'Feature-Sliced Design layer composition example.',
-};
-
 export function ExamplePage() {
   return (
     <main className="flex min-h-svh flex-col gap-6 bg-slate-50 px-5 py-8 text-slate-950">

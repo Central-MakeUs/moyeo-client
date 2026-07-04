@@ -1,1 +1,2 @@
-export { ExamplePage, metadata } from './ui/example';
+export { ExamplePage } from './ui/example';
+export { metadata } from './config/metadata';
