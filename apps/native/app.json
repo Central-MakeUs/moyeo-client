@@ -1,17 +1,22 @@
 {
   "expo": {
-    "name": "native",
-    "slug": "native",
+    "name": "Moyeo",
+    "slug": "moyeo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "native",
+    "scheme": "moyeo",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.moyeozo.moyeo",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "com.moyeozo.moyeo",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -38,11 +43,22 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-navigation-bar",
+      "expo-notifications",
+      "expo-updates"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "803023d0-2fee-4c1a-af40-728ea7521444"
+      }
+    },
+    "owner": "moyeozo"
   }
 }

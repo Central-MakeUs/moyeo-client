@@ -68,6 +68,12 @@ const guideSteps = [
     title: 'Steiger prefix layers',
     detail: '_app, _pages prefix layer troubleshooting',
   },
+  {
+    href: '/eas-build',
+    index: '12',
+    title: 'EAS Build',
+    detail: '빌드 프로파일, 빌드 명령어, 개발 시 핫리로드',
+  },
 ];
 
 export default function Home() {
