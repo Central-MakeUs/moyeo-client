@@ -163,8 +163,8 @@ eas login`}</pre>
           <div className={styles.callout}>
             <strong>공통 — 같은 와이파이 환경 필요</strong>
             <p>
-              개발 서버(Next.js + Expo Dev Client)와 기기가 같은 네트워크에 있어야 연결됩니다.
-              다른 네트워크에서는 QR 코드를 찍어도 앱이 서버를 찾지 못합니다.
+              개발 서버(Next.js + Expo Dev Client)와 기기가 같은 네트워크에 있어야 연결됩니다. 다른
+              네트워크에서는 QR 코드를 찍어도 앱이 서버를 찾지 못합니다.
             </p>
           </div>
         </section>
