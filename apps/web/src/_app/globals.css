@@ -1,4 +1,7 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@custom-variant dark (&:is(.dark *));
 
 /*
   * Design tokens
@@ -86,12 +89,20 @@
 }
 
 @layer base {
+  :root {
+    --radius: 0.625rem;
+  }
+
   body {
     font-family: var(--font-suit);
+    @apply bg-background text-foreground;
   }
 
   button {
     cursor: pointer;
+  }
+  * {
+    @apply border-border outline-ring/50;
   }
 }
 
@@ -109,4 +120,54 @@
     display: flex;
     flex-direction: column;
   }
+}
+
+/*
+  * shadcn semantic tokens
+  *
+  * shadcn 컴포넌트가 참조하는 의미론적 색상 이름(background, border, ring 등)을
+  * 위 @theme에서 정의한 실제 디자인 토큰(neutral, accessible, primary)에 매핑한다.
+  * Button/Input처럼 상태별 색을 자체적으로 지정하는 커스텀 컴포넌트는 이 매핑과 무관하게
+  * 컴포넌트 코드에서 직접 관리한다.
+*/
+@theme inline {
+  /* surface */
+  --color-background: var(--color-neutral-10);
+  --color-foreground: var(--color-neutral-900);
+  --color-card: var(--color-neutral-10);
+  --color-card-foreground: var(--color-neutral-900);
+  --color-popover: var(--color-neutral-10);
+  --color-popover-foreground: var(--color-neutral-900);
+  --color-secondary: var(--color-neutral-20);
+  --color-secondary-foreground: var(--color-neutral-900);
+  --color-muted: var(--color-neutral-50);
+  --color-muted-foreground: var(--color-neutral-500);
+  --color-accent: var(--color-neutral-20);
+  --color-accent-foreground: var(--color-neutral-900);
+  --color-primary-foreground: var(--color-neutral-10);
+
+  /* form / interactive */
+  --color-border: var(--color-neutral-70);
+  --color-input: var(--color-neutral-70);
+  --color-ring: var(--color-accessible-400);
+  --color-destructive: var(--color-accessible-500);
+
+  /* sidebar */
+  --color-sidebar: var(--color-neutral-10);
+  --color-sidebar-foreground: var(--color-neutral-900);
+  --color-sidebar-primary: var(--color-primary);
+  --color-sidebar-primary-foreground: var(--color-neutral-10);
+  --color-sidebar-accent: var(--color-neutral-20);
+  --color-sidebar-accent-foreground: var(--color-neutral-900);
+  --color-sidebar-border: var(--color-neutral-70);
+  --color-sidebar-ring: var(--color-neutral-300);
+
+  /* radius */
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
