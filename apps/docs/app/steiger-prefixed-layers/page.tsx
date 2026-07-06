@@ -29,13 +29,6 @@ fsd/forbidden-imports`,
   },
 ];
 
-const blogNotes = [
-  'Next.js의 예약 디렉터리와 FSD layer 이름이 충돌하는 배경을 더 친절하게 설명한다.',
-  'FSD 레이어 방향 규칙을 그림으로 정리한다.',
-  '`typo-in-layer-name`과 `forbidden-imports`가 레이어를 읽는 방식의 차이를 코드 흐름도로 보여준다.',
-  '삭제 가능한 probe 파일을 만들고 제거하는 과정을 재현 가능한 단계로 정리한다.',
-];
-
 export default function SteigerPrefixedLayersPage() {
   return (
     <main className={styles.page}>
