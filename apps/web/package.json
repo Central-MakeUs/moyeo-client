@@ -13,6 +13,7 @@
     "format": "prettier . --write --config prettier.config.mjs"
   },
   "dependencies": {
+    "@ncdai/react-wheel-picker": "^1.2.2",
     "@repo/types": "workspace:*",
     "@repo/ui": "workspace:*",
     "class-variance-authority": "^0.7.1",
