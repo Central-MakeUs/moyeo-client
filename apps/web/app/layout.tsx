@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import '@/_app/globals.css';
 import GlobalLayout from '@/shared/ui/layouts/global-layout';
+import { QueryProvider } from '@/_app';
 
 const suit = localFont({
   src: './fonts/SUIT-Variable.woff2',
@@ -23,7 +24,9 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={`${suit.variable}`}>
-        <GlobalLayout>{children}</GlobalLayout>
+        <QueryProvider>
+          <GlobalLayout>{children}</GlobalLayout>
+        </QueryProvider>
       </body>
     </html>
   );
