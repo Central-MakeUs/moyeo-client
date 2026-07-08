@@ -74,6 +74,12 @@ const guideSteps = [
     title: 'EAS Build',
     detail: '빌드 프로파일, 빌드 명령어, 개발 시 핫리로드',
   },
+  {
+    href: '/server-state-management',
+    index: '13',
+    title: 'Server state management',
+    detail: 'TanStack Query provider, devtools, ESLint plugin',
+  },
 ];
 
 export default function Home() {
