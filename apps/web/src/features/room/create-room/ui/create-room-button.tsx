@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@/shared/ui/buttons';
+import { Button } from '@/shared/ui/primitives';
 import type { RoomDraft } from '@/entities/room';
 
 type CreateRoomButtonProps = {
