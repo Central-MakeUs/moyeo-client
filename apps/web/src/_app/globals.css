@@ -11,7 +11,7 @@
   * 컴포넌트에서는 하드코딩 대신 bg-primary, text-neutral-900, text-bold-16처럼
   * @theme 기반 Tailwind class를 우선 사용한다.
 */
-@theme {
+@theme static {
   /* font */
   --font-suit: var(--font-suit);
 
