@@ -1,0 +1,75 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Foundations/Typography" />
+
+# Typography
+
+본문 폰트는 **SUIT** (`--font-suit`, `next/font/local`) 입니다.
+아래 타입 스케일은 `_app/globals.css`의 `@theme`에 정의된 `--text-*` 토큰이며,
+컴포넌트에서는 `text-bold-16`처럼 **토큰 기반 Tailwind class**로 사용합니다.
+(각 토큰은 size · line-height · font-weight 를 한 번에 포함합니다.)
+
+export const sample = '다람쥐 헌 쳇바퀴에 타고파 AaBbGg 0123';
+
+export const Row = ({ token, spec, children }) => (
+  <div
+    style={{
+      display: 'flex',
+      alignItems: 'baseline',
+      gap: '24px',
+      padding: '14px 0',
+      borderBottom: '1px solid var(--color-neutral-50)',
+    }}
+  >
+    <div style={{ flex: '0 0 34%', minWidth: '150px' }}>
+      <div style={{ fontSize: '13px', fontWeight: 600 }}>text-{token}</div>
+      <div style={{ fontSize: '12px', color: 'var(--color-neutral-500)' }}>{spec}</div>
+    </div>
+    <div
+      style={{
+        fontFamily: 'var(--font-suit)',
+        fontSize: `var(--text-${token})`,
+        lineHeight: `var(--text-${token}--line-height)`,
+        fontWeight: `var(--text-${token}--font-weight)`,
+      }}
+    >
+      {children}
+    </div>
+  </div>
+);
+
+## Extrabold
+
+<Row token="extrabold-22" spec="22px · 140% · 800">
+  {sample}
+</Row>
+
+## Bold
+
+<Row token="bold-16" spec="16px · 125% · 700">
+  {sample}
+</Row>
+<Row token="bold-14" spec="14px · 140% · 700">
+  {sample}
+</Row>
+
+## Semibold
+
+<Row token="semibold-16" spec="16px · 150% · 600">
+  {sample}
+</Row>
+<Row token="semibold-14" spec="14px · 150% · 600">
+  {sample}
+</Row>
+
+## Medium
+
+<Row token="medium-16" spec="16px · 150% · 500">
+  {sample}
+</Row>
+<Row token="medium-14" spec="14px · 140% · 500">
+  {sample}
+</Row>
+<Row token="medium-12" spec="12px · 150% · 500">
+  {sample}
+</Row>
