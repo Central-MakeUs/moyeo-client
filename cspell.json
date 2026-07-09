@@ -1,0 +1,25 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "autodocs",
+    "kakao",
+    "moyeo",
+    "moyeozo",
+    "shadcn",
+    "radix",
+    "lucide",
+    "clsx",
+    "tailwindcss",
+    "vaul"
+  ],
+  "ignorePaths": [
+    "node_modules/**",
+    "**/.next/**",
+    "**/dist/**",
+    "**/storybook-static/**",
+    "**/*-lock.yaml",
+    "**/*.lock",
+    "**/*.woff2"
+  ]
+}
