@@ -1,0 +1,233 @@
+---
+name: test-scenarios
+description: >
+  GitHub 이슈 단위로 "시그니처 확정 → 테스트 시나리오 도출"을 순서대로 처리하는 스킬.
+  TDD로 테스트 코드를 작성하기 직전에, 무엇을 만들지(시그니처)와 무엇을 검증할지(시나리오)를
+  먼저 확정하는 준비 단계다.
+
+  사용자가 다음과 같은 요청을 하면 반드시 사용한다.
+
+  * "/test-scenarios 1" 처럼 이슈 번호와 함께 호출할 때
+  * "이슈 1번 시그니처 잡아줘"
+  * "테스트 시나리오 만들어줘"
+  * "이 기능 시그니처 확정하고 시나리오 뽑아줘"
+  * "TDD 시작 전에 시나리오 정리해줘"
+
+  사용자가 명시적으로 스킬 이름을 말하지 않아도 "특정 이슈를 구현하기 전에
+  시그니처/시나리오를 정리하는 맥락"이 감지되면 적극적으로 사용한다.
+
+  이 스킬은 구현 코드와 테스트 코드를 절대 작성하지 않는다.
+  시그니처(타입/함수/Props)와 시나리오(자연어)만 산출한다.
+---
+
+# Test Scenarios
+
+GitHub 이슈 하나를 입력받아 **시그니처를 확정**하고 **테스트 시나리오를 도출**하는
+2단계 파이프라인이다. 이후 TDD(Red → Green → Refactor)로 테스트 코드와 구현을
+작성할 때, 이 산출물이 단일 기준점이 된다.
+
+```
+GitHub Issue #N + prd.md + 코드베이스
+    ↓ 1단계 — 시그니처 확정
+issue-{N}.md 상단 (타입/함수/Props/에러 케이스)
+    ↓ 2단계 — 시나리오 도출
+issue-{N}.md 하단 (정상/경계/예외 시나리오)
+```
+
+**입력**: 이슈 번호 (`$ARGUMENTS`) — 예: `/test-scenarios 1` → 이슈 #1
+
+각 단계 끝에 `[GATE]`가 있다. 게이트는 **사용자 승인 없이 절대 넘어가지 않는다.**
+시그니처가 틀리면 시나리오가 틀리고, 시나리오가 틀리면 테스트 코드 전체가
+잘못된 전제 위에 쌓인다. 그래서 두 번 멈춰 확인한다.
+
+**절대 하지 않는 것**: 구현 코드 작성, 테스트 코드 작성.
+이 스킬의 산출물은 시그니처(타입 선언)와 시나리오(자연어 문장)뿐이다.
+
+---
+
+## 1단계: 시그니처 확정
+
+### 목적
+
+"무엇을 만들 것인가"를 코드 형태의 타입 선언으로 고정한다.
+함수 본문은 비우고(`// 구현 예정`), 시그니처만 확정한다.
+
+### 진행 방법
+
+먼저 입력을 모은다. 세 곳을 모두 읽는다.
+
+1. **GitHub 이슈** — `gh issue view $ARGUMENTS` 로 설명·구현 범위·AC를 읽는다.
+2. **PRD/기능 문서** — `docs/features/{feature}/prd.md` 또는 해당 기능 디렉터리(`docs/features/CRT-02/F01`, `docs/features/CRT-02/F02` 등)의 이슈·스펙 문서를 읽는다.
+   특히 캘린더 선택 정책, WebView 모바일 폭, 디자인 참고, 에러/비활성 상태 등 시그니처에 영향을 주는 결정을 확인한다.
+3. **코드베이스** — 기존 패턴을 따르기 위해 관련 파일을 읽는다.
+
+### 기존 패턴 (반드시 따를 것)
+
+새 시그니처는 코드베이스의 기존 컨벤션과 일관되어야 한다.
+
+- **FSD 위치**: 실제 서비스 UI는 `apps/web/src` 아래 `_pages → widgets → features → entities → shared` 방향을 따른다. shared primitive를 고칠지, feature/page 조립에서 감쌀지 먼저 정한다.
+- **API 함수**: 아직 공통 API 클라이언트는 미구현이다. 필요하면 `apps/web/src/shared/api/` 또는 도메인 slice의 `api`로 둘지 별도 결정한다.
+- **커스텀 훅**: `use` 접두어를 쓰고, 상태 + 액션 함수를 객체로 반환한다. 로직은 훅/모델에, 렌더링은 컴포넌트에 둔다.
+- **컴포넌트 Props**: `<ComponentName>Props` 인터페이스로 선언,
+  이벤트 prop은 `on + 동사`(`onAdd`, `onRemove`), 불리언은 `is` 접두어.
+- **도메인 타입**: 방/일정 관련 타입은 `entities/room` 또는 `@repo/types` 사용 여부를 기존 패턴에 맞춰 판단한다.
+- **캘린더 primitive**: `apps/web/src/shared/ui/primitives/calendar/` 는 `react-day-picker` 래퍼다. range/single/multiple mode, 날짜 버튼 상태, 접근성 role/aria를 시그니처에 반영한다.
+- **테스트 방식**: 검증은 Vitest + React Testing Library로 대상과 같은 폴더의 `*.test.ts(x)` 에 작성한다. **Storybook은 테스트가 아니라 PM/디자이너용 컴포넌트 상태 문서**다. 그러니 시나리오가 unit test하기 쉽도록 **로직을 순수함수/훅으로 추출**하는 방향(로직=훅/모델, 렌더링=컴포넌트)으로 시그니처를 설계한다.
+
+### 산출 항목
+
+확정할 시그니처는 다음을 포함한다 (이슈에 해당하는 것만).
+
+- **함수 시그니처**: 이름, 파라미터 타입, 반환 타입
+- **에러 케이스**: 어떤 상황에서 throw 하는지, 혹은 조용히 early return 하는지
+  (PRD의 에러 처리 결정을 따른다)
+- **컴포넌트 Props 타입**: prop 이름, 타입, 이벤트 핸들러 시그니처
+- **타입 변경**: 도메인 타입 또는 컴포넌트 Props에 추가/수정되는 필드
+
+> 함수 본문은 작성하지 않는다. `function selectRangeDay(day: Date): void { /* 구현 예정 */ }`
+> 처럼 시그니처만 드러낸다.
+
+### 게이트
+
+확정한 시그니처를 **개발자에게 보여주고 검토·승인을 받는다.**
+
+```
+[GATE] 사용자가 시그니처를 승인할 때까지 2단계로 넘어가지 않는다.
+```
+
+승인되면 `docs/features/{feature}/issue-{N}.md` **상단**에 기록한다.
+(`{N}`은 입력받은 이슈 번호. 파일이 없으면 새로 만들고, 있으면 상단 시그니처 섹션을 갱신한다.)
+
+```markdown
+# Issue #{N}: <이슈 제목>
+
+## 확정된 시그니처
+
+### 타입
+
+\`\`\`typescript
+// apps/web/src/shared/ui/primitives/calendar/calendar.tsx
+interface CalendarProps {
+mode?: 'single' | 'multiple' | 'range';
+selected?: Date | Date[] | { from?: Date; to?: Date };
+onSelect?: (value: Date | Date[] | { from?: Date; to?: Date } | undefined) => void;
+}
+\`\`\`
+
+### 함수 / 훅
+
+\`\`\`typescript
+// apps/web/src/shared/ui/primitives/calendar/use-calendar-range.ts
+function useCalendarRange(): {
+selectedRange: { from?: Date; to?: Date };
+selectDay: (day: Date) => void;
+};
+\`\`\`
+
+### 컴포넌트 Props
+
+\`\`\`typescript
+interface CalendarRangeLabelProps {
+from?: Date;
+to?: Date;
+}
+\`\`\`
+```
+
+---
+
+## 2단계: 테스트 시나리오 도출
+
+### 목적
+
+확정된 시그니처를 기준으로 "무엇을 검증할 것인가"를 자연어 시나리오로 나열한다.
+각 시나리오는 이후 하나의 테스트 케이스(`it(...)`)로 1:1 변환된다.
+
+> 테스트 코드는 작성하지 않는다. 자연어 문장만 도출한다.
+
+### 분류
+
+각 시나리오를 세 범주로 분류한다.
+
+- **정상(happy path)**: 유효한 입력에 대한 기대 동작
+- **경계(boundary)**: 최대값, 최소값, 빈 값, 경계선 직전/직후
+- **예외(exception)**: 유효성 위반, 에러 발생, 거부되는 입력
+
+### 형식
+
+각 시나리오는 아래 한 줄 형식을 따른다.
+
+```
+[정상/경계/예외] 함수명 — should [기대동작] when [조건]
+```
+
+**예시:**
+
+```
+[정상] Calendar — should set range from and to when user selects July 10 then July 12
+[경계] Calendar — should restart range when user selects July 14 after completed July 10-12 range
+[예외] Calendar — should not select disabled day when disabled date is before today
+```
+
+조건과 기대동작에는 시그니처에서 확정한 구체적 값(타입·개수·반환값)을 쓴다.
+`정상적으로`, `올바르게` 같은 모호어는 쓰지 않는다 — 테스트로 변환 불가능하기 때문이다.
+
+### AC 커버리지 대조
+
+시나리오를 도출한 뒤, **이슈의 AC를 빠짐없이 커버하는지** 확인한다.
+
+1. `gh issue view $ARGUMENTS` 로 AC 목록을 다시 읽는다.
+2. 각 AC가 **최소 1개 이상의 시나리오**로 커버되는지 대조한다.
+3. 커버되지 않은 AC가 있으면 해당 시나리오를 추가한다.
+4. 어떤 시나리오가 어떤 AC를 커버하는지 매핑을 함께 보여준다.
+
+### 산출
+
+도출한 시나리오를 `docs/features/{feature}/issue-{N}.md` **하단**에 추가한다.
+
+```markdown
+## 테스트 시나리오
+
+### 정상
+
+- [ ] [정상] Calendar — should ... when ...
+
+### 경계
+
+- [ ] [경계] Calendar — should ... when ...
+
+### 예외
+
+- [ ] [예외] Calendar — should ... when ...
+
+## AC 커버리지
+
+| AC   | 커버하는 시나리오            |
+| ---- | ---------------------------- |
+| AC-1 | [정상] Calendar — should ... |
+| AC-2 | [경계] ...                   |
+```
+
+### 게이트
+
+완성된 시나리오를 **개발자에게 보여주고 검토·승인을 받는다.**
+
+```
+[GATE] 사용자가 시나리오를 승인할 때까지 종료하지 않는다.
+       (이후 TDD 단계는 별도. 이 스킬은 시나리오 승인까지만 책임진다.)
+```
+
+---
+
+## 요약 체크리스트
+
+스킬 실행 중 아래를 지킨다.
+
+- [ ] 입력 이슈 번호(`$ARGUMENTS`)로 `gh issue view` 실행했는가
+- [ ] prd.md와 관련 코드베이스를 읽고 기존 패턴을 반영했는가
+- [ ] 시그니처를 보여주고 **승인**받은 뒤에야 파일에 기록했는가 (게이트 1)
+- [ ] 구현 코드를 작성하지 않았는가
+- [ ] 시나리오를 정상/경계/예외로 분류했는가
+- [ ] 모든 AC가 시나리오로 커버되는지 대조했는가
+- [ ] 테스트 코드를 작성하지 않았는가
+- [ ] 시나리오를 보여주고 **승인**받았는가 (게이트 2)
