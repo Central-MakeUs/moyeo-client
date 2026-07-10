@@ -11,7 +11,13 @@
     "lucide",
     "clsx",
     "tailwindcss",
-    "vaul"
+    "vaul",
+    "turborepo",
+    "steiger",
+    "ncdai",
+    "expo",
+    "zustand",
+    "tanstack"
   ],
   "ignorePaths": [
     "node_modules/**",
