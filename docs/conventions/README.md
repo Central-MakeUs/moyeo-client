@@ -26,8 +26,8 @@ pnpm dev         # web(:3000) + docs(:3001)
 pnpm build       # 전체 빌드
 pnpm lint        # 린트
 pnpm typecheck   # 타입 체크
-pnpm test        # 테스트
 pnpm format      # 포맷 정리
+# pnpm test — 아직 미연결 (테스트 하네스 이슈 후 활성)
 ```
 
 **커밋 메시지**
