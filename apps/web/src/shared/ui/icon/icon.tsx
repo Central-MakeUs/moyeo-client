@@ -6,6 +6,8 @@ import Caret from '@/shared/assets/icons/caret.svg';
 import Check from '@/shared/assets/icons/check.svg';
 import Chevron from '@/shared/assets/icons/chevron.svg';
 import Close from '@/shared/assets/icons/close.svg';
+import Envelope from '@/shared/assets/icons/envelope.svg';
+import Link from '@/shared/assets/icons/link.svg';
 import Minus from '@/shared/assets/icons/minus.svg';
 import Plus from '@/shared/assets/icons/plus.svg';
 
@@ -14,6 +16,8 @@ const ICONS = {
   check: Check,
   chevron: Chevron,
   close: Close,
+  envelope: Envelope,
+  link: Link,
   minus: Minus,
   plus: Plus,
 } as const;
