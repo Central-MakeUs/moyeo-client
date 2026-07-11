@@ -2,12 +2,12 @@ import * as React from 'react';
 
 import { cn } from '@/shared/lib/cn';
 
-import Caret from './assets/caret.svg';
-import Check from './assets/check.svg';
-import Chevron from './assets/chevron.svg';
-import Close from './assets/close.svg';
-import Minus from './assets/minus.svg';
-import Plus from './assets/plus.svg';
+import Caret from '@/shared/assets/icons/caret.svg';
+import Check from '@/shared/assets/icons/check.svg';
+import Chevron from '@/shared/assets/icons/chevron.svg';
+import Close from '@/shared/assets/icons/close.svg';
+import Minus from '@/shared/assets/icons/minus.svg';
+import Plus from '@/shared/assets/icons/plus.svg';
 
 const ICONS = {
   caret: Caret,
