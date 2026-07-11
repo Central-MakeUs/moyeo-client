@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { DraggableCalendar, type DraggableCalendarProps } from './draggable-calendar';
@@ -104,5 +104,76 @@ describe('DraggableCalendar', () => {
 
     await userEvent.click(screen.getByText('20'));
     expect(selectedDays(container)).toHaveLength(2);
+  });
+});
+
+describe('DraggableCalendar — 드래그 페인트 (Issue 2)', () => {
+  const cell = (n: number) => screen.getByText(String(n));
+  const dayNums = (dates: Date[]) => dates.map((x) => x.getDate()).sort((a, b) => a - b);
+
+  it('should call onChange with [7/09..7/13] when pointer-dragging 7/09→7/13', () => {
+    const onChange = vi.fn();
+    render(<MonthHarness value={[]} onChange={onChange} />);
+
+    fireEvent.pointerDown(cell(9));
+    fireEvent.pointerEnter(cell(13));
+    fireEvent.pointerUp(cell(13));
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(dayNums(onChange.mock.calls[0][0])).toEqual([9, 10, 11, 12, 13]);
+  });
+
+  it('should allow the next tap to toggle immediately after a drag commit', async () => {
+    const { container } = render(<StatefulHarness />);
+
+    fireEvent.pointerDown(cell(9));
+    fireEvent.pointerEnter(cell(13));
+    fireEvent.pointerUp(cell(13));
+
+    await new Promise((resolve) => window.setTimeout(resolve, 0));
+    await userEvent.click(cell(15));
+
+    const selectedNums = [...selectedDays(container)]
+      .map((button) => Number(button.textContent))
+      .sort((a, b) => a - b);
+    expect(selectedNums).toEqual([9, 10, 11, 12, 13, 15]);
+  });
+
+  it('should mark 7/09~7/13 cells data-selected during active drag before pointerup', () => {
+    const { container } = render(<MonthHarness value={[]} onChange={vi.fn()} />);
+
+    fireEvent.pointerDown(cell(9));
+    fireEvent.pointerEnter(cell(13));
+
+    const previewNums = [...container.querySelectorAll('button[data-selected="true"]')]
+      .map((b) => Number(b.textContent))
+      .sort((a, b) => a - b);
+    expect(previewNums).toEqual([9, 10, 11, 12, 13]);
+  });
+
+  it('should cancel the drag (no onChange, no selection change) when the pointer leaves the calendar area mid-drag', () => {
+    const onChange = vi.fn();
+    const { container } = render(<MonthHarness value={[]} onChange={onChange} />);
+
+    fireEvent.pointerDown(cell(9));
+    fireEvent.pointerEnter(cell(13));
+    fireEvent.pointerLeave(container.firstChild as Element);
+
+    expect(container.querySelectorAll('button[data-selected="true"]')).toHaveLength(0);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('should not resume a canceled drag when the pointer re-enters a cell', () => {
+    const onChange = vi.fn();
+    const { container } = render(<MonthHarness value={[]} onChange={onChange} />);
+
+    fireEvent.pointerDown(cell(9));
+    fireEvent.pointerEnter(cell(13));
+    fireEvent.pointerLeave(container.firstChild as Element); // 취소
+    fireEvent.pointerEnter(cell(15)); // 재진입 — 재개되면 안 됨
+    fireEvent.pointerUp(cell(15));
+
+    expect(container.querySelectorAll('button[data-selected="true"]')).toHaveLength(0);
+    expect(onChange).not.toHaveBeenCalled();
   });
 });
