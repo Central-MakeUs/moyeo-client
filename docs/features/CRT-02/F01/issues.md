@@ -40,7 +40,7 @@
 
 - `shared/ui/primitives/calendar/draggable-calendar.tsx` (신규) — `Calendar` primitive를 `mode="multiple"`로 감싼 제어 컴포넌트
 - 제어 API: `value: Date[]`, `onChange`, `isDateDisabled?`, `month?`, `onMonthChange?`
-- ISO 직렬화 유틸: `toScheduleCandidateDates(dates: Date[]): string[]` (`shared/lib` 또는 동일 폴더)
+- ISO 직렬화 유틸: `toScheduleCandidateDates(dates: Date[]): string[]` (`features/room/create-room/model`)
 - Storybook 스토리(`draggable-calendar.stories.tsx`)
 
 ### 완료 조건 (Acceptance Criteria)

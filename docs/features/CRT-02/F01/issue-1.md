@@ -33,7 +33,7 @@ function DraggableCalendar(props: DraggableCalendarProps): React.JSX.Element {
 ### 산출 유틸 (colocate)
 
 ```typescript
-// apps/web/src/shared/ui/primitives/calendar/to-schedule-candidate-dates.ts
+// apps/web/src/features/room/create-room/model/to-schedule-candidate-dates.ts
 
 /**
  * Date[] → 오름차순 ISO 'yyyy-MM-dd' 문자열 배열.
