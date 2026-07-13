@@ -1,8 +1,10 @@
 import type { StorybookConfig } from '@storybook/nextjs-vite';
-
-import { dirname } from 'path';
+import remarkGfm from 'remark-gfm';
+import { dirname, resolve } from 'path';
 
 import { fileURLToPath } from 'url';
+import { mergeConfig } from 'vite';
+import svgr from 'vite-plugin-svgr';
 
 /**
  * This function is used to resolve the absolute path of a package.
@@ -17,9 +19,44 @@ const config: StorybookConfig = {
     getAbsolutePath('@chromatic-com/storybook'),
     getAbsolutePath('@storybook/addon-vitest'),
     getAbsolutePath('@storybook/addon-a11y'),
-    getAbsolutePath('@storybook/addon-docs'),
+    {
+      name: getAbsolutePath('@storybook/addon-docs'),
+      options: {
+        mdxPluginOptions: {
+          mdxCompileOptions: {
+            remarkPlugins: [remarkGfm],
+          },
+        },
+      },
+    },
   ],
-  framework: getAbsolutePath('@storybook/nextjs-vite'),
+  framework: {
+    name: getAbsolutePath('@storybook/nextjs-vite'),
+    options: {
+      image: {
+        excludeFiles: ['**/*.svg'],
+      },
+    },
+  },
   staticDirs: ['..\\public'],
+  viteFinal: async (viteConfig) => {
+    const config = mergeConfig(viteConfig, {
+      resolve: {
+        alias: {
+          '@': resolve(dirname(fileURLToPath(import.meta.url)), '../src'),
+        },
+      },
+    });
+
+    config.plugins = [
+      svgr({
+        include: '**/*.svg',
+        svgrOptions: { svgo: false },
+      }),
+      ...(config.plugins ?? []),
+    ];
+
+    return config;
+  },
 };
 export default config;

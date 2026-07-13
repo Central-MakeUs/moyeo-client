@@ -80,6 +80,12 @@ const guideSteps = [
     title: 'Server state management',
     detail: 'TanStack Query provider, devtools, ESLint plugin',
   },
+  {
+    href: '/icon-system',
+    index: '14',
+    title: 'Icon system',
+    detail: 'SVG registry, accessibility, Storybook MDX troubleshooting',
+  },
 ];
 
 export default function Home() {
