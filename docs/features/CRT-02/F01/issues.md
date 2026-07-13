@@ -7,7 +7,7 @@
 
 - **컴포넌트 위치**: `apps/web/src/shared/ui/primitives/calendar/` (래퍼 `draggable-calendar.tsx`, 훅 `use-drag-select.ts`)
 - **AC 범위 라벨**: `단위`(renderHook/순수함수) | `통합`(render + pointer 인터랙션, Vitest + Playwright 브라우저 모드)
-- **`maxRangeDays=21`** = `max - min` 일수 차 ≤ 20 (연속 최대 21칸). [`spec-fixed.md` §3-2](./spec-fixed.md)
+- **`maxSelectedDays=21`** = 선택된 날짜 **개수 ≤ 21** (스팬 아님). [`spec-fixed.md` §3-2](./spec-fixed.md)
 - **날짜 표기**: AC 내 `7/9`는 표시 월 컨텍스트의 `2026-07-09`.
 - **비활성 주입**: `isDateDisabled`로 주입. AC마다 "오늘" 기준을 Given에 명시.
 
@@ -18,7 +18,7 @@
       ↓
 #2 드래그 페인트(선택/해제 양방향)              (useDragSelect)
       ↓
-#3 3주 스팬 제한 + 시작점 clamp + onRangeExceeded
+#3 최대 21일 개수 제한 + anchor부터 채우고 자르기 + onLimitExceeded
       ↓
 #4 연속 런 세그먼트 렌더링(밴드/강조/단독)
       ↓
@@ -112,56 +112,62 @@ Then `onChange`가 `[7/09,7/10,7/11,7/12,7/13]`로 호출되고, 드래그 중 �
 
 ---
 
-## Issue 3: [feat] 3주 스팬 제한 · 시작점 clamp · onRangeExceeded
+## Issue 3: [feat] 최대 21일 개수 제한 · anchor부터 채우고 자르기 · onLimitExceeded
 
 ### 설명
 
-선택 스팬이 3주(21칸)를 넘지 못하게 제한한다. 초과 드래그는 시작점 기준 3주까지만 잡고, 초과가 발생하면 안내 콜백을 1회 부른다.
+선택된 날짜 **개수**가 21을 넘지 못하게 제한한다(스팬 아님 — 떨어져 있어도 개수만 21 이하면 허용). 초과 드래그는 anchor부터 채워 21개까지만 잡고, 초과가 발생하면 안내 콜백을 1회 부른다.
 
 ### 구현 범위
 
-- `use-drag-select.ts` — `maxRangeDays` clamp 로직(**anchor 기준**, `min` 기준 아님), 탭 선택에도 제한 적용
-- `draggable-calendar.tsx` — `maxRangeDays?`, `onRangeExceeded?` prop 추가
+- `is-within-max-count.ts` — 순수 헬퍼 `isWithinMaxCount(dates, maxCount)`(colocate)
+- `use-drag-select.ts` — `maxSelectedDays` clamp 로직(**anchor부터 채우고 자르기**, 기존 `value` 개수도 예산에 반영)
+- `draggable-calendar.tsx` — `maxSelectedDays?`, `onLimitExceeded?` prop 추가, 탭 선택에도 개수 제한 적용
 
 ### clamp 규칙 (중요)
 
 - **anchor** = 드래그 시작(pointerdown) 셀. **항상 보존된다.**
-- 허용 창 = anchor 포함, **드래그 방향으로 최대 21칸**(`max-min ≤ 20`, 캘린더 날짜 기준. 비활성 셀도 스팬에는 포함).
-- current가 창을 벗어나면 **anchor 반대편(current 쪽 끝)에서 자른다.**
-- ⚠ `min(선택)` 기준으로 clamp하면 역방향 드래그에서 anchor가 잘려 **오구현**이다. 반드시 anchor 기준.
+- anchor에서 **드래그 방향으로** 훑으며, 전체 선택(기존 `value` + 이번 드래그) **개수가 21이 될 때까지만** 추가하고, 그 뒤(움직이는 끝)를 자른다.
+- 이미 선택돼 있던 날짜는 개수를 늘리지 않는다(중복 미포함). 비활성 셀은 애초에 선택되지 않으므로 개수 미포함.
+- ⚠ 스팬(`max-min`) 기준으로 자르면 **오구현**이다. 반드시 **개수(count)** 기준.
 
 ### 완료 조건 (Acceptance Criteria)
 
-☐ AC-1 정방향 clamp (범위: 단위):
-Given `useDragSelect({ value: [], maxRangeDays: 21 })`, anchor `7/01`
+☐ AC-1 정방향 채우기 (범위: 단위):
+Given `useDragSelect({ value: [], maxSelectedDays: 21 })`, anchor `7/01`
 When `start(7/01)` → `enter(7/25)` → `commit()`
-Then 결과가 `7/01 ~ 7/21`(21칸)까지만 선택되고 `7/22~7/25`는 제외된다 (`max-min`=20)
+Then 결과가 `7/01 ~ 7/21`(21개)까지만 선택되고 `7/22~7/25`는 제외된다
 
-☐ AC-2 역방향 clamp — anchor 보존 (범위: 단위):
-Given `useDragSelect({ value: [], maxRangeDays: 21 })`, anchor `7/25`
+☐ AC-2 역방향 채우기 — anchor 보존 (범위: 단위):
+Given `useDragSelect({ value: [], maxSelectedDays: 21 })`, anchor `7/25`
 When `start(7/25)` → `enter(7/01)` → `commit()`
-Then 결과가 `7/05 ~ 7/25`(21칸)까지만 선택되고 `7/01~7/04`는 제외된다.
-그리고 anchor `7/25`가 **반드시 선택에 포함**된다 (min 기준 clamp면 `7/25`가 잘려 실패)
+Then 결과가 `7/05 ~ 7/25`(21개)까지만 선택되고 `7/01~7/04`는 제외된다.
+그리고 anchor `7/25`가 **반드시 선택에 포함**된다
 
 ☐ AC-3 초과 안내 1회 (범위: 단위):
-Given 위와 동일, `onRangeExceeded` 콜백 주입
-When 3주를 초과하는 드래그를 커밋한다
-Then `onRangeExceeded`가 **정확히 1회** 호출된다 (제스처당 1회, 중복 없음)
+Given 위와 동일, `onLimitExceeded` 콜백 주입
+When 21개를 초과하는 드래그를 커밋한다
+Then `onLimitExceeded`가 **정확히 1회** 호출된다 (제스처당 1회, 중복 없음)
 
-☐ AC-4 탭 스팬 제한 (범위: 단위):
-Given `value=[Date(2026-07-01)]`, `maxRangeDays=21`
-When 사용자가 `7/23`을 탭 선택한다 (기존 선택과 스팬 22칸)
-Then 선택이 추가되지 않고 `onRangeExceeded`가 1회 호출된다 (탭도 스팬 제한 적용)
+☐ AC-4 탭 개수 제한 (범위: 단위):
+Given `value`에 이미 21개 선택됨(`7/01~7/21`), `maxSelectedDays=21`
+When 사용자가 `7/23`을 탭 선택한다 (추가 시 22개)
+Then 선택이 추가되지 않고 `onLimitExceeded`가 1회 호출된다 (탭도 개수 제한 적용)
 
 ☐ AC-5 무제한 (범위: 단위):
-Given `value=[]`, `maxRangeDays` 미주입(무제한)
-When `start(7/01)` → `enter(8/15)` (같은 뷰 가정) → `commit()`
-Then 스팬 제한 없이 전체가 선택되고 `onRangeExceeded`는 호출되지 않는다 (prop 없으면 무제한)
+Given `value=[]`, `maxSelectedDays` 미주입(무제한)
+When `start(7/01)` → `enter(7/31)` → `commit()`
+Then 개수 제한 없이 전체(31개)가 선택되고 `onLimitExceeded`는 호출되지 않는다 (prop 없으면 무제한)
 
 ☐ AC-6 통합 (범위: 통합):
-Given `maxRangeDays=21`, `onRangeExceeded` mock, anchor `7/01`
+Given `maxSelectedDays=21`, `onLimitExceeded` mock, anchor `7/01`
 When `7/01`→`7/25` 드래그 후 pointerup
-Then `onChange`가 `7/01~7/21`로 호출되고 `onRangeExceeded` mock이 1회 불린다
+Then `onChange`가 `7/01~7/21`로 호출되고 `onLimitExceeded` mock이 1회 불린다
+
+☐ AC-7 기존 선택 예산 소진 (범위: 단위):
+Given `useDragSelect({ value: [7/01], maxSelectedDays: 21, onLimitExceeded })`, anchor `7/05`
+When `start(7/05)` → `enter(7/25)` → `commit()`
+Then 결과가 `[7/01, 7/05~7/24]`(21개)가 되고 `7/25`는 잘리며 `onLimitExceeded`가 1회 호출된다
 
 ---
 
@@ -234,19 +240,19 @@ Then 지나간 연속 셀 `7/09~7/18`이 빠짐없이 대상에 포함된다 (�
 
 ### 설명
 
-`DraggableCalendar`를 모임 생성(CRT-02) 화면에 장착해, `maxRangeDays=21`·`isDateDisabled`(오늘 이전)를 주입하고 선택 결과를 `scheduleCandidateDates`로 보유하며 초과 안내를 토스트로 연결한다. (F01의 사용자 대면 종착점)
+`DraggableCalendar`를 모임 생성(CRT-02) 화면에 장착해, `maxSelectedDays=21`·`isDateDisabled`(오늘 이전)를 주입하고 선택 결과를 `scheduleCandidateDates`로 보유하며 초과 안내를 토스트로 연결한다. (F01의 사용자 대면 종착점)
 
 ### 구현 범위
 
 - `features/room/create-room` (또는 CRT-02 화면 슬라이스) — `DraggableCalendar` 장착, 로컬 상태(`Date[]`)
-- `isDateDisabled = d => d < today`(오늘/서버 시간 기준), `maxRangeDays={21}`
-- `onRangeExceeded` → 토스트 트리거 (공용 토스트 시스템은 Out of Scope → 간이 알림/mock 연결, 실제 토스트는 후속)
+- `isDateDisabled = d => d < today`(오늘/서버 시간 기준), `maxSelectedDays={21}`
+- `onLimitExceeded` → 토스트 트리거 (공용 토스트 시스템은 Out of Scope → 간이 알림/mock 연결, 실제 토스트는 후속)
 - 산출: `scheduleCandidateDates: string[]` (payload 조립은 F02)
 
 ### 완료 조건 (Acceptance Criteria)
 
 ☐ AC-1 (범위: 통합):
-Given CRT-02 화면에 `DraggableCalendar`가 `maxRangeDays=21`, 오늘 `2026-07-10`로 장착됨
+Given CRT-02 화면에 `DraggableCalendar`가 `maxSelectedDays=21`, 오늘 `2026-07-10`로 장착됨
 When 사용자가 `7/12`~`7/14`를 드래그 선택한다
 Then 화면 상태 `scheduleCandidateDates`가 `["2026-07-12","2026-07-13","2026-07-14"]`이다
 
@@ -257,8 +263,8 @@ Then 선택되지 않고 `scheduleCandidateDates`가 변하지 않는다
 
 ☐ AC-3 (범위: 통합):
 Given 위 화면, `7/01` 시작
-When 사용자가 3주를 초과해 `7/25`까지 드래그한다
-Then `scheduleCandidateDates`가 `7/01~7/21`로 채워지고, 안내(토스트/알림)가 1회 노출된다
+When 사용자가 21일을 초과해 `7/25`까지 드래그한다
+Then `scheduleCandidateDates`가 `7/01~7/21`(21개)로 채워지고, 안내(토스트/알림)가 1회 노출된다
 
 ---
 
@@ -277,7 +283,7 @@ gh issue create --title "[F01] DraggableCalendar 탭 토글·제어 API·비활�
 | ---- | ----------------------------------------------------- | -------- |
 | #1   | 탭으로 여러 날짜 선택/해제, 비활성 제외, 월 이동 유지 | ✅       |
 | #2   | 드래그로 연속 날짜를 한 번에 칠하고 다시 지움         | ✅       |
-| #3   | 3주 초과 시 자동 컷 + 안내                            | ✅       |
+| #3   | 21일 초과 시 자동 컷 + 안내                           | ✅       |
 | #4   | 연속 선택이 밴드로 연결, 단독은 알약                  | ✅       |
 | #5   | 모바일에서 스크롤 방해 없이 터치 드래그 선택          | ✅       |
 | #6   | 모임 생성 화면에서 후보 날짜가 실제로 담김            | ✅       |
