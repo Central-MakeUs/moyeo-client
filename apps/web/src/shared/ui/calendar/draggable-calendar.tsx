@@ -3,6 +3,7 @@ import { isSameDay } from 'date-fns';
 
 import { Calendar } from './calendar';
 import { CalendarDayButton } from './calendar-button';
+import { isWithinMaxCount } from './is-within-max-count';
 import { useDragSelect } from './use-drag-select';
 
 export interface DraggableCalendarProps {
@@ -17,6 +18,10 @@ export interface DraggableCalendarProps {
   /** 표시 월 변경 시 호출. */
   onMonthChange?: (month: Date) => void;
   className?: string;
+  /** 최대 선택 가능 일수(개수). 미주입=무제한. */
+  maxSelectedDays?: number;
+  /** 개수 초과(드래그 clamp / 탭 거부) 시 제스처당 1회 호출. */
+  onLimitExceeded?: () => void;
 }
 
 export function DraggableCalendar({
@@ -26,8 +31,10 @@ export function DraggableCalendar({
   month,
   onMonthChange,
   className,
+  maxSelectedDays,
+  onLimitExceeded,
 }: DraggableCalendarProps): React.JSX.Element {
-  const drag = useDragSelect({ value, isDateDisabled });
+  const drag = useDragSelect({ value, isDateDisabled, maxSelectedDays, onLimitExceeded });
   const anchorRef = React.useRef<Date | null>(null);
   const movedRef = React.useRef(false);
   const suppressClickRef = React.useRef(false);
@@ -60,12 +67,17 @@ export function DraggableCalendar({
     }, 0);
   };
 
-  // 드래그 취소 — 커밋 없이 상태를 되돌린다(포인터가 캘린더 영역을 벗어날 때).
-  const cancelDrag = () => {
-    drag.cancel();
+  // 포인터 추적 상태 초기화 — cancelDrag/onPointerUp 공통.
+  const resetPointerTracking = () => {
     anchorRef.current = null;
     movedRef.current = false;
     setIsDraggingMoved(false);
+  };
+
+  // 드래그 취소 — 커밋 없이 상태를 되돌린다(포인터가 캘린더 영역을 벗어날 때).
+  const cancelDrag = () => {
+    drag.cancel();
+    resetPointerTracking();
   };
 
   return (
@@ -76,6 +88,7 @@ export function DraggableCalendar({
     >
       <Calendar
         mode="multiple"
+        showOutsideDays={false}
         selected={isDraggingMoved ? drag.previewValue : value}
         // 탭(click)은 RDP onSelect로 처리. 드래그 종료 직후의 click은 무시한다.
         onSelect={(next) => {
@@ -83,7 +96,13 @@ export function DraggableCalendar({
             clearSuppressedClick();
             return;
           }
-          onChange(next ?? []);
+          const nextValue = next ?? [];
+          // 탭으로 새 날짜를 추가할 때 개수 초과면 거부하고 알린다(제거·비초과는 통과).
+          if (maxSelectedDays !== undefined && !isWithinMaxCount(nextValue, maxSelectedDays)) {
+            onLimitExceeded?.();
+            return;
+          }
+          onChange(nextValue);
         }}
         disabled={isDateDisabled}
         month={month}
@@ -116,9 +135,7 @@ export function DraggableCalendar({
                     suppressNextClick(); // 드래그 뒤 같은 이벤트 흐름의 click만 무시
                   }
                   // 단일 셀(탭)이면 pointer 경로는 아무것도 안 하고 click(onSelect)이 처리.
-                  anchorRef.current = null;
-                  movedRef.current = false;
-                  setIsDraggingMoved(false);
+                  resetPointerTracking();
                 }}
               />
             );

@@ -9,6 +9,10 @@ export interface UseDragSelectParams {
   value: Date[];
   /** 비활성 판정. 드래그 범위에 들어와도 결과에서 제외한다. 미주입 시 전부 활성. */
   isDateDisabled?: (date: Date) => boolean;
+  /** 최대 선택 가능 일수(개수). 미주입=무제한. 초과 드래그는 anchor부터 채우고 나머지를 자른다. */
+  maxSelectedDays?: number;
+  /** 드래그 커밋이 개수 제한으로 잘리면 제스처당 1회 호출(토스트 트리거). */
+  onLimitExceeded?: () => void;
 }
 
 export interface UseDragSelectResult {
@@ -28,7 +32,12 @@ export interface UseDragSelectResult {
 
 const includesDate = (dates: Date[], day: Date) => dates.some((x) => isSameDay(x, day));
 
-export function useDragSelect({ value, isDateDisabled }: UseDragSelectParams): UseDragSelectResult {
+export function useDragSelect({
+  value,
+  isDateDisabled,
+  maxSelectedDays,
+  onLimitExceeded,
+}: UseDragSelectParams): UseDragSelectResult {
   // anchor/current는 ref — 같은 pointer 제스처(down→up) 안에서 동기적으로 읽어야 하므로
   // state 대신 ref를 쓴다(핸들러 stale closure 회피). 미리보기 재렌더는 forceRender로 유발.
   const anchorRef = useRef<Date | null>(null);
@@ -37,24 +46,42 @@ export function useDragSelect({ value, isDateDisabled }: UseDragSelectParams): U
 
   const isDragging = anchorRef.current !== null;
 
-  // anchor~current 연속 날짜(min~max, 방향 무관), 비활성 제외.
-  const paintedDates = (): Date[] => {
+  // anchor→current 방향의 연속 활성 날짜(비활성 제외). anchor가 배열 앞(먼저 채워지는 쪽).
+  const paintRangeFromAnchor = (): Date[] => {
     const anchor = anchorRef.current;
     const current = currentRef.current;
     if (!anchor || !current) return [];
-    const [start, end] = anchor <= current ? [anchor, current] : [current, anchor];
-    return eachDayOfInterval({ start, end }).filter((day) => !isDateDisabled?.(day));
+    const forward = anchor <= current;
+    const [lo, hi] = forward ? [anchor, current] : [current, anchor];
+    const asc = eachDayOfInterval({ start: lo, end: hi }).filter((day) => !isDateDisabled?.(day));
+    return forward ? asc : asc.reverse();
   };
 
-  // 페인트 적용: select=value ∪ 범위(중복 없음), deselect=value − 범위.
-  const applyPaint = (): Date[] => {
-    const painted = paintedDates();
+  // select 페인트: value ∪ 범위. 단, 전체 개수 ≤ maxSelectedDays.
+  // anchor에서 먼 쪽부터 자르며, 실제로 새 날짜를 못 넣었으면 clamped=true.
+  const applySelect = (): { next: Date[]; clamped: boolean } => {
+    const result = [...value];
+    let clamped = false;
+    for (const day of paintRangeFromAnchor()) {
+      if (includesDate(result, day)) continue; // 이미 선택 → 개수 안 늘어남
+      if (maxSelectedDays !== undefined && result.length >= maxSelectedDays) {
+        clamped = true; // 예산 소진 후의 새 날짜 → 잘림
+        continue;
+      }
+      result.push(day);
+    }
+    return { next: result, clamped };
+  };
+
+  // 페인트 적용: select=개수 제한하며 합집합, deselect=value − 범위(제한 없음).
+  const applyPaint = (): { next: Date[]; clamped: boolean } => {
     const anchor = anchorRef.current;
     const mode: PaintMode = anchor !== null && includesDate(value, anchor) ? 'deselect' : 'select';
     if (mode === 'deselect') {
-      return value.filter((v) => !includesDate(painted, v));
+      const painted = paintRangeFromAnchor();
+      return { next: value.filter((v) => !includesDate(painted, v)), clamped: false };
     }
-    return [...value, ...painted.filter((p) => !includesDate(value, p))];
+    return applySelect();
   };
 
   const start = (day: Date) => {
@@ -78,7 +105,8 @@ export function useDragSelect({ value, isDateDisabled }: UseDragSelectParams): U
   };
 
   const commit = (): Date[] => {
-    const next = applyPaint();
+    const { next, clamped } = applyPaint();
+    if (clamped) onLimitExceeded?.();
     reset();
     return next;
   };
@@ -86,7 +114,7 @@ export function useDragSelect({ value, isDateDisabled }: UseDragSelectParams): U
   // 취소 = 커밋 없이 상태만 초기화.
   const cancel = reset;
 
-  const previewValue = isDragging ? applyPaint() : value;
+  const previewValue = isDragging ? applyPaint().next : value;
 
   return { isDragging, previewValue, start, enter, commit, cancel };
 }

@@ -120,7 +120,7 @@ describe('DraggableCalendar — 드래그 페인트 (Issue 2)', () => {
     fireEvent.pointerUp(cell(13));
 
     expect(onChange).toHaveBeenCalledTimes(1);
-    expect(dayNums(onChange.mock.calls[0][0])).toEqual([9, 10, 11, 12, 13]);
+    expect(dayNums(onChange.mock.calls[0]![0])).toEqual([9, 10, 11, 12, 13]);
   });
 
   it('should allow the next tap to toggle immediately after a drag commit', async () => {
@@ -175,5 +175,51 @@ describe('DraggableCalendar — 드래그 페인트 (Issue 2)', () => {
 
     expect(container.querySelectorAll('button[data-selected="true"]')).toHaveLength(0);
     expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
+describe('DraggableCalendar — 개수 제한 (Issue 3)', () => {
+  const cell = (n: number) => screen.getByText(String(n));
+  const dayNums = (dates: Date[]) => dates.map((x) => x.getDate()).sort((a, b) => a - b);
+  const range = (from: number, to: number) =>
+    Array.from({ length: to - from + 1 }, (_, i) => from + i);
+
+  it('should not add the tapped day and call onLimitExceeded once when tapping a new day given value already has 21 dates, maxSelectedDays=21', async () => {
+    const onChange = vi.fn();
+    const onLimitExceeded = vi.fn();
+    render(
+      <MonthHarness
+        value={range(1, 21).map((n) => d(n))} // 7/01..7/21 = 21개(한계)
+        onChange={onChange}
+        maxSelectedDays={21}
+        onLimitExceeded={onLimitExceeded}
+      />
+    );
+
+    await userEvent.click(cell(23)); // 새 날짜 추가 시도 → 22개
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(onLimitExceeded).toHaveBeenCalledTimes(1);
+  });
+
+  it('should call onChange with [7/01..7/21] and onLimitExceeded once when pointer-dragging 7/01→7/25, maxSelectedDays=21', () => {
+    const onChange = vi.fn();
+    const onLimitExceeded = vi.fn();
+    render(
+      <MonthHarness
+        value={[]}
+        onChange={onChange}
+        maxSelectedDays={21}
+        onLimitExceeded={onLimitExceeded}
+      />
+    );
+
+    fireEvent.pointerDown(cell(1));
+    fireEvent.pointerEnter(cell(25));
+    fireEvent.pointerUp(cell(25));
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(dayNums(onChange.mock.calls[0]![0])).toEqual(range(1, 21));
+    expect(onLimitExceeded).toHaveBeenCalledTimes(1);
   });
 });

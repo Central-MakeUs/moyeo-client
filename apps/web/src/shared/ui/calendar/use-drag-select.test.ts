@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 
 import { useDragSelect } from './use-drag-select';
@@ -157,5 +157,97 @@ describe('useDragSelect', () => {
 
     expect(result.current.isDragging).toBe(false);
     expect(days(result.current.previewValue)).toEqual([15]);
+  });
+
+  // --- Issue 3: 개수 제한(anchor부터 채우고 자르기) ---
+
+  it('should fill forward to [7/01..7/21] (21개) when anchor 7/01 then enter 7/25 then commit, maxSelectedDays=21', () => {
+    const { result } = renderHook(() => useDragSelect({ value: [], maxSelectedDays: 21 }));
+
+    let out: Date[] = [];
+    act(() => result.current.start(d(1)));
+    act(() => result.current.enter(d(25)));
+    act(() => {
+      out = result.current.commit();
+    });
+
+    expect(days(out)).toEqual(range(1, 21));
+  });
+
+  it('should fill reverse to [7/05..7/25] (21개) keeping anchor 7/25 when anchor 7/25 then enter 7/01 then commit, maxSelectedDays=21', () => {
+    const { result } = renderHook(() => useDragSelect({ value: [], maxSelectedDays: 21 }));
+
+    let out: Date[] = [];
+    act(() => result.current.start(d(25)));
+    act(() => result.current.enter(d(1)));
+    act(() => {
+      out = result.current.commit();
+    });
+
+    expect(days(out)).toEqual(range(5, 25));
+  });
+
+  it('should call onLimitExceeded exactly once when a drag commit is clamped', () => {
+    const onLimitExceeded = vi.fn();
+    const { result } = renderHook(() =>
+      useDragSelect({ value: [], maxSelectedDays: 21, onLimitExceeded })
+    );
+
+    act(() => result.current.start(d(1)));
+    act(() => result.current.enter(d(25)));
+    act(() => {
+      result.current.commit();
+    });
+
+    expect(onLimitExceeded).toHaveBeenCalledTimes(1);
+  });
+
+  it('should keep full [7/01..7/21] and not call onLimitExceeded when count is exactly 21', () => {
+    const onLimitExceeded = vi.fn();
+    const { result } = renderHook(() =>
+      useDragSelect({ value: [], maxSelectedDays: 21, onLimitExceeded })
+    );
+
+    let out: Date[] = [];
+    act(() => result.current.start(d(1)));
+    act(() => result.current.enter(d(21)));
+    act(() => {
+      out = result.current.commit();
+    });
+
+    expect(days(out)).toEqual(range(1, 21));
+    expect(onLimitExceeded).not.toHaveBeenCalled();
+  });
+
+  it('should not clamp (unlimited) and not call onLimitExceeded when maxSelectedDays is undefined', () => {
+    const onLimitExceeded = vi.fn();
+    const { result } = renderHook(() => useDragSelect({ value: [], onLimitExceeded }));
+
+    let out: Date[] = [];
+    act(() => result.current.start(d(1)));
+    act(() => result.current.enter(d(31)));
+    act(() => {
+      out = result.current.commit();
+    });
+
+    expect(days(out)).toEqual(range(1, 31));
+    expect(onLimitExceeded).not.toHaveBeenCalled();
+  });
+
+  it('should consume existing selection budget to [7/01, 7/05..7/24] with onLimitExceeded once when value=[7/01] then anchor 7/05 enter 7/25 commit, maxSelectedDays=21', () => {
+    const onLimitExceeded = vi.fn();
+    const { result } = renderHook(() =>
+      useDragSelect({ value: [d(1)], maxSelectedDays: 21, onLimitExceeded })
+    );
+
+    let out: Date[] = [];
+    act(() => result.current.start(d(5)));
+    act(() => result.current.enter(d(25)));
+    act(() => {
+      out = result.current.commit();
+    });
+
+    expect(days(out)).toEqual([1, ...range(5, 24)]);
+    expect(onLimitExceeded).toHaveBeenCalledTimes(1);
   });
 });
