@@ -8,9 +8,9 @@
 | ----------------- | ------------------ | -------------------- |
 | 컴포넌트          | `PascalCase`       | `InputField`         |
 | 타입 / 인터페이스 | `PascalCase`       | `RoomSummary`        |
+| Props 인터페이스  | `{Component}Props` | `ButtonProps`        |
 | 변수 / 함수       | `camelCase`        | `formatDate`         |
 | 상수              | `SNAKE_CASE`       | `MAX_PARTICIPANTS`   |
-| Props 인터페이스  | `{Component}Props` | `ButtonProps`        |
 | boolean           | `is*` / `has*`     | `isOpen`, `hasError` |
 
 ### 경로 및 파일명
@@ -21,7 +21,7 @@
 | 컴포넌트 파일   | `kebab-case` | `input-field.tsx`, `calendar-button.tsx` |
 | 유틸 파일       | `kebab-case` | `format-date.ts`                         |
 | 페이지/API 파일 | `kebab-case` | `create-room.tsx`                        |
-| 이미지 파일     | `snake_case` | `hero_banner.png`                        |
+| 이미지 파일     | `kebab-case` | `hero-banner.png`                        |
 
 > 컴포넌트 **파일명은 kebab-case** 다 (shadcn/FSD 관례). 파일 안의 컴포넌트 **이름은 PascalCase**.
 > 예: `input-field.tsx` 안에 `export function InputField`.
