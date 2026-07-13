@@ -17,7 +17,7 @@ Turborepo 기반 모노레포. **Expo 네이티브 앱(셸) + Next.js 웹(WebVie
 이 문서는 **현재 레포에 실제 존재하는 것**만 "사용 가능"으로 기술한다.
 
 - **Commands** 에는 실제로 실행되는 명령만 둔다.
-- 아직 도입 안 된 도구(테스트 실행, `.claude` 스킬/룰/훅, CI 등)는 **Follow-ups** 에 둔다 — 있는 것처럼 실행/전제하지 말 것.
+- 아직 도입 안 된 도구는 **Follow-ups** 에 둔다 — 있는 것처럼 실행/전제하지 말 것.
 - 문서와 설정이 다르면 **설정 파일이 우선**이다: `package.json` · `turbo.json` · `globals.css` · `steiger.config.js` 등.
 
 ## Monorepo Structure
@@ -155,6 +155,11 @@ _pages → widgets → features → entities → shared
   `hotfix/*`는 `main`에서 분기. `main` 직접 push 금지, `develop`도 PR로만.
 - **pre-commit**(husky + lint-staged): 변경 파일에 eslint --fix + prettier, web `src`는 steiger 검사.
 
+## Claude Workflow
+
+- 프로젝트 스킬: `.claude/skills/<skill-name>/SKILL.md`
+- AC 독립 검증 agent: `.claude/agents/ac-verifier.md`
+
 ## Important Notes
 
 - **pnpm 전용**: `packageManager: pnpm@9.0.0`. `.npmrc`는 `node-linker=hoisted`.
@@ -177,7 +182,6 @@ _pages → widgets → features → entities → shared
 | `.claude/skills/issue-creator/*` (TDD)   | 레포에 없음 (타 프로젝트서 가져와 moyeo 맞춤 검토) | 스킬 이슈          |
 | `.claude/rules/{conventions,fsd}`        | 빈 디렉토리 (내용 없음)                            | rules 이슈         |
 | `.claude/settings.json` + PostToolUse 훅 | 파일 없음 (design-check 훅 도입 여부 미정)         | rules/훅 이슈      |
-| `.agents/ac-verifier.md` (AC 검증)       | 없음                                               | 스킬/검증 이슈     |
 | CI (`.github/workflows/`)                | 없음 (PR 검사 미자동화)                            | CI 이슈            |
 
 > 참고: `docs/features/{기능}/` 에 기능별 기획 문서가 있다 (예: `CRT-02/F02`). TDD 스킬 도입 후 활성 워크플로우로 연결된다.
