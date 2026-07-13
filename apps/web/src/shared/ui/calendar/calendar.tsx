@@ -3,7 +3,7 @@ import { DayPicker } from 'react-day-picker';
 import { ko } from 'date-fns/locale';
 
 import { cn } from '@/shared/lib/cn';
-import { Button, buttonVariants } from '@/shared/ui/primitives/button';
+import { Button, buttonVariants } from '@/shared/ui/button';
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from 'lucide-react';
 import { CalendarDayButton } from './calendar-button';
 

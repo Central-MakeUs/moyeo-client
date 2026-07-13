@@ -2,7 +2,7 @@ import React from 'react';
 import { DayButton, type Locale } from 'react-day-picker';
 
 import { cn } from '@/shared/lib/cn';
-import { Button } from '@/shared/ui/primitives/button';
+import { Button } from '@/shared/ui/button';
 
 const calendarDayButtonClasses = cn(
   'flex w-full h-full items-center justify-center rounded-lg text-medium-14 transition-colors border-0',
