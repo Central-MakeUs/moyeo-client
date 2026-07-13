@@ -2,27 +2,9 @@ import * as React from 'react';
 
 import { cn } from '@/shared/lib/cn';
 
-import Caret from '@/shared/assets/icons/caret.svg';
-import Check from '@/shared/assets/icons/check.svg';
-import Chevron from '@/shared/assets/icons/chevron.svg';
-import Close from '@/shared/assets/icons/close.svg';
-import Envelope from '@/shared/assets/icons/envelope.svg';
-import Link from '@/shared/assets/icons/link.svg';
-import Minus from '@/shared/assets/icons/minus.svg';
-import Plus from '@/shared/assets/icons/plus.svg';
+import { ICONS, type IconName } from './icons.generated';
 
-const ICONS = {
-  caret: Caret,
-  check: Check,
-  chevron: Chevron,
-  close: Close,
-  envelope: Envelope,
-  link: Link,
-  minus: Minus,
-  plus: Plus,
-} as const;
-
-export type IconName = keyof typeof ICONS;
+export type { IconName } from './icons.generated';
 
 type IconRotate = 0 | 90 | 180 | 270;
 
@@ -32,7 +14,17 @@ type IconProps = Omit<React.SVGProps<SVGSVGElement>, 'name'> & {
   rotate?: IconRotate;
 };
 
-function Icon({ name, size = 24, rotate = 0, className, style, ...props }: IconProps) {
+function Icon({
+  name,
+  size = 24,
+  rotate = 0,
+  className,
+  style,
+  'aria-label': ariaLabel,
+  'aria-hidden': ariaHidden = ariaLabel ? undefined : true,
+  role = ariaLabel ? 'img' : undefined,
+  ...props
+}: IconProps) {
   const Component = ICONS[name];
 
   return (
@@ -40,6 +32,9 @@ function Icon({ name, size = 24, rotate = 0, className, style, ...props }: IconP
       data-slot="icon"
       width={size}
       height={size}
+      role={role}
+      aria-label={ariaLabel}
+      aria-hidden={ariaHidden}
       className={cn('shrink-0', className)}
       style={rotate ? { transform: `rotate(${rotate}deg)`, ...style } : style}
       {...props}
@@ -47,4 +42,4 @@ function Icon({ name, size = 24, rotate = 0, className, style, ...props }: IconP
   );
 }
 
-export { Icon };
+export { Icon, ICONS };
