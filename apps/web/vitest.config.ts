@@ -7,6 +7,8 @@ import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
 
 import { playwright } from '@vitest/browser-playwright';
 
+import react from '@vitejs/plugin-react';
+
 const dirname =
   typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
 
@@ -29,6 +31,20 @@ export default defineConfig({
             provider: playwright({}),
             instances: [{ browser: 'chromium' }],
           },
+        },
+      },
+      {
+        // unit test 프로젝트 — 순수 함수 + 훅/컴포넌트(RTL). jsdom 환경.
+        extends: true,
+        plugins: [react()],
+        resolve: {
+          alias: { '@': path.join(dirname, 'src') },
+        },
+        test: {
+          name: 'unit',
+          environment: 'jsdom',
+          setupFiles: ['./src/test-setup.ts'],
+          include: ['src/**/*.test.{ts,tsx}'],
         },
       },
     ],

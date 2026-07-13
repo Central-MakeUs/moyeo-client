@@ -12,7 +12,9 @@
     "check-types": "next typegen && tsc --noEmit",
     "format": "prettier . --write --config prettier.config.mjs",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@ncdai/react-wheel-picker": "^1.2.2",
@@ -47,10 +49,14 @@
     "@tailwindcss/postcss": "^4.3.2",
     "@tanstack/eslint-plugin-query": "^5.101.2",
     "@tanstack/react-query-devtools": "^5.101.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.15.3",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
-    "@vitest/browser-playwright": "4.1.10",
+    "@vitejs/plugin-react": "^6.0.3",
+    "@vitest/coverage-v8": "^4.1.10",
     "eslint": "^9.39.1",
     "eslint-plugin-storybook": "^10.4.6",
     "playwright": "^1.61.1",
@@ -61,6 +67,10 @@
     "tailwindcss": "^4.3.2",
     "typescript": "5.9.2",
     "vite": "^8.1.4",
-    "vitest": "4.1.10"
+    "eslint-plugin-storybook": "^10.4.6",
+    "vitest": "4.1.10",
+    "playwright": "^1.61.1",
+    "@vitest/browser-playwright": "4.1.10",
+    "jsdom": "^29.1.1"
   }
 }
