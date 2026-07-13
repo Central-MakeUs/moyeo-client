@@ -10,6 +10,8 @@ import ChevronSmallRight from '@/shared/assets/icons/chevron-small-right.svg';
 import ChevronUp from '@/shared/assets/icons/chevron-up.svg';
 import Close from '@/shared/assets/icons/close.svg';
 import Envelope from '@/shared/assets/icons/envelope.svg';
+import Kakao from '@/shared/assets/icons/kakao.svg';
+import LinkSmall from '@/shared/assets/icons/link-small.svg';
 import Link from '@/shared/assets/icons/link.svg';
 import Minus from '@/shared/assets/icons/minus.svg';
 import Plus from '@/shared/assets/icons/plus.svg';
@@ -26,6 +28,8 @@ export const ICONS = {
   'chevron-up': ChevronUp,
   close: Close,
   envelope: Envelope,
+  kakao: Kakao,
+  'link-small': LinkSmall,
   link: Link,
   minus: Minus,
   plus: Plus,
