@@ -1,10 +1,13 @@
 import React from 'react';
 import { DayButton, type Locale } from 'react-day-picker';
+import { format } from 'date-fns';
 
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/button';
 
 const calendarDayButtonClasses = cn(
+  // 터치 드래그 선택 중 페이지 스크롤 하이재킹 방지(셀에 상시 적용).
+  'touch-none',
   'flex w-full h-full items-center justify-center rounded-lg text-medium-14 transition-colors border-0',
   // hover
   'hover:bg-accessible-100',
@@ -49,6 +52,8 @@ export function CalendarDayButton({
       ref={ref}
       variant="ghost"
       data-day={day.date.toLocaleDateString(locale?.code)}
+      // 터치 좌표→날짜 hit-test용 안정적 ISO 앵커(dateFromPoint가 읽음).
+      data-date={format(day.date, 'yyyy-MM-dd')}
       data-selected={modifiers.selected}
       // 밴드(start/middle/end)에 속하지 않은 선택 날짜만 solid single.
       data-selected-single={modifiers.selected && !rangeStart && !rangeEnd && !rangeMiddle}

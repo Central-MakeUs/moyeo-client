@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -296,5 +296,94 @@ describe('DraggableCalendar — 런 재렌더 (Issue 4, 상태 변화)', () => {
     expect(cell(10)).toHaveAttribute('data-range-start', 'true'); // 양끝 유지
     expect(cell(14)).toHaveAttribute('data-range-end', 'true');
     expect(cell(12)).not.toHaveAttribute('data-selected', 'true'); // 해제됨
+  });
+});
+
+describe('DraggableCalendar — 셀 리마운트 방지 (실브라우저 드래그 무결성)', () => {
+  const cell = (n: number) => screen.getByText(String(n));
+
+  // 드래그 시작(state 변경) 시 셀 DOM 노드가 교체되면 실제 브라우저에서 포인터 제스처가 끊긴다.
+  // 같은 노드가 유지돼야(리렌더 O, 리마운트 X) 드래그가 이어진다.
+  it('should keep the same day cell DOM node across a drag state change (no remount)', () => {
+    render(<StatefulHarness />);
+    const before = cell(10);
+
+    fireEvent.pointerDown(cell(9));
+    fireEvent.pointerEnter(cell(10)); // drag.start → setState → re-render
+
+    expect(cell(10)).toBe(before);
+  });
+});
+
+describe('DraggableCalendar — 모바일 터치 (Issue 5)', () => {
+  const cell = (n: number) => screen.getByText(String(n));
+  const dayNums = (dates: Date[]) => dates.map((x) => x.getDate()).sort((a, b) => a - b);
+  const range = (from: number, to: number) =>
+    Array.from({ length: to - from + 1 }, (_, i) => from + i);
+
+  // jsdom엔 elementFromPoint가 없어 직접 mock을 심는다(레이아웃 없음 → 원래 null).
+  const elementFromPoint = vi.fn<(x: number, y: number) => Element | null>();
+  const originalElementFromPoint = document.elementFromPoint;
+  const touch = { pointerType: 'touch', pointerId: 1 } as const;
+
+  beforeEach(() => {
+    elementFromPoint.mockReset();
+    document.elementFromPoint = elementFromPoint;
+  });
+
+  afterEach(() => {
+    document.elementFromPoint = originalElementFromPoint;
+  });
+
+  it('should render the 7/13 day cell with data-date="2026-07-13"', () => {
+    render(<MonthHarness value={[]} onChange={vi.fn()} />);
+
+    expect(cell(13)).toHaveAttribute('data-date', '2026-07-13');
+  });
+
+  it('should apply the touch-none class (touch-action:none) on day cells', () => {
+    render(<MonthHarness value={[]} onChange={vi.fn()} />);
+
+    expect(cell(13)).toHaveClass('touch-none');
+  });
+
+  it('should call onChange with [7/09..7/13] on a touch drag when pointerDown(7/09) → pointerMove(→7/13) → pointerUp', () => {
+    const onChange = vi.fn();
+    render(<MonthHarness value={[]} onChange={onChange} />);
+    elementFromPoint.mockReturnValue(cell(13));
+
+    fireEvent.pointerDown(cell(9), touch);
+    fireEvent.pointerMove(cell(9), { ...touch, clientX: 100, clientY: 100 });
+    fireEvent.pointerUp(cell(9), touch);
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(dayNums(onChange.mock.calls[0]![0])).toEqual([9, 10, 11, 12, 13]);
+  });
+
+  it('should select the full 7/09~7/18 on a fast touch drag when only the final coordinate resolves to 7/18', () => {
+    const onChange = vi.fn();
+    render(<MonthHarness value={[]} onChange={onChange} />);
+    elementFromPoint.mockReturnValue(cell(18));
+
+    fireEvent.pointerDown(cell(9), touch);
+    fireEvent.pointerMove(cell(9), { ...touch, clientX: 200, clientY: 200 });
+    fireEvent.pointerUp(cell(9), touch);
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(dayNums(onChange.mock.calls[0]![0])).toEqual(range(9, 18));
+  });
+
+  it('should ignore a pointermove that resolves to no cell (elementFromPoint null) mid-drag and still commit [7/09..7/13]', () => {
+    const onChange = vi.fn();
+    render(<MonthHarness value={[]} onChange={onChange} />);
+    elementFromPoint.mockReturnValueOnce(cell(13)).mockReturnValueOnce(null);
+
+    fireEvent.pointerDown(cell(9), touch);
+    fireEvent.pointerMove(cell(9), { ...touch, clientX: 100, clientY: 100 });
+    fireEvent.pointerMove(cell(9), { ...touch, clientX: 999, clientY: 999 }); // off-grid → null
+    fireEvent.pointerUp(cell(9), touch);
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(dayNums(onChange.mock.calls[0]![0])).toEqual([9, 10, 11, 12, 13]);
   });
 });
