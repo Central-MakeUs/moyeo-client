@@ -3,4 +3,4 @@ export * from './checkbox';
 export * from './input';
 export * from './progress';
 export * from './switch';
-export * from './primitives';
+export * from './drawer';

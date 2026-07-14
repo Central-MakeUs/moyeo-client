@@ -20,6 +20,7 @@
   --color-primary: #f43630;
 
   /* neutral */
+  --color-neutral-0: #ffffff;
   --color-neutral-10: #f9f9f9;
   --color-neutral-20: #f7f7f7;
   --color-neutral-50: #e7e7e7;
@@ -35,6 +36,7 @@
   --color-neutral-850: #1c1c1c;
   --color-neutral-900: #171717;
   --color-neutral-950: #0f0f0f;
+  --color-neutral-1000: #000000;
 
   /* accessible */
   --color-accessible-50: #fef2f2;
@@ -140,8 +142,8 @@
   --color-foreground: var(--color-neutral-900);
   --color-card: var(--color-neutral-10);
   --color-card-foreground: var(--color-neutral-900);
-  --color-popover: var(--color-neutral-10);
-  --color-popover-foreground: var(--color-neutral-900);
+  --color-popover: var(--color-neutral-0);
+  --color-popover-foreground: var(--color-neutral-1000);
   --color-secondary: var(--color-neutral-20);
   --color-secondary-foreground: var(--color-neutral-900);
   --color-muted: var(--color-neutral-50);
