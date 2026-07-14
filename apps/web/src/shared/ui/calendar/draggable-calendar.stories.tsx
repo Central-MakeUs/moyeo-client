@@ -21,6 +21,21 @@ const meta = {
     onChange: () => {},
     month: JULY_2026,
   },
+  // Storybook은 대표 상태 문서다. 컨트롤로 의미 있는 건 maxSelectedDays(개수)뿐이라
+  // 그것만 number 컨트롤로 노출하고, Date·함수형 props는 Controls 표에서 숨긴다.
+  argTypes: {
+    maxSelectedDays: {
+      control: { type: 'number' },
+      description: '최대 선택 가능 일수(개수). 미주입 시 무제한.',
+    },
+    value: { table: { disable: true } },
+    onChange: { table: { disable: true } },
+    isDateDisabled: { table: { disable: true } },
+    month: { table: { disable: true } },
+    onMonthChange: { table: { disable: true } },
+    onLimitExceeded: { table: { disable: true } },
+    className: { table: { disable: true } },
+  },
 } satisfies Meta<typeof DraggableCalendar>;
 
 export default meta;
@@ -83,5 +98,8 @@ export const DisabledDates: Story = {
  * 제한이 실제 적용될 때마다 `onLimitExceeded`가 한 번 호출됩니다.
  */
 export const MaxSelect21Days: Story = {
-  render: () => <StatefulDraggableCalendar maxSelectedDays={21} showLimitExceededCount />,
+  args: { maxSelectedDays: 21 },
+  render: (args) => (
+    <StatefulDraggableCalendar maxSelectedDays={args.maxSelectedDays} showLimitExceededCount />
+  ),
 };

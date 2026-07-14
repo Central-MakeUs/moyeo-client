@@ -39,21 +39,22 @@ export function CalendarDayButton({
     if (modifiers.focused) ref.current?.focus();
   }, [modifiers.focused]);
 
+  // range 모드의 내장 모디파이어와 multiple 모드의 커스텀 런 모디파이어(run*)를 하나로 합친다.
+  const rangeStart = modifiers.range_start || modifiers.runStart;
+  const rangeEnd = modifiers.range_end || modifiers.runEnd;
+  const rangeMiddle = modifiers.range_middle || modifiers.runMiddle;
+
   return (
     <Button
       ref={ref}
       variant="ghost"
       data-day={day.date.toLocaleDateString(locale?.code)}
       data-selected={modifiers.selected}
-      data-selected-single={
-        modifiers.selected &&
-        !modifiers.range_start &&
-        !modifiers.range_end &&
-        !modifiers.range_middle
-      }
-      data-range-start={modifiers.range_start}
-      data-range-end={modifiers.range_end}
-      data-range-middle={modifiers.range_middle}
+      // 밴드(start/middle/end)에 속하지 않은 선택 날짜만 solid single.
+      data-selected-single={modifiers.selected && !rangeStart && !rangeEnd && !rangeMiddle}
+      data-range-start={rangeStart}
+      data-range-end={rangeEnd}
+      data-range-middle={rangeMiddle}
       data-outside={modifiers.outside}
       data-today={modifiers.today}
       data-disabled={modifiers.disabled}

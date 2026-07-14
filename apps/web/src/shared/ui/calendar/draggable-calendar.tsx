@@ -3,6 +3,7 @@ import { isSameDay } from 'date-fns';
 
 import { Calendar } from './calendar';
 import { CalendarDayButton } from './calendar-button';
+import { computeRuns } from './compute-runs';
 import { isWithinMaxCount } from './is-within-max-count';
 import { useDragSelect } from './use-drag-select';
 
@@ -80,6 +81,10 @@ export function DraggableCalendar({
     resetPointerTracking();
   };
 
+  // 렌더 중인 선택(드래그 미리보기 포함)에서 연속 런 세그먼트를 계산해 RDP 커스텀 모디파이어로 주입.
+  const shown = isDraggingMoved ? drag.previewValue : value;
+  const runs = computeRuns(shown);
+
   return (
     <div
       onPointerLeave={() => {
@@ -89,7 +94,13 @@ export function DraggableCalendar({
       <Calendar
         mode="multiple"
         showOutsideDays={false}
-        selected={isDraggingMoved ? drag.previewValue : value}
+        selected={shown}
+        modifiers={{
+          runStart: runs.runStart,
+          runMiddle: runs.runMiddle,
+          runEnd: runs.runEnd,
+          runSingle: runs.runSingle,
+        }}
         // 탭(click)은 RDP onSelect로 처리. 드래그 종료 직후의 click은 무시한다.
         onSelect={(next) => {
           if (suppressClickRef.current) {

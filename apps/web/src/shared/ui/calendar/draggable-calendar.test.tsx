@@ -223,3 +223,78 @@ describe('DraggableCalendar — 개수 제한 (Issue 3)', () => {
     expect(onLimitExceeded).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('DraggableCalendar — 연속 런 세그먼트 렌더링 (Issue 4)', () => {
+  it('should set data-range-start on 7/10, data-range-middle on 7/11, data-range-end on 7/12, data-selected-single on 7/20 when value=[7/10, 7/11, 7/12, 7/20]', () => {
+    render(<MonthHarness value={[d(10), d(11), d(12), d(20)]} onChange={vi.fn()} />);
+
+    expect(screen.getByText('10')).toHaveAttribute('data-range-start', 'true');
+    expect(screen.getByText('11')).toHaveAttribute('data-range-middle', 'true');
+    expect(screen.getByText('12')).toHaveAttribute('data-range-end', 'true');
+    expect(screen.getByText('20')).toHaveAttribute('data-selected-single', 'true');
+  });
+
+  it('should set data-selected-single=true and all data-range-* false on 7/15 when value=[7/15] (단독 1일)', () => {
+    render(<MonthHarness value={[d(15)]} onChange={vi.fn()} />);
+
+    const cell = screen.getByText('15');
+    expect(cell).toHaveAttribute('data-selected-single', 'true');
+    expect(cell).not.toHaveAttribute('data-range-start', 'true');
+    expect(cell).not.toHaveAttribute('data-range-middle', 'true');
+    expect(cell).not.toHaveAttribute('data-range-end', 'true');
+  });
+
+  it('should NOT mark run members as selected-single when value=[7/10, 7/11, 7/12] (밴드는 single 아님)', () => {
+    render(<MonthHarness value={[d(10), d(11), d(12)]} onChange={vi.fn()} />);
+
+    // 밴드 3칸은 range-start/middle/end일 뿐, solid single 이 함께 켜지면 안 된다.
+    expect(screen.getByText('10')).toHaveAttribute('data-selected-single', 'false');
+    expect(screen.getByText('11')).toHaveAttribute('data-selected-single', 'false');
+    expect(screen.getByText('12')).toHaveAttribute('data-selected-single', 'false');
+  });
+});
+
+describe('DraggableCalendar — 런 재렌더 (Issue 4, 상태 변화)', () => {
+  const cell = (n: number) => screen.getByText(String(n));
+
+  // value를 상태로 들고 초기값을 주입하는 제어 하네스 (드래그 확정/토글 후 재렌더 검증용).
+  function ControlledHarness({ initial }: { initial: Date[] }) {
+    const [value, setValue] = useState<Date[]>(initial);
+    return (
+      <DraggableCalendar
+        value={value}
+        onChange={setValue}
+        month={JULY_2026}
+        onMonthChange={() => {}}
+      />
+    );
+  }
+
+  it('should render the run band (start/middle/end) after a drag is released 7/10→7/14', () => {
+    render(<ControlledHarness initial={[]} />);
+
+    fireEvent.pointerDown(cell(10));
+    fireEvent.pointerEnter(cell(14));
+    fireEvent.pointerUp(cell(14));
+
+    expect(cell(10)).toHaveAttribute('data-range-start', 'true');
+    expect(cell(11)).toHaveAttribute('data-range-middle', 'true');
+    expect(cell(12)).toHaveAttribute('data-range-middle', 'true');
+    expect(cell(13)).toHaveAttribute('data-range-middle', 'true');
+    expect(cell(14)).toHaveAttribute('data-range-end', 'true');
+  });
+
+  it('should split the run and reclassify neighbors as end/start when a middle day 7/12 is toggled off', async () => {
+    render(<ControlledHarness initial={[d(10), d(11), d(12), d(13), d(14)]} />);
+
+    await userEvent.click(cell(12)); // 중간 해제 → [7/10,7/11] · [7/13,7/14] 두 밴드로 분리
+
+    expect(cell(11)).toHaveAttribute('data-range-end', 'true'); // 11: middle → end
+    expect(cell(11)).not.toHaveAttribute('data-range-middle', 'true');
+    expect(cell(13)).toHaveAttribute('data-range-start', 'true'); // 13: middle → start
+    expect(cell(13)).not.toHaveAttribute('data-range-middle', 'true');
+    expect(cell(10)).toHaveAttribute('data-range-start', 'true'); // 양끝 유지
+    expect(cell(14)).toHaveAttribute('data-range-end', 'true');
+    expect(cell(12)).not.toHaveAttribute('data-selected', 'true'); // 해제됨
+  });
+});
