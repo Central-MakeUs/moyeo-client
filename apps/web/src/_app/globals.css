@@ -92,6 +92,9 @@
 @layer base {
   :root {
     --radius: 0.625rem;
+
+    /* layout */
+    --app-shell-max-width: 30rem; /* 480px */
   }
 
   body {
@@ -116,7 +119,7 @@
   .app-shell {
     min-height: 100dvh;
     width: 100%;
-    max-width: 480px;
+    max-width: var(--app-shell-max-width);
     margin-inline: auto;
     display: flex;
     flex-direction: column;
