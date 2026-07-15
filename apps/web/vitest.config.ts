@@ -38,7 +38,10 @@ export default defineConfig({
         extends: true,
         plugins: [react()],
         resolve: {
-          alias: { '@': path.join(dirname, 'src') },
+          alias: {
+            '@': path.join(dirname, 'src'),
+            '~storybook': path.join(dirname, '.storybook'),
+          },
         },
         test: {
           name: 'unit',
