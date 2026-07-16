@@ -60,6 +60,7 @@ apps/web/
 # 개발 (루트에서 turbo가 각 앱에 위임)
 pnpm dev            # web(:3000) + docs(:3001) 동시 실행
 pnpm dev:native     # Expo 앱 실행
+pnpm dev:native:clear  # Expo 앱 실행 (Metro 캐시 초기화)
 pnpm storybook      # web Storybook (:6006)
 
 # 빌드 / 검증
