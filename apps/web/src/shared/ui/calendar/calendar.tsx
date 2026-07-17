@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { DayPicker } from 'react-day-picker';
+import { ChevronProps, DayPicker, RootProps } from 'react-day-picker';
 import { ko } from 'date-fns/locale';
 
 import { cn } from '@/shared/lib/cn';
@@ -23,10 +23,10 @@ function Calendar({
   // (드래그 중 셀 리마운트 → 포인터 제스처 끊김). 정체성을 고정한다.
   const mergedComponents = React.useMemo<React.ComponentProps<typeof DayPicker>['components']>(
     () => ({
-      Root: ({ className, rootRef, ...props }) => {
+      Root: ({ className, rootRef, ...props }: RootProps) => {
         return <div data-slot="calendar" ref={rootRef} className={cn(className)} {...props} />;
       },
-      Chevron: ({ className, orientation, ...props }) => {
+      Chevron: ({ className, orientation, ...props }: ChevronProps) => {
         if (orientation === 'left') {
           return <ChevronLeftIcon className={cn('size-4', className)} {...props} />;
         }
