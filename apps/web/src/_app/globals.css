@@ -7,8 +7,8 @@
 /*
   * Design tokens
   *
-  * 현재 디자인 기준에서 확정된 color/typography 토큰만 Tailwind @theme에 정의함
-  * spacing, radius, shadow는 별도 디자인 토큰이 확정되기 전까지 Tailwind 기본 scale을 사용한다.
+  * 현재 디자인 기준에서 확정된 color/typography/radius 토큰만 Tailwind @theme에 정의함
+  * spacing, shadow는 별도 디자인 토큰이 확정되기 전까지 Tailwind 기본 scale을 사용한다.
   * 컴포넌트에서는 하드코딩 대신 bg-primary, text-neutral-900, text-bold-16처럼
   * @theme 기반 Tailwind class를 우선 사용한다.
 */
@@ -87,13 +87,22 @@
   --text-medium-12: 0.75rem; /* 12px */
   --text-medium-12--line-height: 1.5; /* 150% */
   --text-medium-12--font-weight: 500;
+
+  /* radius */
+  --radius-*: initial;
+  --radius-2: 2px;
+  --radius-4: 4px;
+  --radius-6: 6px;
+  --radius-8: 8px;
+  --radius-10: 10px;
+  --radius-12: 12px;
+  --radius-14: 14px;
+  --radius-16: 16px;
+  --radius-20: 20px;
+  --radius-24: 24px;
 }
 
 @layer base {
-  :root {
-    --radius: 0.625rem;
-  }
-
   body {
     font-family: var(--font-suit);
     @apply bg-background text-foreground;
@@ -162,13 +171,4 @@
   --color-sidebar-accent-foreground: var(--color-neutral-900);
   --color-sidebar-border: var(--color-neutral-70);
   --color-sidebar-ring: var(--color-neutral-300);
-
-  /* radius */
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
 }
