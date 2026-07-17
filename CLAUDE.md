@@ -143,7 +143,7 @@ _pages → widgets → features → entities → shared
 - **Source of Truth = Figma 시안 + `apps/web/src/_app/globals.css`.** 문서 값이 어긋나면 이 둘이 우선.
 - 핵심: 폰트 SUIT, primary `#f43630`, atomic 컬러(neutral/accessible/common), 8개 텍스트 스타일.
   spacing·shadow 토큰은 **미확정**이라 Tailwind 기본 스케일을 쓰고 임의 px·box-shadow를 하드코딩하지 않는다.
-- radius는 Tailwind 기본과 다르게 리매핑됨 (`rounded-lg`=10px 등) — `docs/design-system/foundations/radius.md` 확인.
+- radius는 값이 곧 토큰명 (`rounded-8`=8px). Tailwind t-shirt 스케일(`rounded-lg` 등)은 제거돼 있어, 사용하면 각지게 나온다 — `docs/design-system/foundations/radius.md` 확인.
 
 ## Git Conventions
 
