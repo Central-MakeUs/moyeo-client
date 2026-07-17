@@ -1,5 +1,5 @@
 import React from 'react';
-import { DayButton, type Locale } from 'react-day-picker';
+import { DayButton } from 'react-day-picker';
 import { format } from 'date-fns';
 
 import { cn } from '@/shared/lib/cn';
@@ -33,9 +33,8 @@ export function CalendarDayButton({
   className,
   day,
   modifiers,
-  locale,
   ...props
-}: React.ComponentProps<typeof DayButton> & { locale?: Partial<Locale> }) {
+}: React.ComponentProps<typeof DayButton>) {
   const ref = React.useRef<HTMLButtonElement>(null);
 
   React.useEffect(() => {
@@ -51,7 +50,6 @@ export function CalendarDayButton({
     <Button
       ref={ref}
       variant="ghost"
-      data-day={day.date.toLocaleDateString(locale?.code)}
       // 터치 좌표→날짜 hit-test용 안정적 ISO 앵커(dateFromPoint가 읽음).
       data-date={format(day.date, 'yyyy-MM-dd')}
       data-selected={modifiers.selected}

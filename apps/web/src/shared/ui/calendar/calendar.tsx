@@ -37,7 +37,7 @@ function Calendar({
 
         return <ChevronDownIcon className={cn('size-4', className)} {...props} />;
       },
-      DayButton: ({ ...props }) => <CalendarDayButton locale={locale} {...props} />,
+      DayButton: CalendarDayButton,
       WeekNumber: ({ children, ...props }) => {
         return (
           <td {...props}>
@@ -47,7 +47,7 @@ function Calendar({
       },
       ...components,
     }),
-    [locale, components]
+    [components]
   );
 
   return (
