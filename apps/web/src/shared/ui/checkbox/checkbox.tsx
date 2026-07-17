@@ -12,7 +12,7 @@ function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxP
       data-slot="checkbox"
       className={cn(
         // 기본 구조
-        'peer relative flex size-5 shrink-0 items-center justify-center rounded-[6px]',
+        'peer relative flex size-5 shrink-0 items-center justify-center rounded-4',
         'border-[1.67px] transition-colors outline-none',
 
         // 상태별 색상 (unchecked / checked)
