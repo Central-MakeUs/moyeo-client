@@ -90,11 +90,11 @@ function DrawerContent({
 
 function DrawerHandle({ className, ...props }: React.ComponentProps<'div'>) {
   return (
-    <div className="relative flex h-[22px] w-full shrink-0 items-center justify-center">
+    <div className="relative h-[22px] w-full shrink-0">
       <div
         data-slot="drawer-handle"
         className={cn(
-          'absolute top-1.5 h-1 w-9 shrink-0 cursor-grab rounded-full bg-neutral-50 group-data-[vaul-drawer-direction=bottom]/drawer-content:block',
+          'absolute top-1.5 left-1/2 h-1 w-9 -translate-x-1/2 cursor-grab rounded-full bg-neutral-50',
           className
         )}
         {...props}
@@ -108,7 +108,7 @@ function DrawerHeader({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot="drawer-header"
       className={cn(
-        'flex shrink-0 flex-col gap-0.5 group-data-[vaul-drawer-direction=bottom]/drawer-content:text-center',
+        'flex shrink-0 flex-col gap-0.5 pb-8 group-data-[vaul-drawer-direction=bottom]/drawer-content:text-center',
         className
       )}
       {...props}
