@@ -6,6 +6,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev --filter=@repo/web --filter=docs",
     "dev:native": "pnpm --filter native start",
+    "dev:native:clear": "pnpm --filter native start:clear",
     "generate:icons": "node scripts/generate-icons.mjs",
     "storybook": "pnpm --filter @repo/web storybook",
     "lint": "turbo run lint",
