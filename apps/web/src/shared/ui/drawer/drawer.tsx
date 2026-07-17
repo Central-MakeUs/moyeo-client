@@ -82,7 +82,7 @@ function DrawerContent({
           // 테마 및 타이포그래피
           'bg-popover text-semibold-14 text-popover-foreground',
           // 바텀 드로어 전용 스타일
-          'data-[vaul-drawer-direction=bottom]:inset-x-0 data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:mt-24 data-[vaul-drawer-direction=bottom]:rounded-t-xl',
+          'data-[vaul-drawer-direction=bottom]:inset-x-0 data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:mt-24 data-[vaul-drawer-direction=bottom]:rounded-t-12',
           className
         )}
         {...props}
