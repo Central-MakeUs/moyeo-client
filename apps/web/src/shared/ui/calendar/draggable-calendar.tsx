@@ -147,6 +147,8 @@ export function DraggableCalendar({
   // 렌더 중인 선택(드래그 미리보기 포함)에서 연속 런 세그먼트를 계산해 RDP 커스텀 모디파이어로 주입.
   const shown = isDraggingMoved ? drag.previewValue : value;
   const runs = computeRuns(shown);
+  // runSingle은 computeRuns의 완전한 분류 결과로만 유지한다.
+  // 단독 선택 스타일은 기본 Calendar 경로까지 지원하도록 selected && !range*로 유도하므로 RDP에는 전달하지 않는다.
 
   return (
     <div
@@ -162,7 +164,6 @@ export function DraggableCalendar({
           runStart: runs.runStart,
           runMiddle: runs.runMiddle,
           runEnd: runs.runEnd,
-          runSingle: runs.runSingle,
         }}
         // 탭(click)은 RDP onSelect로 처리. 드래그 종료 직후의 click은 무시한다.
         onSelect={(next) => {
