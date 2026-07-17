@@ -1,43 +1,56 @@
 # Radius & Elevation
 
-> Source: `globals.css`
+> Source: Figma `Radius` + `globals.css`
 
-## Radius — 🟡 파생 스케일 (⚠️ Tailwind 기본과 다름)
+## Radius — ✅ 확정
 
-별도 radius 디자인 토큰(Figma)은 없고, `globals.css`가 기준값 하나에서 스케일을 파생시킨다.
-기준은 `--radius: 0.625rem`(10px).
+시안이 **값 자체를 토큰명으로** 쓴다. `rounded-8` = 8px 이라 시안에서 본 값을 그대로 옮기면 된다.
 
-> **⚠️ 주의: 이 프로젝트의 `rounded-*` 는 Tailwind 기본값과 다르게 리매핑돼 있다.**
-> Tailwind에 익숙해서 `rounded-lg`를 8px로 알고 쓰면 **실제로는 10px**가 나온다. 아래 대조표를 꼭 확인한다.
+| 클래스         | px   |
+| -------------- | ---- |
+| `rounded-2`    | 2    |
+| `rounded-4`    | 4    |
+| `rounded-6`    | 6    |
+| `rounded-8`    | 8    |
+| `rounded-10`   | 10   |
+| `rounded-12`   | 12   |
+| `rounded-14`   | 14   |
+| `rounded-16`   | 16   |
+| `rounded-20`   | 20   |
+| `rounded-24`   | 24   |
+| `rounded-full` | pill |
 
-| 클래스        | 이 프로젝트 | (Tailwind 기본) | 계산식           |
-| ------------- | ----------- | --------------- | ---------------- |
-| `rounded-sm`  | 6px         | 2px             | `--radius × 0.6` |
-| `rounded-md`  | **8px**     | 6px             | `--radius × 0.8` |
-| `rounded-lg`  | **10px**    | 8px             | `--radius × 1.0` |
-| `rounded-xl`  | 14px        | 12px            | `--radius × 1.4` |
-| `rounded-2xl` | 18px        | 16px            | `--radius × 1.8` |
-| `rounded-3xl` | 22px        | 24px            | `--radius × 2.2` |
-| `rounded-4xl` | 26px        | —               | `--radius × 2.6` |
+`rounded-full`은 `@theme`이 아니라 Tailwind 정적 유틸(`calc(infinity * 1px)`)이다.
+시안의 `999px`과 결과가 같아(app-shell 최대 폭 480px) 별도 토큰으로 두지 않는다.
 
-> 특히 자주 쓰는 `rounded-md`(8px)·`rounded-lg`(10px)가 헷갈린다. **8px가 필요하면 `rounded-md`를 쓴다.**
+### Tailwind 기본 스케일은 제거돼 있다
+
+`globals.css`의 `@theme`에서 `--radius-*: initial`로 t-shirt 스케일(`rounded-sm`/`md`/`lg`/`xl`/`2xl`/`3xl`/`4xl`/`xs`)을 통째로 지웠다.
+
+- 표에 없는 값(`rounded-13`)이나 t-shirt 이름(`rounded-lg`)은 **CSS가 생성되지 않는다.** 빌드 에러는 아니고 모서리가 각지게 나온다.
+- 예전엔 `rounded-lg`가 Tailwind 기본 8px이 아니라 10px로 리매핑돼 있어서, 8px인 줄 알고 쓴 Button radius가 시안과 어긋나 있었다. t-shirt 이름을 없앤 이유다.
+- **`--radius-*: initial`을 지우면 t-shirt 스케일이 되살아나 두 체계가 섞인다.**
+
+### shadcn 컴포넌트 주의
+
+`npx shadcn add`로 받은 컴포넌트는 `rounded-md`·`rounded-lg`를 쓰므로 **설치 직후 모서리가 각져 보인다.** 시안 값을 확인해 위 토큰으로 바꾼 뒤 쓴다.
 
 ### 사용 현황 (디자인 스펙 ↔ 코드)
 
-| 컴포넌트    | 디자인 스펙 | 현재 코드           | 상태                                 |
-| ----------- | ----------- | ------------------- | ------------------------------------ |
-| Button 기본 | **8px**     | `rounded-lg` (10px) | ⚠️ 불일치 — `rounded-md`로 수정 필요 |
-| Button icon | 6px         | `rounded-[6px]`     | ✓                                    |
-| Input 기본  | (미확정)    | `rounded-lg` (10px) | 디자인 값 확인 필요                  |
-| InputField  | **12px**    | `rounded-[12px]`    | ✓                                    |
-
-> **Button 기본 radius 버그**: 디자인은 8px인데 코드가 `rounded-lg`(10px)로 지정돼 있다.
-> Tailwind 기본 `rounded-lg`=8px인 줄 알고 쓴 **리매핑 함정**으로 보인다. `rounded-md`(=8px)로 고쳐야 한다. (코드 수정은 별도 이슈)
+| 컴포넌트                  | 디자인 스펙 | 현재 코드         | 상태                       |
+| ------------------------- | ----------- | ----------------- | -------------------------- |
+| Button 기본               | 8px         | `rounded-8`       | ✅                         |
+| Button icon               | 6px         | `rounded-6`       | ✅                         |
+| InputField                | 12px        | `rounded-12`      | ✅                         |
+| Progress · Switch         | pill        | `rounded-full`    | ✅                         |
+| Checkbox                  | (미확인)    | `rounded-[4px]`   | 🚧 토큰화 필요             |
+| Drawer · Calendar         | (미확인)    | t-shirt 이름 잔존 | 🚧 각짐 — 커스텀할 때 반영 |
+| `input.tsx` (원시 shadcn) | —           | `rounded-lg`      | 🚧 미사용·미커스텀         |
 
 ### 지침
 
-- radius는 `rounded-sm ~ rounded-4xl` 토큰 클래스를 우선 쓰되, **위 대조표로 실제 px를 확인**한다.
-- 토큰으로 표현 안 되는 예외에만 임의값(`rounded-[6px]`, `rounded-[12px]`)을 쓰고, 반복되면 토큰화를 검토한다.
+- radius는 위 토큰 클래스만 쓴다. 임의값(`rounded-[13px]`)이 필요하면 스케일에 없는 값이라는 뜻이니 디자이너에게 확인한다.
+- `p-4`(16px)와 `rounded-16`(16px)은 숫자가 다르다. Tailwind의 "1 unit = 4px"은 **spacing 계열 전용**이고 radius에는 적용되지 않는다.
 
 ---
 
