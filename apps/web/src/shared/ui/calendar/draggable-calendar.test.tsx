@@ -176,6 +176,30 @@ describe('DraggableCalendar — 드래그 페인트 (Issue 2)', () => {
     expect(container.querySelectorAll('button[data-selected="true"]')).toHaveLength(0);
     expect(onChange).not.toHaveBeenCalled();
   });
+
+  it('should shrink to [7/10] when dragging 7/10→7/15 then back to anchor 7/10', () => {
+    const onChange = vi.fn();
+    render(<MonthHarness value={[]} onChange={onChange} />);
+
+    fireEvent.pointerDown(cell(10)); // anchor = 7/10
+    fireEvent.pointerEnter(cell(15)); // 7/10~7/15 로 확장
+    fireEvent.pointerEnter(cell(10)); // 다시 anchor 로 되돌림 → [10] 으로 축소돼야 함
+    fireEvent.pointerUp(cell(10));
+
+    expect(dayNums(onChange.mock.calls[0]![0])).toEqual([10]);
+  });
+
+  it('should shrink to [7/10, 7/11] when dragging 7/10→7/15 then back to 7/11 (대조군)', () => {
+    const onChange = vi.fn();
+    render(<MonthHarness value={[]} onChange={onChange} />);
+
+    fireEvent.pointerDown(cell(10)); // anchor = 7/10
+    fireEvent.pointerEnter(cell(15)); // 7/10~7/15 로 확장
+    fireEvent.pointerEnter(cell(11)); // anchor 아닌 셀로 되돌림 → 정상 축소
+    fireEvent.pointerUp(cell(11));
+
+    expect(dayNums(onChange.mock.calls[0]![0])).toEqual([10, 11]);
+  });
 });
 
 describe('DraggableCalendar — 개수 제한 (Issue 3)', () => {

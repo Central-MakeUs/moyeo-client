@@ -85,13 +85,14 @@ export function DraggableCalendar({
   // 셀 진입 공통 처리 — 마우스(pointerenter)와 터치 좌표 매핑(pointermove)이 공유한다.
   const enterDay = (day: Date) => {
     const anchor = anchorRef.current;
-    if (!anchor || isSameDay(day, anchor)) return;
+    if (!anchor) return;
     if (!isDragStartedRef.current) {
+      if (isSameDay(day, anchor)) return; // 시작 전 + 같은 셀 = 탭 → 개입 안 함
       drag.start(anchor); // 첫 이동에서 비로소 드래그 시작
       isDragStartedRef.current = true;
       setIsDraggingMoved(true);
     }
-    drag.enter(day);
+    drag.enter(day); // 시작 후엔 anchor로 되돌아와도 갱신 (범위 축소 지원)
   };
 
   const handlePointerDownDay = (e: React.PointerEvent, day: Date) => {
