@@ -1,2 +1,2 @@
 export { Calendar } from './calendar';
-export { CalendarDayButton } from './calendar-button';
+export { DraggableCalendar, type DraggableCalendarProps } from './draggable-calendar';
