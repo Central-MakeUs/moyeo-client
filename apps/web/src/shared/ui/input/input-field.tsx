@@ -4,7 +4,7 @@ import { cn } from '@/shared/lib/cn';
 
 const inputFieldClasses = cn(
   // 레이아웃
-  'group/input-field flex w-full flex-col gap-0.5 rounded-[12px] border px-4 py-3 transition-colors ease-in-out duration-200 text-neutral-950',
+  'group/input-field flex w-full flex-col gap-0.5 rounded-12 border px-4 py-3 transition-colors ease-in-out duration-200 text-neutral-950',
   // default
   'border-transparent bg-neutral-10',
   // activated

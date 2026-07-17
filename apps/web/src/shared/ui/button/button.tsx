@@ -9,7 +9,7 @@ const buttonVariants = cva(
     // 레이아웃
     'group/button inline-flex shrink-0 items-center justify-center whitespace-nowrap',
     // 모양·타이포
-    'rounded-lg border border-transparent bg-clip-padding text-bold-16',
+    'rounded-8 border border-transparent bg-clip-padding text-bold-16',
     // 모션·상호작용
     'transition-all select-none active:not-aria-[haspopup]:translate-y-px',
     // 포커스 (a11y)
@@ -38,7 +38,7 @@ const buttonVariants = cva(
         // xs: '',
         // sm: '',
         // lg: '',
-        icon: 'size-7.5 rounded-[6px] bg-white text-neutral-100 hover:bg-neutral-20 focus-visible:bg-accessible-600 active:bg-neutral-50',
+        icon: 'size-7.5 rounded-6 bg-white text-neutral-100 hover:bg-neutral-20 focus-visible:bg-accessible-600 active:bg-neutral-50',
         // 'icon-xs':
         //   "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
         // 'icon-sm':
