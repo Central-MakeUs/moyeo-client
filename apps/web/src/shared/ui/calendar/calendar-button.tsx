@@ -8,7 +8,7 @@ import { Button } from '@/shared/ui/button';
 const calendarDayButtonClasses = cn(
   // 터치 드래그 선택 중 페이지 스크롤 하이재킹 방지(셀에 상시 적용).
   'touch-none',
-  'flex w-full h-full items-center justify-center rounded-lg text-medium-14 transition-colors border-0',
+  'flex w-full h-full items-center justify-center rounded-8 text-medium-14 transition-colors border-0',
   // hover
   'hover:bg-accessible-100',
   // today

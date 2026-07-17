@@ -88,10 +88,10 @@ function Calendar({
         weekday: cn('flex-1 text-bold-14 text-neutral-500 select-none'),
         week: cn('mt-2 flex w-full'),
         day: cn(
-          'group/day relative flex w-[49px] h-[44px]  rounded-(--cell-radius) p-0 text-center select-none [&:last-child[data-selected=true]_button]:rounded-r-lg data-[range-middle=true]:bg-accessible-50',
+          'group/day relative flex w-[49px] h-[44px] p-0 text-center select-none [&:last-child[data-selected=true]_button]:rounded-r-8 data-[range-middle=true]:bg-accessible-50',
           props.showWeekNumber
-            ? '[&:nth-child(2)[data-selected=true]_button]:rounded-l-(--cell-radius)'
-            : '[&:first-child[data-selected=true]_button]:rounded-l-lg'
+            ? '[&:nth-child(2)[data-selected=true]_button]:rounded-l-8'
+            : '[&:first-child[data-selected=true]_button]:rounded-l-8'
         ),
         hidden: cn('invisible'),
         ...classNames,
