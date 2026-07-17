@@ -8,7 +8,7 @@ import { Button } from '@/shared/ui/button';
 const calendarDayButtonClasses = cn(
   // 터치 드래그 선택 중 페이지 스크롤 하이재킹 방지(셀에 상시 적용).
   'touch-none',
-  'flex w-full h-full items-center justify-center rounded-8 text-medium-14 transition-colors border-0',
+  'flex w-full h-full items-center justify-center rounded-8 text-medium-14 transition-colors border-0 text-neutral-850',
   // hover
   'hover:bg-accessible-100',
   // today
@@ -18,14 +18,14 @@ const calendarDayButtonClasses = cn(
   'data-[selected-single=true]:bg-accessible-400 data-[selected-single=true]:text-white',
 
   // disabled
-  'disabled:pointer-events-none disabled:text-neutral-200 ',
+  'disabled:pointer-events-none disabled:text-neutral-200',
 
   // outside / outdated
-  'data-[outside=true]:text-neutral-200',
+  'data-[outside=true]:[&:not(:disabled)]:text-accessible-300',
 
   // range
   'data-[range-start=true]:rounded-r-none data-[range-start=true]:bg-accessible-400 data-[range-start=true]:text-white',
-  'data-[range-middle=true]:rounded-none data-[range-middle=true]:bg-accessible-50 data-[range-middle=true]:text-neutral-850',
+  'data-[range-middle=true]:rounded-none data-[range-middle=true]:bg-accessible-50',
   'data-[range-end=true]:rounded-l-none data-[range-end=true]:bg-accessible-400 data-[range-end=true]:text-white'
 );
 
