@@ -38,7 +38,7 @@ export function DraggableCalendar({
 }: DraggableCalendarProps): React.JSX.Element {
   const drag = useDragSelect({ value, isDateDisabled, maxSelectedDays, onLimitExceeded });
   const anchorRef = React.useRef<Date | null>(null);
-  const movedRef = React.useRef(false);
+  const isDragStartedRef = React.useRef(false);
   const suppressClickRef = React.useRef(false);
   const suppressClickTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   // "실제(다른 셀로 이동한) 드래그" 여부 — 이때만 미리보기를 표시한다.
@@ -72,7 +72,7 @@ export function DraggableCalendar({
   // 포인터 추적 상태 초기화 — cancelDrag/onPointerUp 공통.
   const resetPointerTracking = () => {
     anchorRef.current = null;
-    movedRef.current = false;
+    isDragStartedRef.current = false;
     setIsDraggingMoved(false);
   };
 
@@ -86,9 +86,9 @@ export function DraggableCalendar({
   const enterDay = (day: Date) => {
     const anchor = anchorRef.current;
     if (!anchor || isSameDay(day, anchor)) return;
-    if (!movedRef.current) {
+    if (!isDragStartedRef.current) {
       drag.start(anchor); // 첫 이동에서 비로소 드래그 시작
-      movedRef.current = true;
+      isDragStartedRef.current = true;
       setIsDraggingMoved(true);
     }
     drag.enter(day);
@@ -97,7 +97,7 @@ export function DraggableCalendar({
   const handlePointerDownDay = (e: React.PointerEvent, day: Date) => {
     // 아직 드래그를 시작하지 않는다 — anchor만 기록. (탭이면 pointer 경로 미개입)
     anchorRef.current = day;
-    movedRef.current = false;
+    isDragStartedRef.current = false;
     // 터치는 시작 셀에 포인터가 캡처돼 다른 셀 pointerenter가 안 뜬다 →
     // 캡처를 걸어 pointermove를 계속 받고 좌표로 셀을 해석한다.
     if (e.pointerType === 'touch' && typeof e.currentTarget.setPointerCapture === 'function') {
@@ -112,7 +112,7 @@ export function DraggableCalendar({
   };
 
   const handlePointerUpDay = () => {
-    if (movedRef.current) {
+    if (isDragStartedRef.current) {
       onChange(drag.commit());
       suppressNextClick(); // 드래그 뒤 같은 이벤트 흐름의 click만 무시
     }

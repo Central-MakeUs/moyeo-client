@@ -51,26 +51,26 @@ export function useDragSelect({
     const anchor = anchorRef.current;
     const current = currentRef.current;
     if (!anchor || !current) return [];
-    const forward = anchor <= current;
-    const [lo, hi] = forward ? [anchor, current] : [current, anchor];
+    const isForward = anchor <= current;
+    const [lo, hi] = isForward ? [anchor, current] : [current, anchor];
     const asc = eachDayOfInterval({ start: lo, end: hi }).filter((day) => !isDateDisabled?.(day));
-    return forward ? asc : asc.reverse();
+    return isForward ? asc : asc.reverse();
   };
 
   // select 페인트: value ∪ 범위. 단, 전체 개수 ≤ maxSelectedDays.
   // anchor에서 먼 쪽부터 자르며, 실제로 새 날짜를 못 넣었으면 clamped=true.
   const applySelect = (): { next: Date[]; clamped: boolean } => {
-    const result = [...value];
+    const next = [...value];
     let clamped = false;
     for (const day of paintRangeFromAnchor()) {
-      if (includesDate(result, day)) continue; // 이미 선택 → 개수 안 늘어남
-      if (maxSelectedDays !== undefined && result.length >= maxSelectedDays) {
+      if (includesDate(next, day)) continue; // 이미 선택 → 개수 안 늘어남
+      if (maxSelectedDays !== undefined && next.length >= maxSelectedDays) {
         clamped = true; // 예산 소진 후의 새 날짜 → 잘림
         continue;
       }
-      result.push(day);
+      next.push(day);
     }
-    return { next: result, clamped };
+    return { next, clamped };
   };
 
   // 페인트 적용: select=개수 제한하며 합집합, deselect=value − 범위(제한 없음).
@@ -78,8 +78,8 @@ export function useDragSelect({
     const anchor = anchorRef.current;
     const mode: PaintMode = anchor !== null && includesDate(value, anchor) ? 'deselect' : 'select';
     if (mode === 'deselect') {
-      const painted = paintRangeFromAnchor();
-      return { next: value.filter((v) => !includesDate(painted, v)), clamped: false };
+      const range = paintRangeFromAnchor();
+      return { next: value.filter((v) => !includesDate(range, v)), clamped: false };
     }
     return applySelect();
   };
