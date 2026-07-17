@@ -60,10 +60,10 @@ function WheelPicker({ columns, onChange, className, ...props }: WheelPickerProp
 
   return (
     <div className={cn('relative w-full', className)} {...props}>
-      {/* 선택 행 하이라이트. rounded-md는 이 프로젝트에서 8px (Tailwind 기본 6px 아님) */}
+      {/* 선택 행 하이라이트 */}
       <div
         aria-hidden
-        className="absolute inset-x-0 top-1/2 z-0 -translate-y-1/2 rounded-md bg-neutral-20"
+        className="absolute inset-x-0 top-1/2 z-0 -translate-y-1/2 rounded-8 bg-neutral-20"
         style={{ height: ITEM_HEIGHT }}
       />
 

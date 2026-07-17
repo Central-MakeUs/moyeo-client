@@ -76,7 +76,7 @@ type Story = StoryObj<typeof meta>;
 function NumberPickerInSheet() {
   const [value, setValue] = useState(2);
   return (
-    <div className="w-full rounded-2xl bg-neutral-10 px-5 pt-4 pb-6">
+    <div className="w-full rounded-16 bg-neutral-10 px-5 pt-4 pb-6">
       <p className="mb-2 text-center text-bold-16 text-neutral-900">참여 인원 선택</p>
       <NumberPicker value={value} onChange={setValue} min={1} max={20} />
       <Button fullWidth className="mt-4">

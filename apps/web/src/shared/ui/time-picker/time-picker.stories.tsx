@@ -54,7 +54,7 @@ type Story = StoryObj<typeof meta>;
 function TimePickerInSheet() {
   const [value, setValue] = useState<TimePickerValue>({ period: '오후', hour: 6 });
   return (
-    <div className="w-full rounded-2xl bg-neutral-10 px-5 pt-4 pb-6">
+    <div className="w-full rounded-16 bg-neutral-10 px-5 pt-4 pb-6">
       <p className="mb-2 text-center text-bold-16 text-neutral-900">시작 시간 선택</p>
       <TimePicker value={value} onChange={setValue} />
       <p className="mt-4 text-center text-medium-14 text-neutral-500">

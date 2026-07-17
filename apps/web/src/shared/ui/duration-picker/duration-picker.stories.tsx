@@ -77,7 +77,7 @@ type Story = StoryObj<typeof meta>;
 function DurationPickerInSheet() {
   const [value, setValue] = useState<DurationValue>({ hours: 24, minutes: 30 });
   return (
-    <div className="w-full rounded-2xl bg-neutral-10 px-5 pt-4 pb-6">
+    <div className="w-full rounded-16 bg-neutral-10 px-5 pt-4 pb-6">
       <p className="mb-2 text-center text-bold-16 text-neutral-900">마감 시간 입력</p>
       <DurationPicker value={value} onChange={setValue} maxHours={72} minuteStep={10} />
       <p className="mt-4 text-center text-medium-14 text-neutral-500">
