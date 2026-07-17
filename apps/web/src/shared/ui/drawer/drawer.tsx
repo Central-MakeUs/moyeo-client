@@ -7,8 +7,6 @@ import { cn } from '@/shared/lib/cn';
 
 import { useOverlayContainer } from '../overlay/overlay-provider';
 
-const DrawerContainerContext = React.createContext<HTMLElement | null | undefined>(undefined);
-
 type DrawerProps = React.ComponentProps<typeof DrawerPrimitive.Root> & {
   direction?: 'bottom';
 };
@@ -17,30 +15,15 @@ function Drawer({ container, ...props }: DrawerProps) {
   const overlayContainer = useOverlayContainer();
   const resolvedContainer = container ?? overlayContainer ?? undefined;
 
-  return (
-    <DrawerContainerContext.Provider value={resolvedContainer}>
-      <DrawerPrimitive.Root data-slot="drawer" container={resolvedContainer} {...props} />
-    </DrawerContainerContext.Provider>
-  );
+  return <DrawerPrimitive.Root data-slot="drawer" container={resolvedContainer} {...props} />;
 }
 
 function DrawerTrigger({ ...props }: React.ComponentProps<typeof DrawerPrimitive.Trigger>) {
   return <DrawerPrimitive.Trigger data-slot="drawer-trigger" {...props} />;
 }
 
-function DrawerPortal({
-  container,
-  ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Portal>) {
-  const overlayContainer = useOverlayContainer();
-  const drawerContainer = React.useContext(DrawerContainerContext);
-
-  return (
-    <DrawerPrimitive.Portal
-      container={container ?? drawerContainer ?? overlayContainer ?? undefined}
-      {...props}
-    />
-  );
+function DrawerPortal({ ...props }: React.ComponentProps<typeof DrawerPrimitive.Portal>) {
+  return <DrawerPrimitive.Portal {...props} />;
 }
 
 function DrawerClose({ ...props }: React.ComponentProps<typeof DrawerPrimitive.Close>) {
