@@ -8,24 +8,24 @@
 
 ## 한눈에 보는 기준
 
-| 항목      | 값                                                                         |
-| --------- | -------------------------------------------------------------------------- |
-| 폰트      | **SUIT** (`--font-suit`)                                                   |
-| 메인 컬러 | **Primary `#f43630`**                                                      |
-| 컬러 체계 | atomic: `common` · `neutral(10~950)` · `accessible(50~950)` · `opacity`    |
-| 타이포    | 8종 (extrabold-22 / bold-16·14 / semibold-16·14 / medium-16·14·12)         |
-| 기준 화면 | 360 × 800 (모바일), app-shell `max-width: 480px`                           |
-| 그리드    | Margin 20 · Gutter 16 · Columns 4                                          |
-| Radius    | `--radius: 0.625rem` 파생. **⚠️ Tailwind 기본과 다름** (`rounded-lg`=10px) |
-| Spacing   | **미확정** — Tailwind 기본 스케일 사용                                     |
-| Shadow    | **미확정** — 현재 시안에 elevation 정의 없음                               |
+| 항목      | 값                                                                      |
+| --------- | ----------------------------------------------------------------------- |
+| 폰트      | **SUIT** (`--font-suit`)                                                |
+| 메인 컬러 | **Primary `#f43630`**                                                   |
+| 컬러 체계 | atomic: `common` · `neutral(10~950)` · `accessible(50~950)` · `opacity` |
+| 타이포    | 8종 (extrabold-22 / bold-16·14 / semibold-16·14 / medium-16·14·12)      |
+| 기준 화면 | 360 × 800 (모바일), app-shell `max-width: 480px`                        |
+| 그리드    | Margin 20 · Gutter 16 · Columns 4                                       |
+| Radius    | 2~24px + full. 값이 곧 토큰명 (`rounded-8`=8px)                         |
+| Spacing   | **미확정** — Tailwind 기본 스케일 사용                                  |
+| Shadow    | **미확정** — 현재 시안에 elevation 정의 없음                            |
 
 ---
 
 ## 토큰 확정 상태
 
-`globals.css` 주석 기준으로, **color / typography 토큰만 `@theme`에 확정**되어 있고
-**spacing · radius · shadow는 별도 디자인 토큰이 확정되기 전까지 Tailwind 기본 scale을 사용**한다.
+`globals.css` 주석 기준으로, **color / typography / radius 토큰이 `@theme`에 확정**되어 있고
+**spacing · shadow는 별도 디자인 토큰이 확정되기 전까지 Tailwind 기본 scale을 사용**한다.
 컴포넌트에서는 하드코딩 대신 `bg-primary`, `text-neutral-900`, `text-bold-16`처럼
 `@theme` 기반 Tailwind class를 우선 사용한다.
 
@@ -34,7 +34,7 @@
 | Color            | ✅ 확정   | Figma `Token`·`Definition`, `@theme` |
 | Typography       | ✅ 확정   | Figma `Typography`, `@theme`         |
 | Grid             | ✅ 확정   | Figma `그리드 시스템`                |
-| Radius           | 🟡 파생   | `globals.css` `--radius` 스케일      |
+| Radius           | ✅ 확정   | Figma `Radius`, `@theme`             |
 | Spacing          | 🔴 미확정 | Tailwind 기본(1 unit = 0.25rem) 사용 |
 | Shadow/Elevation | 🔴 미확정 | 시안·`@theme`에 정의 없음            |
 
@@ -58,7 +58,7 @@ design-system/
 | [`color.md`](./foundations/color.md)           | atomic 컬러(common/neutral/accessible/opacity) + semantic 매핑 |
 | [`typography.md`](./foundations/typography.md) | SUIT 폰트, 8개 텍스트 스타일                                   |
 | [`grid.md`](./foundations/grid.md)             | 그리드(360×800·Margin·Gutter·Columns)·spacing 상태             |
-| [`radius.md`](./foundations/radius.md)         | radius 스케일(⚠️ Tailwind와 다름)·elevation 상태               |
+| [`radius.md`](./foundations/radius.md)         | radius 스케일(값=토큰명)·elevation 상태                        |
 
 ### components/
 
