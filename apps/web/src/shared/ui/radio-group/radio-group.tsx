@@ -45,7 +45,7 @@ function RadioGroupCard({
       data-slot="radio-group-card"
       className={cn(
         // 레이아웃
-        'group/radio-group-card flex w-full items-center gap-3 rounded-[12px] border px-4 py-3 text-left transition-colors outline-none',
+        'group/radio-group-card flex w-full items-center gap-3 rounded-12 border px-4 py-3 text-left transition-colors outline-none',
 
         // default
         'border-neutral-10 bg-neutral-10',
