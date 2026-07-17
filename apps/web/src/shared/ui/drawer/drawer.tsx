@@ -54,13 +54,7 @@ function DrawerOverlay({
   return (
     <DrawerPrimitive.Overlay
       data-slot="drawer-overlay"
-      className={cn(
-        'pointer-events-auto fixed inset-0 z-50',
-        'bg-opacity-40',
-        'data-open:animate-in data-open:fade-in-0',
-        'data-closed:animate-out data-closed:fade-out-0',
-        className
-      )}
+      className={cn('pointer-events-auto fixed inset-0 z-50 bg-opacity-40', className)}
       {...props}
     />
   );
