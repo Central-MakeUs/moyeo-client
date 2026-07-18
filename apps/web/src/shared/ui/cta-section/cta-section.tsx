@@ -14,7 +14,7 @@ export function CTASection({
   ...buttonProps
 }: CTASectionProps) {
   return (
-    <section className={cn('rounded-t-md w-full bg-neutral-0 px-5 pt-5 pb-11', className)}>
+    <section className={cn('w-full rounded-t-12 bg-neutral-0 px-5 pt-5 pb-11', className)}>
       <Button fullWidth className={buttonClassName} {...buttonProps}>
         {children}
       </Button>
