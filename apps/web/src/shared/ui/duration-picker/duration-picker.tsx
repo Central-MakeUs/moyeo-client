@@ -38,13 +38,13 @@ function DurationPicker({
     {
       key: 'days',
       value: value.days,
-      align: 'end',
+      align: 'center',
       options: buildRange(maxDays, 1).map((days) => ({ value: days, label: `${days}일` })),
     },
     {
       key: 'hours',
       value: value.hours,
-      align: 'start',
+      align: 'center',
       options: buildRange(HOURS_IN_DAY, 1).map((hours) => ({
         value: hours,
         label: `${hours}시간`,

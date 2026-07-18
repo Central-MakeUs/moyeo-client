@@ -26,13 +26,13 @@ function TimePicker({ value, onChange, ...props }: TimePickerProps) {
     {
       key: 'period',
       value: value.period,
-      align: 'end',
+      align: 'center',
       options: PERIODS.map((period) => ({ value: period, label: period })),
     },
     {
       key: 'hour',
       value: value.hour,
-      align: 'start',
+      align: 'center',
       options: HOURS.map((hour) => ({ value: hour, label: `${hour}시` })),
     },
   ];
