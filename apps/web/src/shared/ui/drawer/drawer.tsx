@@ -13,9 +13,14 @@ type DrawerProps = React.ComponentProps<typeof DrawerPrimitive.Root> & {
 
 function Drawer({ container, ...props }: DrawerProps) {
   const overlayContainer = useOverlayContainer();
-  const resolvedContainer = container ?? overlayContainer ?? undefined;
 
-  return <DrawerPrimitive.Root data-slot="drawer" container={resolvedContainer} {...props} />;
+  return (
+    <DrawerPrimitive.Root
+      data-slot="drawer"
+      container={container ?? overlayContainer ?? undefined}
+      {...props}
+    />
+  );
 }
 
 function DrawerTrigger({ ...props }: React.ComponentProps<typeof DrawerPrimitive.Trigger>) {
@@ -23,7 +28,7 @@ function DrawerTrigger({ ...props }: React.ComponentProps<typeof DrawerPrimitive
 }
 
 function DrawerPortal({ ...props }: React.ComponentProps<typeof DrawerPrimitive.Portal>) {
-  return <DrawerPrimitive.Portal {...props} />;
+  return <DrawerPrimitive.Portal data-slot="drawer-portal" {...props} />;
 }
 
 function DrawerClose({ ...props }: React.ComponentProps<typeof DrawerPrimitive.Close>) {
