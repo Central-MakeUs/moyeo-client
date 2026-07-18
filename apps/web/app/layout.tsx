@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import '@/_app/globals.css';
-import GlobalLayout from '@/shared/ui/layouts/global-layout';
 import { QueryProvider } from '@/_app';
 import { suit } from '@/_app/fonts';
+import { AppLayout } from '@/shared/ui/layouts/app-layout';
 
 export const metadata: Metadata = {
   title: '모여 WebView',
@@ -18,7 +18,7 @@ export default function RootLayout({
     <html lang="ko">
       <body className={`${suit.variable}`}>
         <QueryProvider>
-          <GlobalLayout>{children}</GlobalLayout>
+          <AppLayout>{children}</AppLayout>
         </QueryProvider>
       </body>
     </html>
