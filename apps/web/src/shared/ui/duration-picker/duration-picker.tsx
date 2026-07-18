@@ -57,7 +57,7 @@ function DurationPicker({
 
   const handleChange = (key: string, next: string | number) => {
     if (key === 'hours') onChange({ ...value, hours: Number(next) });
-    else onChange({ ...value, minutes: Number(next) });
+    else if (key === 'minutes') onChange({ ...value, minutes: Number(next) });
   };
 
   return <WheelPicker columns={columns} onChange={handleChange} {...props} />;

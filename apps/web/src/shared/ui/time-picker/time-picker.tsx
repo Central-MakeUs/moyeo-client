@@ -39,7 +39,7 @@ function TimePicker({ value, onChange, ...props }: TimePickerProps) {
 
   const handleChange = (key: string, next: string | number) => {
     if (key === 'period') onChange({ ...value, period: next as Period });
-    else onChange({ ...value, hour: Number(next) });
+    else if (key === 'hour') onChange({ ...value, hour: Number(next) });
   };
 
   return <WheelPicker columns={columns} onChange={handleChange} {...props} />;
