@@ -4,23 +4,21 @@ import * as React from 'react';
 
 import { WheelPicker, type WheelColumn } from '@/shared/ui/wheel-picker';
 
-const DEFAULT_MAX_HOURS = 72;
-const DEFAULT_MINUTE_STEP = 10;
+const DEFAULT_MAX_DAYS = 7;
+const HOURS_IN_DAY = 23;
 
 export interface DurationValue {
+  /** 일 */
+  days: number;
   /** 시간 */
   hours: number;
-  /** 분 */
-  minutes: number;
 }
 
 interface DurationPickerProps extends Omit<React.ComponentProps<'div'>, 'value' | 'onChange'> {
   value: DurationValue;
   onChange: (value: DurationValue) => void;
-  /** 시간 컬럼 최대값 (0 ~ maxHours). 기본 72 */
-  maxHours?: number;
-  /** 분 컬럼 간격. 기본 10 (0,10,20…50) */
-  minuteStep?: number;
+  /** 일 컬럼 최대값 (0 ~ maxDays). 기본 7 */
+  maxDays?: number;
 }
 
 function buildRange(endInclusive: number, step: number): number[] {
@@ -29,35 +27,34 @@ function buildRange(endInclusive: number, step: number): number[] {
   return values;
 }
 
-/** 시간 + 분으로 기간을 고르는 피커 */
+/** 일 + 시간으로 기간을 고르는 피커 */
 function DurationPicker({
   value,
   onChange,
-  maxHours = DEFAULT_MAX_HOURS,
-  minuteStep = DEFAULT_MINUTE_STEP,
+  maxDays = DEFAULT_MAX_DAYS,
   ...props
 }: DurationPickerProps) {
   const columns: WheelColumn[] = [
     {
-      key: 'hours',
-      value: value.hours,
+      key: 'days',
+      value: value.days,
       align: 'end',
-      options: buildRange(maxHours, 1).map((hours) => ({ value: hours, label: `${hours}시간` })),
+      options: buildRange(maxDays, 1).map((days) => ({ value: days, label: `${days}일` })),
     },
     {
-      key: 'minutes',
-      value: value.minutes,
+      key: 'hours',
+      value: value.hours,
       align: 'start',
-      options: buildRange(59, minuteStep).map((minutes) => ({
-        value: minutes,
-        label: `${minutes}분`,
+      options: buildRange(HOURS_IN_DAY, 1).map((hours) => ({
+        value: hours,
+        label: `${hours}시간`,
       })),
     },
   ];
 
   const handleChange = (key: string, next: string | number) => {
-    if (key === 'hours') onChange({ ...value, hours: Number(next) });
-    else if (key === 'minutes') onChange({ ...value, minutes: Number(next) });
+    if (key === 'days') onChange({ ...value, days: Number(next) });
+    else if (key === 'hours') onChange({ ...value, hours: Number(next) });
   };
 
   return <WheelPicker columns={columns} onChange={handleChange} {...props} />;
