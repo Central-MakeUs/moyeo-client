@@ -15,7 +15,7 @@ const buttonVariants = cva(
     // 포커스 (a11y)
     'outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
     // 비활성
-    'disabled:pointer-events-none disabled:bg-neutral-70',
+    'disabled:pointer-events-none',
     // 폼 검증 에러
     'aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40',
     // 아이콘
@@ -25,7 +25,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-primary text-primary-foreground hover:bg-accessible-400 focus-visible:bg-accessible-600 active:bg-accessible-700',
+          'bg-primary text-primary-foreground hover:bg-accessible-400 focus-visible:bg-accessible-600 active:bg-accessible-700 disabled:bg-neutral-70',
         // outline: '',
         // secondary: '',
         ghost: '',
