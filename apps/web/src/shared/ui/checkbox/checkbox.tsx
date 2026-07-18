@@ -16,7 +16,7 @@ function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxP
         'border-[1.67px] transition-colors outline-none',
 
         // 상태별 색상 (unchecked / checked)
-        'border-neutral-50 bg-transparent',
+        'border-neutral-50 bg-transparent text-neutral-50',
         'data-checked:border-accessible-400 data-checked:bg-accessible-100 data-checked:text-accessible-400',
 
         // 키보드 포커스 (디자이너 승인 필요)
