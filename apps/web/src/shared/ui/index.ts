@@ -4,4 +4,5 @@ export * from './input';
 export * from './progress';
 export * from './switch';
 export * from './cta-section';
+export * from './calendar';
 export * from './drawer';

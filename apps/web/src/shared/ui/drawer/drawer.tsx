@@ -7,20 +7,19 @@ import { cn } from '@/shared/lib/cn';
 
 import { useOverlayContainer } from '../overlay/overlay-provider';
 
-const DrawerContainerContext = React.createContext<HTMLElement | null | undefined>(undefined);
-
 type DrawerProps = React.ComponentProps<typeof DrawerPrimitive.Root> & {
   direction?: 'bottom';
 };
 
 function Drawer({ container, ...props }: DrawerProps) {
   const overlayContainer = useOverlayContainer();
-  const resolvedContainer = container ?? overlayContainer ?? undefined;
 
   return (
-    <DrawerContainerContext.Provider value={resolvedContainer}>
-      <DrawerPrimitive.Root data-slot="drawer" container={resolvedContainer} {...props} />
-    </DrawerContainerContext.Provider>
+    <DrawerPrimitive.Root
+      data-slot="drawer"
+      container={container ?? overlayContainer ?? undefined}
+      {...props}
+    />
   );
 }
 
@@ -28,19 +27,8 @@ function DrawerTrigger({ ...props }: React.ComponentProps<typeof DrawerPrimitive
   return <DrawerPrimitive.Trigger data-slot="drawer-trigger" {...props} />;
 }
 
-function DrawerPortal({
-  container,
-  ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Portal>) {
-  const overlayContainer = useOverlayContainer();
-  const drawerContainer = React.useContext(DrawerContainerContext);
-
-  return (
-    <DrawerPrimitive.Portal
-      container={container ?? drawerContainer ?? overlayContainer ?? undefined}
-      {...props}
-    />
-  );
+function DrawerPortal({ ...props }: React.ComponentProps<typeof DrawerPrimitive.Portal>) {
+  return <DrawerPrimitive.Portal data-slot="drawer-portal" {...props} />;
 }
 
 function DrawerClose({ ...props }: React.ComponentProps<typeof DrawerPrimitive.Close>) {
@@ -54,13 +42,7 @@ function DrawerOverlay({
   return (
     <DrawerPrimitive.Overlay
       data-slot="drawer-overlay"
-      className={cn(
-        'pointer-events-auto fixed inset-0 z-50',
-        'bg-opacity-40',
-        'data-open:animate-in data-open:fade-in-0',
-        'data-closed:animate-out data-closed:fade-out-0',
-        className
-      )}
+      className={cn('pointer-events-auto fixed inset-0 z-50 bg-opacity-40', className)}
       {...props}
     />
   );
@@ -82,7 +64,7 @@ function DrawerContent({
           // 테마 및 타이포그래피
           'bg-popover text-semibold-14 text-popover-foreground',
           // 바텀 드로어 전용 스타일
-          'data-[vaul-drawer-direction=bottom]:inset-x-0 data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:mt-24 data-[vaul-drawer-direction=bottom]:rounded-t-xl',
+          'data-[vaul-drawer-direction=bottom]:inset-x-0 data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:rounded-t-12',
           className
         )}
         {...props}
@@ -96,11 +78,11 @@ function DrawerContent({
 
 function DrawerHandle({ className, ...props }: React.ComponentProps<'div'>) {
   return (
-    <div className="relative flex h-[22px] w-full shrink-0 items-center justify-center">
+    <div className="relative h-[22px] w-full shrink-0">
       <div
         data-slot="drawer-handle"
         className={cn(
-          'absolute top-1.5 h-1 w-9 shrink-0 cursor-grab rounded-full bg-neutral-50 group-data-[vaul-drawer-direction=bottom]/drawer-content:block',
+          'absolute top-1.5 left-1/2 h-1 w-9 -translate-x-1/2 cursor-grab rounded-full bg-neutral-50',
           className
         )}
         {...props}
@@ -114,7 +96,7 @@ function DrawerHeader({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot="drawer-header"
       className={cn(
-        'flex shrink-0 flex-col gap-0.5 group-data-[vaul-drawer-direction=bottom]/drawer-content:text-center',
+        'flex shrink-0 flex-col gap-0.5 pb-8 group-data-[vaul-drawer-direction=bottom]/drawer-content:text-center',
         className
       )}
       {...props}
