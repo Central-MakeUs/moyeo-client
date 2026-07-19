@@ -17,6 +17,11 @@ const preview: Preview = {
     ),
   ],
   parameters: {
+    layout: 'centered',
+    viewport: {
+      disable: true,
+    },
+
     controls: {
       matchers: {
         color: /(background|color)$/i,

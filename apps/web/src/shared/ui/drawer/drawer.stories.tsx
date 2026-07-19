@@ -1,5 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 
+import {
+  mobileViewportGlobals,
+  mobileShellParameters,
+  withAppShell,
+  withCenteredLayout,
+} from '~storybook/presets/mobile-shell';
+
 import { Button } from '../button';
 import {
   Drawer,
@@ -10,7 +17,6 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from './drawer';
-import { AppLayout } from '../layouts/app-layout';
 
 type DrawerStoryArgs = {
   direction: 'bottom';
@@ -22,44 +28,10 @@ const meta = {
   title: 'Primitives/Drawer',
   tags: ['autodocs'],
   parameters: {
-    layout: 'fullscreen',
-    viewport: {
-      options: {
-        mobileDefault: {
-          name: 'Mobile 360 x 800',
-          styles: {
-            width: '360px',
-            height: '800px',
-          },
-          type: 'mobile',
-        },
-      },
-    },
-    docs: {
-      story: {
-        inline: false,
-        iframeHeight: 800,
-      },
-    },
+    ...mobileShellParameters,
   },
-  globals: {
-    viewport: {
-      value: 'mobileDefault',
-      isRotated: false,
-    },
-  },
-
-  decorators: [
-    (Story) => (
-      <div className="[--app-shell-max-width:22.5rem]">
-        <AppLayout>
-          <div className="flex min-h-dvh items-center justify-center bg-neutral-50">
-            <Story />
-          </div>
-        </AppLayout>
-      </div>
-    ),
-  ],
+  globals: mobileViewportGlobals,
+  decorators: [withCenteredLayout, withAppShell],
   argTypes: {
     direction: {
       control: 'inline-radio',

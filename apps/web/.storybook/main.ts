@@ -44,6 +44,7 @@ const config: StorybookConfig = {
       resolve: {
         alias: {
           '@': resolve(dirname(fileURLToPath(import.meta.url)), '../src'),
+          '~storybook': resolve(dirname(fileURLToPath(import.meta.url))),
         },
       },
     });
