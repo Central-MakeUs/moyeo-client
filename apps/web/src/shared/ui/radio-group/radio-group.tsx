@@ -45,13 +45,13 @@ function RadioGroupCard({
       data-slot="radio-group-card"
       className={cn(
         // 레이아웃
-        'group/radio-group-card flex w-full items-center gap-3 rounded-12 border px-4 py-3 text-left transition-colors outline-none',
+        'group/radio-group-card flex w-full items-center gap-4 rounded-12 px-4 py-3 text-left transition-colors outline-none',
 
         // default
-        'border-neutral-10 bg-neutral-10',
+        'bg-neutral-10',
 
         // selected
-        'data-[state=checked]:border-accessible-50 data-[state=checked]:bg-accessible-50',
+        'data-[state=checked]:bg-accessible-50',
 
         // 키보드 포커스 (디자이너 승인 필요)
         'focus-visible:ring-3 focus-visible:ring-ring/50',
