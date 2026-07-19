@@ -10,3 +10,4 @@ export * from './wheel-picker';
 export * from './cta-section';
 export * from './calendar';
 export * from './drawer';
+export * from './select';
