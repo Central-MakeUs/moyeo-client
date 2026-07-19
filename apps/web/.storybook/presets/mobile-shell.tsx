@@ -19,6 +19,26 @@ export const withAppShell: Decorator = (Story) => (
   </div>
 );
 
+const mobileFrameStyle = {
+  '--app-shell-max-width': MOBILE_VIEWPORTS.mobileDefault.styles.width,
+  width: MOBILE_VIEWPORTS.mobileDefault.styles.width,
+  height: MOBILE_VIEWPORTS.mobileDefault.styles.height,
+  transform: 'translateZ(0)',
+} as CSSProperties;
+
+export const withMobileFrame: Decorator = (Story) => (
+  <div
+    style={mobileFrameStyle}
+    className="relative mx-auto overflow-hidden border border-neutral-50 [&_.app-shell]:h-full [&_.app-shell]:min-h-0 [&_.app-viewport]:h-full [&_.app-viewport]:min-h-0"
+  >
+    <AppLayout>
+      <div className="flex h-full flex-col overflow-y-auto bg-neutral-50">
+        <Story />
+      </div>
+    </AppLayout>
+  </div>
+);
+
 export const withCenteredLayout: Decorator = (Story) => (
   <div className="m-auto">
     <Story />
