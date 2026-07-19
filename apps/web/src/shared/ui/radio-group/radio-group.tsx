@@ -64,22 +64,16 @@ function RadioGroupCard({
     >
       {/* 라디오 원 (20px) — 클릭 대상은 카드 전체이고, 이 원은 선택 상태를 시각적으로만 표현한다. */}
       <span
+        aria-hidden="true"
         className={cn(
           // 모양
-          'relative flex size-5 shrink-0 items-center justify-center rounded-full border bg-white transition-colors',
-
-          // default — 시안 Primary/Gray/300(#D2D5DA)을 가장 가까운 neutral-70(#d0d0d0)으로 근사
+          'relative flex size-5 shrink-0 items-center justify-center rounded-full border bg-white transition-[border-color,border-width]',
+          // default
           'border-neutral-70',
-
           // selected
-          'group-data-[state=checked]/radio-group-card:border-accessible-400 group-data-[state=checked]/radio-group-card:bg-accessible-400'
+          'group-data-[state=checked]/radio-group-card:border-[5px] group-data-[state=checked]/radio-group-card:border-accessible-400'
         )}
-      >
-        {/* 선택 시에만 렌더 (Radix가 checked 상태에서만 Indicator를 표시) */}
-        <RadioGroupPrimitive.Indicator className="flex items-center justify-center">
-          <span className="size-2.5 rounded-full bg-white" />
-        </RadioGroupPrimitive.Indicator>
-      </span>
+      />
 
       {/* 텍스트 */}
       <span className="flex flex-col gap-0.5">
