@@ -38,9 +38,10 @@ const config: StorybookConfig = {
       },
     },
   },
-  staticDirs: ['..\\public'],
+  staticDirs: ['../public'],
   viteFinal: async (viteConfig) => {
     const config = mergeConfig(viteConfig, {
+      base: '/moyeo-client/',
       resolve: {
         alias: {
           '@': resolve(dirname(fileURLToPath(import.meta.url)), '../src'),
