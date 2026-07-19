@@ -30,11 +30,11 @@ const meta = {
       control: 'boolean',
       description: 'Button의 asChild를 통해 a 또는 Link 같은 자식 요소로 렌더링',
     },
-    sectionClassName: {
+    className: {
       control: 'text',
       description: 'CTA 영역(section)에 추가할 className',
     },
-    className: {
+    buttonClassName: {
       control: 'text',
       description: '내부 Button에 추가할 className',
     },
