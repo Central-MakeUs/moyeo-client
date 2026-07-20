@@ -140,7 +140,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-/** 값이 아직 없는 기본 상태입니다. `placeholder` 가 옅은 회색(`text-neutral-500`)으로 노출되며, 트리거를 누르면 바텀시트가 열립니다. label / placeholder / title / disabled 를 컨트롤로 조작할 수 있습니다. */
+/** 값이 아직 없는 기본 상태입니다. `placeholder` 와 caret 이 옅은 회색(`text-neutral-400`)으로 노출되며, 트리거를 누르면 바텀시트가 열립니다. label / placeholder / title / disabled 를 컨트롤로 조작할 수 있습니다. */
 export const Default: Story = {};
 
 /** 값이 확정된 상태입니다. 바텀시트에서 CTA 를 눌러야 이 상태가 되며, 값 텍스트가 진한 색(`text-neutral-950`)으로 바뀝니다. */

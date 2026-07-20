@@ -61,10 +61,10 @@ function SelectTrigger({
             'truncate text-medium-16',
 
             // 값 유무에 따른 색 (activated / placeholder)
-            hasValue ? 'text-neutral-950' : 'text-neutral-500',
+            hasValue ? 'text-neutral-950' : 'text-neutral-400',
 
             // 비활성화
-            'group-disabled/select:text-neutral-400'
+            'group-disabled/select:text-neutral-200'
           )}
         >
           {hasValue ? value : placeholder}
@@ -74,8 +74,8 @@ function SelectTrigger({
         name="caret-down"
         size={24}
         className={cn(
-          // 기본
-          'text-neutral-600',
+          // 값 유무에 따른 색 (activated / placeholder)
+          hasValue ? 'text-neutral-600' : 'text-neutral-400',
 
           // drawer 열림 — 위를 향하도록 180도 회전
           'transition-transform duration-200 ease-in-out group-data-[state=open]/select:rotate-180',
@@ -83,7 +83,6 @@ function SelectTrigger({
           // 비활성화
           'group-disabled/select:text-neutral-100'
         )}
-        aria-hidden
       />
     </button>
   );
