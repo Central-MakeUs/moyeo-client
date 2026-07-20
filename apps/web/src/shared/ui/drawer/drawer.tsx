@@ -65,6 +65,8 @@ function DrawerContent({
           'bg-popover text-semibold-14 text-popover-foreground',
           // 바텀 드로어 전용 스타일
           'data-[vaul-drawer-direction=bottom]:inset-x-0 data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:rounded-t-12',
+          // 오버드래그 필러
+          "after:absolute after:inset-x-0 after:top-full after:-mt-px after:h-[200%] after:bg-inherit after:content-['']",
           className
         )}
         {...props}
