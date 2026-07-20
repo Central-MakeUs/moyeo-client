@@ -4,6 +4,7 @@ export * from './duration-picker';
 export * from './input';
 export * from './number-picker';
 export * from './progress';
+export * from './radio-group';
 export * from './switch';
 export * from './time-picker';
 export * from './wheel-picker';
