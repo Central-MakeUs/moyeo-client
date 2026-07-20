@@ -21,6 +21,15 @@ const selectTriggerClasses = cn(
   'disabled:cursor-not-allowed disabled:border-transparent disabled:bg-neutral-20'
 );
 
+interface SelectTriggerProps extends Omit<React.ComponentProps<'button'>, 'value'> {
+  /** 상단 title 라벨 */
+  label: string;
+  /** 선택된 값 (없으면 placeholder 노출) */
+  value?: string;
+  /** 값이 없을 때 노출할 안내 텍스트 */
+  placeholder?: string;
+}
+
 /** Select 트리거 박스. 클릭 시 옵션 drawer 표시 */
 function SelectTrigger({
   className,
@@ -30,15 +39,8 @@ function SelectTrigger({
   disabled,
   type = 'button',
   ...props
-}: Omit<React.ComponentProps<'button'>, 'value'> & {
-  /** 상단 title 라벨 */
-  label: React.ReactNode;
-  /** 선택된 값 (없으면 placeholder 노출) */
-  value?: React.ReactNode;
-  /** 값이 없을 때 노출할 안내 텍스트 */
-  placeholder?: React.ReactNode;
-}) {
-  const hasValue = value !== undefined && value !== null && value !== '';
+}: SelectTriggerProps) {
+  const hasValue = value !== undefined && value !== '';
 
   return (
     <button
@@ -88,3 +90,4 @@ function SelectTrigger({
 }
 
 export { SelectTrigger };
+export type { SelectTriggerProps };

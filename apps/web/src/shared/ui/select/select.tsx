@@ -14,10 +14,10 @@ import {
   DrawerTrigger,
 } from '@/shared/ui/drawer';
 
-import { SelectTrigger } from './select-trigger';
+import { SelectTrigger, type SelectTriggerProps } from './select-trigger';
 
 interface SelectProps<T> extends Omit<
-  React.ComponentProps<typeof SelectTrigger>,
+  SelectTriggerProps,
   'value' | 'defaultValue' | 'title' | 'children'
 > {
   /** 선택된 값 (없을 시 트리거에 placeholder 노출) */
@@ -25,7 +25,7 @@ interface SelectProps<T> extends Omit<
   /** 값이 없을 때 피커가 시작할 값 */
   defaultValue: T;
   /** 값을 트리거에 표시할 텍스트로 변환 (예: `(v) => `${v.period} ${v.hour}시`` ) */
-  format: (value: NoInfer<T>) => React.ReactNode;
+  format: (value: NoInfer<T>) => string;
   /** CTA 를 눌러 값을 확정했을 시 호출 */
   onValueChange: (value: NoInfer<T>) => void;
   /** drawer 안에 넣을 피커 (확정 전 임시 값(draft)과 그 setter 를 받는다.) */
