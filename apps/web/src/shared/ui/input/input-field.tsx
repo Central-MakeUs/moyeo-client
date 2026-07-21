@@ -28,29 +28,64 @@ function InputField({
   label,
   hint,
   disabled,
+  description,
+  errorMessage,
+  'aria-describedby': ariaDescribedBy,
+  'aria-invalid': ariaInvalid,
   ...props
 }: React.ComponentProps<'input'> & {
   /** 주 라벨*/
   label: React.ReactNode;
   /** 보조 힌트 라벨 */
   hint?: React.ReactNode;
+  description?: string;
+  errorMessage?: string;
 }) {
+  const message = errorMessage ?? description;
+  const isInvalid = Boolean(errorMessage);
+  const messageId = `${React.useId()}-message`;
+
+  let describedBy = ariaDescribedBy;
+
+  if (message) {
+    describedBy = ariaDescribedBy ? `${ariaDescribedBy} ${messageId}` : messageId;
+  }
+
   return (
-    <label data-slot="input-field" className={cn(inputFieldClasses, className)}>
-      <span
-        data-slot="input-field-label"
-        className="text-medium-12 text-neutral-500 group-has-[input:disabled]/input-field:text-neutral-400"
+    <div className="flex flex-col gap-1.5">
+      <label
+        data-slot="input-field"
+        className={cn(inputFieldClasses, className, isInvalid && 'border-accessible-600')}
       >
-        {label}
-        {hint ? <span className="ml-1 text-neutral-400">{hint}</span> : null}
-      </span>
-      <input
-        data-slot="input"
-        disabled={disabled}
-        className="w-full bg-transparent text-medium-16 outline-none placeholder:text-neutral-400 disabled:cursor-not-allowed disabled:text-neutral-400"
-        {...props}
-      />
-    </label>
+        <span
+          data-slot="input-field-label"
+          className="text-medium-12 text-neutral-500 group-has-[input:disabled]/input-field:text-neutral-400"
+        >
+          {label}
+          {hint ? <span className="ml-1 text-neutral-400">{hint}</span> : null}
+        </span>
+        <input
+          data-slot="input"
+          disabled={disabled}
+          aria-describedby={describedBy}
+          aria-invalid={isInvalid ? true : ariaInvalid}
+          className="w-full bg-transparent text-medium-16 outline-none placeholder:text-neutral-400 disabled:cursor-not-allowed disabled:text-neutral-400"
+          {...props}
+        />
+      </label>
+      {message && (
+        <small
+          id={messageId}
+          data-slot={isInvalid ? 'input-field-error' : 'input-field-description'}
+          className={cn(
+            'px-1.5 text-medium-12',
+            isInvalid ? 'text-accessible-600' : 'text-neutral-400'
+          )}
+        >
+          {message}
+        </small>
+      )}
+    </div>
   );
 }
 
