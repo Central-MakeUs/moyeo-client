@@ -1,0 +1,39 @@
+# figma 스냅샷 (Figma에서 눈으로 확인된 사실만 — 기획 식별자/라우트/API 없음)
+# 스키마: .claude/skills/user-flow-diagram/references/source-schema.md §2
+scope: ACCOUNT # 계정 진입·홈 (ONB / ACC / HOME)
+source:
+  url: https://www.figma.com/design/2aUk6ATnyVjjBTlhHRwsbT/CMC-19th--%EB%AA%A8%EC%97%AC-MOYEO-?node-id=2564-16578
+  node_id: 2564-16578
+  synced_at: 2026-07-21
+
+nodes:
+  - { id: enter, label: 앱 서비스 진입, type: terminal }
+  - { id: first, label: 최초 진입, type: branch }
+  - { id: onb, label: 온보딩 (ONB), type: main }
+  - { id: login, label: 로그인, type: branch }
+  - { id: home, label: 모임 홈 (HOME), type: main }
+  - { id: acc, label: 로그인/회원가입 (ACC), type: main }
+  - { id: social, label: 소셜 로그인, type: feature }
+  - { id: nick, label: 기본 닉네임 입력, type: feature }
+  - { id: accDone, label: 로그인/회원가입 완료, type: terminal }
+  # HOME 화면 내 항목
+  - { id: editme, label: 내 정보 수정, type: feature }
+  - { id: savedp, label: 저장된 출발지 관리, type: feature }
+  - { id: fab, label: 모임 생성 FAB, type: feature }
+  - { id: ongoing, label: 진행 중 모임 카드, type: feature }
+  - { id: fixed, label: 확정된 모임 카드/모달, type: feature }
+
+edges:
+  - { from: enter, to: first }
+  - { from: first, to: onb, label: Y }
+  - { from: first, to: login, label: N }
+  - { from: onb, to: login }
+  - { from: login, to: home, label: Y }
+  - { from: login, to: acc, label: N }
+  - { from: acc, to: social }
+  - { from: social, to: nick }
+  - { from: nick, to: accDone }
+  # 크로스 서브플로우 (그림 상 다른 열로 이어짐)
+  - { from: fab, to: crt, label: 모임 생성 (CRT)로 이어짐 } # → figma.crt.yaml
+  - { from: ongoing, to: view, label: 모임 현황 (VIEW)로 이어짐 } # → figma.view.yaml
+  - { from: fixed, to: view, label: 모임 현황 (VIEW)로 이어짐 }
