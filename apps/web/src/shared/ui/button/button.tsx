@@ -8,42 +8,57 @@ const buttonVariants = cva(
   [
     // 레이아웃
     'group/button inline-flex shrink-0 items-center justify-center whitespace-nowrap',
+
     // 모양·타이포
     'rounded-8 border border-transparent bg-clip-padding text-bold-16',
-    // 모션·상호작용
-    'transition-all select-none active:not-aria-[haspopup]:translate-y-px',
-    // 포커스 (a11y)
-    'outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
+
+    // 상호작용·모션
+    'select-none transition-[background-color,border-color,color,box-shadow,transform]',
+    'active:not-aria-[haspopup]:translate-y-px',
+
+    // 포커스
+    'outline-none focus-visible:ring-3',
+
     // 비활성
     'disabled:pointer-events-none',
+
     // 폼 검증 에러
-    'aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40',
+    'aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20',
+
     // 아이콘
-    "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+    '[&_svg]:pointer-events-none',
+    '[&_svg]:shrink-0',
+    "[&_svg:not([data-slot='icon']):not([class*='size-'])]:size-4",
   ],
   {
     variants: {
       variant: {
-        default:
-          'bg-primary text-primary-foreground hover:bg-accessible-400 focus-visible:bg-accessible-600 active:bg-accessible-700 disabled:bg-neutral-70',
-        // outline: '',
-        // secondary: '',
-        ghost: '',
-        // destructive: '',
-        // link: '',
+        default: [
+          'bg-primary text-primary-foreground',
+          'hover:bg-accessible-400',
+          'focus-visible:bg-accessible-600 focus-visible:ring-accessible-300',
+          'active:bg-accessible-700',
+          'disabled:bg-neutral-70',
+        ],
+        outline: [
+          'border-neutral-50 bg-white text-neutral-600',
+          'hover:border-accessible-300 hover:text-neutral-950',
+          'focus-visible:ring-accessible-300 focus-visible:bg-accessible-50 focus-visible:text-accessible-500',
+          'active:border-accessible-500 active:text-neutral-950',
+          'disabled:bg-neutral-50 disabled:text-white',
+        ],
+        ghost: [
+          'border-transparent bg-transparent text-current',
+          'hover:bg-neutral-20',
+          'focus-visible:ring-neutral-200 focus-visible:bg-neutral-20',
+          'active:bg-neutral-50',
+          'disabled:text-neutral-70',
+        ],
       },
       size: {
         default:
           'h-12 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
-        // xs: '',
-        // sm: '',
-        // lg: '',
-        icon: 'size-7.5 rounded-6 bg-white text-neutral-100 hover:bg-neutral-20 focus-visible:bg-accessible-600 active:bg-neutral-50',
-        // 'icon-xs':
-        //   "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
-        // 'icon-sm':
-        //   'size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg',
-        // 'icon-lg': 'size-9',
+        icon: 'p-1',
       },
       fullWidth: {
         true: 'w-full',
