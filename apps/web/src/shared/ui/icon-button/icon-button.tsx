@@ -24,7 +24,7 @@ export function IconButton({
     <Button
       size="icon"
       variant={variant}
-      className={cn(shape === 'circle' && 'rounded-full', className)}
+      className={cn(shape === 'circle' ? 'rounded-full' : 'rounded-6', className)}
       {...props}
     >
       <Icon name={icon} size={iconSize} />

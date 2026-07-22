@@ -28,7 +28,7 @@ const ICON_BUTTON_STATE_PREVIEWS = {
     },
     {
       label: 'Pressed',
-      className: 'border-accessible-500',
+      className: 'border-accessible-500 text-neutral-950',
     },
   ],
   ghost: [
@@ -64,7 +64,7 @@ const meta = {
     shape: {
       control: 'inline-radio',
       options: ICON_BUTTON_SHAPES,
-      description: '아이콘 버튼의 모양',
+      description: '아이콘 버튼의 모양 (rounded: 6px, circle: 원형)',
       table: { defaultValue: { summary: 'rounded' } },
     },
     iconSize: {
@@ -109,7 +109,7 @@ export const Variants: Story = {
   ),
 };
 
-/** 기본 rounded 모양과 원형 버튼을 비교합니다. */
+/** 기본 6px rounded 모양과 원형 버튼을 비교합니다. */
 export const Shapes: Story = {
   render: (args) => (
     <div className="flex items-center gap-4">

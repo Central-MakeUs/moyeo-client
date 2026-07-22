@@ -172,7 +172,7 @@ const VARIANT_STATE_PREVIEWS = {
     },
     {
       label: 'Pressed',
-      className: 'border-accessible-500',
+      className: 'border-accessible-500 text-neutral-950',
     },
   ],
   ghost: [

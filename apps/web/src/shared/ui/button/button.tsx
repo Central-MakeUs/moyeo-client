@@ -44,7 +44,7 @@ const buttonVariants = cva(
           'border-neutral-50 bg-white text-neutral-600',
           'hover:border-accessible-300 hover:text-neutral-950',
           'focus-visible:ring-accessible-300 focus-visible:bg-accessible-50 focus-visible:text-accessible-500',
-          'active:border-accessible-500',
+          'active:border-accessible-500 active:text-neutral-950',
           'disabled:bg-neutral-50 disabled:text-white',
         ],
         ghost: [
