@@ -98,9 +98,10 @@ export const WithDescription: Story = {
   },
 };
 
-/** 오류 문구가 description을 대체하며 accessible-600 색상과 aria-invalid가 적용됩니다. */
+/** 값이 입력된 blur 상태에서도 오류 보더와 문구, aria-invalid가 유지됩니다. */
 export const WithError: Story = {
   args: {
+    defaultValue: 'invalid text',
     description: '영문과 숫자를 포함해 8자 이상 입력해주세요.',
     errorMessage: '입력한 내용을 다시 확인해주세요.',
   },
@@ -150,6 +151,7 @@ export const StateOverview: Story = {
           label="title"
           hint="Heading"
           placeholder="Text"
+          defaultValue="invalid text"
           errorMessage="입력한 내용을 다시 확인해주세요."
         />
       </div>

@@ -8,17 +8,17 @@ const inputFieldClasses = cn(
   // default
   'border-transparent bg-neutral-10',
   // activated
-  `[&:has(input:not(:placeholder-shown)):not(:hover):not(:focus-within):not(:has(input:disabled))]:border-neutral-20`,
+  `[&:has(input:not(:placeholder-shown)):not(:hover):not(:focus-within):not(:has(input:disabled)):not([data-invalid])]:border-neutral-20`,
   `[&:has(input:not(:placeholder-shown)):not(:hover):not(:focus-within):not(:has(input:disabled))]:bg-white`,
   // hover
-  `[&:hover:not(:focus-within):not(:has(input:disabled))]:border-accessible-200`,
+  `[&:hover:not(:focus-within):not(:has(input:disabled)):not([data-invalid])]:border-accessible-200`,
   `[&:hover:not(:focus-within):not(:has(input:disabled))]:bg-white`,
   // focus
-  'focus-within:border-accessible-400 focus-within:bg-white',
-  //filled
+  '[&:focus-within:not([data-invalid])]:border-accessible-400 focus-within:bg-white',
+  // filled
   '[&:has(input:not(:placeholder-shown))]:bg-white',
-  // error(aria-invalid): 시안에 에러 상태가 정의되면 활성화한다. (보더 토큰은 디자인 확정 후 지정)
-  // '[&:has(input[aria-invalid=true]):not(:focus-within)]:border-<TBD>',
+  // error: 값·hover·focus 상태보다 우선하되 disabled일 때는 disabled 보더를 유지한다.
+  '[&[data-invalid]:not(:has(input:disabled))]:border-accessible-600',
   // disabled
   '[&:has(input:disabled)]:border-transparent [&:has(input:disabled)]:bg-neutral-50'
 );
@@ -55,7 +55,8 @@ function InputField({
     <div className="flex flex-col gap-1.5">
       <label
         data-slot="input-field"
-        className={cn(inputFieldClasses, className, isInvalid && 'border-accessible-600')}
+        data-invalid={isInvalid || undefined}
+        className={cn(inputFieldClasses, className)}
       >
         <span
           data-slot="input-field-label"
