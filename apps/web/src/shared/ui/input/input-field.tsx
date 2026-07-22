@@ -8,17 +8,17 @@ const inputFieldClasses = cn(
   // default
   'border-transparent bg-neutral-10',
   // activated
-  `[&:has(input:not(:placeholder-shown)):not(:hover):not(:focus-within):not(:has(input:disabled))]:border-neutral-20`,
+  `[&:has(input:not(:placeholder-shown)):not(:hover):not(:focus-within):not(:has(input:disabled)):not([data-invalid])]:border-neutral-20`,
   `[&:has(input:not(:placeholder-shown)):not(:hover):not(:focus-within):not(:has(input:disabled))]:bg-white`,
   // hover
-  `[&:hover:not(:focus-within):not(:has(input:disabled))]:border-accessible-200`,
+  `[&:hover:not(:focus-within):not(:has(input:disabled)):not([data-invalid])]:border-accessible-200`,
   `[&:hover:not(:focus-within):not(:has(input:disabled))]:bg-white`,
   // focus
-  'focus-within:border-accessible-400 focus-within:bg-white',
-  //filled
+  '[&:focus-within:not([data-invalid])]:border-accessible-400 focus-within:bg-white',
+  // filled
   '[&:has(input:not(:placeholder-shown))]:bg-white',
-  // error(aria-invalid): 시안에 에러 상태가 정의되면 활성화한다. (보더 토큰은 디자인 확정 후 지정)
-  // '[&:has(input[aria-invalid=true]):not(:focus-within)]:border-<TBD>',
+  // error: 값·hover·focus 상태보다 우선하되 disabled일 때는 disabled 보더를 유지한다.
+  '[&[data-invalid]:not(:has(input:disabled))]:border-accessible-600',
   // disabled
   '[&:has(input:disabled)]:border-transparent [&:has(input:disabled)]:bg-neutral-50'
 );
@@ -28,29 +28,65 @@ function InputField({
   label,
   hint,
   disabled,
+  description,
+  errorMessage,
+  'aria-describedby': ariaDescribedBy,
+  'aria-invalid': ariaInvalid,
   ...props
 }: React.ComponentProps<'input'> & {
   /** 주 라벨*/
   label: React.ReactNode;
   /** 보조 힌트 라벨 */
   hint?: React.ReactNode;
+  description?: string;
+  errorMessage?: string;
 }) {
+  const message = errorMessage ?? description;
+  const isInvalid = Boolean(errorMessage);
+  const messageId = `${React.useId()}-message`;
+
+  let describedBy = ariaDescribedBy;
+
+  if (message) {
+    describedBy = ariaDescribedBy ? `${ariaDescribedBy} ${messageId}` : messageId;
+  }
+
   return (
-    <label data-slot="input-field" className={cn(inputFieldClasses, className)}>
-      <span
-        data-slot="input-field-label"
-        className="text-medium-12 text-neutral-500 group-has-[input:disabled]/input-field:text-neutral-400"
+    <div className="flex flex-col gap-1.5">
+      <label
+        data-slot="input-field"
+        data-invalid={isInvalid || undefined}
+        className={cn(inputFieldClasses, className)}
       >
-        {label}
-        {hint ? <span className="ml-1 text-neutral-400">{hint}</span> : null}
-      </span>
-      <input
-        data-slot="input"
-        disabled={disabled}
-        className="w-full bg-transparent text-medium-16 outline-none placeholder:text-neutral-400 disabled:cursor-not-allowed disabled:text-neutral-400"
-        {...props}
-      />
-    </label>
+        <span
+          data-slot="input-field-label"
+          className="text-medium-12 text-neutral-500 group-has-[input:disabled]/input-field:text-neutral-400"
+        >
+          {label}
+          {hint ? <span className="ml-1 text-neutral-400">{hint}</span> : null}
+        </span>
+        <input
+          data-slot="input"
+          disabled={disabled}
+          aria-describedby={describedBy}
+          aria-invalid={isInvalid ? true : ariaInvalid}
+          className="w-full bg-transparent text-medium-16 outline-none placeholder:text-neutral-400 disabled:cursor-not-allowed disabled:text-neutral-400"
+          {...props}
+        />
+      </label>
+      {message && (
+        <small
+          id={messageId}
+          data-slot={isInvalid ? 'input-field-error' : 'input-field-description'}
+          className={cn(
+            'px-1.5 text-medium-12',
+            isInvalid ? 'text-accessible-600' : 'text-neutral-400'
+          )}
+        >
+          {message}
+        </small>
+      )}
+    </div>
   );
 }
 

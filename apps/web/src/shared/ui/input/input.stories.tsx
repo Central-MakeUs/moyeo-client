@@ -30,11 +30,18 @@ const meta = {
       control: 'text',
       description: '값이 없을 때 노출되는 플레이스홀더 (default/empty 상태 트리거)',
     },
+    description: {
+      control: 'text',
+      description: '입력창 아래에 노출되는 일반 안내 문구',
+    },
+    errorMessage: {
+      control: 'text',
+      description: '입력창 아래에 노출되는 오류 문구 (description보다 우선)',
+    },
     disabled: {
       control: 'boolean',
       description: '비활성화 상태',
     },
-    // NOTE: error(aria-invalid) 상태는 시안 확정 후 추가 예정 (컴포넌트 클래스에 주석 placeholder 있음)
   },
   args: {
     label: 'title',
@@ -55,7 +62,8 @@ type Story = StoryObj<typeof meta>;
  * - hover   : 포인터 오버 → 옅은 레드 보더(accessible-200)
  * - focus   : 포커스 → 진한 레드 보더(accessible-400) + 흰 배경
  * - disabled: 비활성 → 진한 회색 fill(bg-neutral-50), 보더 없음
- * - error   : (예약) 시안 확정 후 aria-invalid 로 추가 예정
+ * - description: 입력창 아래에 일반 안내 문구 노출
+ * - errorMessage: description을 대체하고 accessible-600 색상으로 오류 문구 노출
  * 상태는 prop 이 아니라 자식 input 의 의사클래스(:placeholder-shown/:hover/:focus-within/:disabled)로 자동 결정된다.
  */
 
@@ -81,6 +89,22 @@ export const LabelOnly: Story = {
 /** 비활성화 상태입니다.*/
 export const Disabled: Story = {
   args: { disabled: true },
+};
+
+/** 입력창 아래에 일반 안내 문구를 표시합니다. */
+export const WithDescription: Story = {
+  args: {
+    description: '영문과 숫자를 포함해 8자 이상 입력해주세요.',
+  },
+};
+
+/** 값이 입력된 blur 상태에서도 오류 보더와 문구, aria-invalid가 유지됩니다. */
+export const WithError: Story = {
+  args: {
+    defaultValue: 'invalid text',
+    description: '영문과 숫자를 포함해 8자 이상 입력해주세요.',
+    errorMessage: '입력한 내용을 다시 확인해주세요.',
+  },
 };
 
 // 디자인 시안(input-text) 기준 상태 스펙 시트.
@@ -111,6 +135,25 @@ export const StateOverview: Story = {
       <div className="flex flex-col gap-1.5">
         <span className="text-xs text-neutral-500">Disabled</span>
         <InputField label="title" hint="Heading" placeholder="Text" disabled />
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <span className="text-xs text-neutral-500">Description</span>
+        <InputField
+          label="title"
+          hint="Heading"
+          placeholder="Text"
+          description="입력값에 대한 안내 문구입니다."
+        />
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <span className="text-xs text-neutral-500">Error message</span>
+        <InputField
+          label="title"
+          hint="Heading"
+          placeholder="Text"
+          defaultValue="invalid text"
+          errorMessage="입력한 내용을 다시 확인해주세요."
+        />
       </div>
     </div>
   ),
