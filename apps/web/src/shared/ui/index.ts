@@ -12,3 +12,4 @@ export * from './cta-section';
 export * from './calendar';
 export * from './drawer';
 export * from './select';
+export * from './top-app-bar';
