@@ -14,12 +14,14 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "orval": "orval --config ./orval.config.ts"
   },
   "dependencies": {
     "@repo/types": "workspace:*",
     "@repo/ui": "workspace:*",
     "@tanstack/react-query": "^5.101.2",
+    "axios": "^1.18.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
@@ -38,6 +40,7 @@
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^5.2.1",
+    "@faker-js/faker": "^10.5.0",
     "@feature-sliced/steiger-plugin": "^0.6.0",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
@@ -61,6 +64,8 @@
     "eslint": "^9.39.1",
     "eslint-plugin-storybook": "^10.4.6",
     "jsdom": "^29.1.1",
+    "msw": "^2.15.0",
+    "orval": "^8.22.0",
     "playwright": "^1.61.1",
     "postcss": "^8.5.16",
     "prettier-plugin-tailwindcss": "^0.8.0",
