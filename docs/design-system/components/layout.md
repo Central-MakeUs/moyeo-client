@@ -1,7 +1,7 @@
-# Layout & Feedback — 🎨 시안만 (미구현)
+# Layout & Feedback
 
 > Source: Figma `header`, `status-bar`, `cta-section`, `progress-bar`, `indicator`
-> 화면 골격·진행 표시 요소. **아직 컴포넌트로 구현되지 않았다.**
+> 화면 골격·진행 표시 요소. 항목별 구현 상태는 각 섹션을 따른다.
 
 ## Status Bar
 
@@ -10,8 +10,11 @@
 
 ## Header
 
-- 화면 상단 타이틀 바 (시안 예: `모임 생성 step1 플로우`).
-- 좌측 back(‹), 중앙 타이틀, 우측 액션 슬롯 구성으로 확장 예상.
+- ✅ `TopAppBar` 구현 — `shared/ui/top-app-bar`
+- `leading`, `title`, `trailing` slot으로 좌측 액션·중앙 제목·우측 액션을 조합한다.
+- 액션 수나 너비가 달라도 제목은 중앙을 유지하며, 긴 제목은 한 줄로 말줄임한다.
+- 뒤로가기·닫기·공유 등은 기존 `IconButton`을 사용하고 접근 가능한 이름을 제공한다.
+- 라우팅과 실제 액션은 컴포넌트가 수행하지 않고 사용하는 화면에서 callback으로 주입한다.
 
 ## CTA Section
 
