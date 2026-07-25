@@ -45,7 +45,7 @@ describe('startAppleLogin', () => {
     startAppleLogin();
 
     expect(assignMock).toHaveBeenCalledTimes(1);
-    const url = new URL(assignMock.mock.calls[0][0] as string);
+    const url = new URL(assignMock.mock.calls[0]?.[0] as string);
     expect(url.origin + url.pathname).toBe('https://appleid.apple.com/auth/authorize');
     expect(url.searchParams.get('client_id')).toBe('com.moyeozo.moyeo.web');
     expect(url.searchParams.get('redirect_uri')).toContain('/auth/callback/apple');
@@ -57,7 +57,7 @@ describe('startAppleLogin', () => {
     startAppleLogin();
 
     const tx = readOAuthTransaction();
-    const url = new URL(assignMock.mock.calls[0][0] as string);
+    const url = new URL(assignMock.mock.calls[0]?.[0] as string);
     expect(url.searchParams.get('state')).toBe(tx?.state);
     expect(url.searchParams.get('nonce')).toBe(tx?.nonce);
   });
