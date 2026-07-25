@@ -1,3 +1,1 @@
-export default function AccountNicknamePage() {
-  return <main>ACC-01-F07 placeholder</main>;
-}
+export { NicknamePage as default } from '@/_pages/nickname';

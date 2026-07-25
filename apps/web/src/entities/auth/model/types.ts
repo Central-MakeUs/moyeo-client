@@ -13,6 +13,10 @@ export interface AppleLoginRequest {
   nonce: string;
 }
 
+export interface OnboardingRequest {
+  nickname: string;
+}
+
 export interface AuthUserResponse {
   id: number;
   nickname: string | null;
