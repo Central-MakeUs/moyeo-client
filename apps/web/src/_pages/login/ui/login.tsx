@@ -3,7 +3,7 @@ import { SocialLoginButtons } from '@/features/auth/social-login';
 
 export function LoginPage() {
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="flex min-h-dvh flex-col bg-white">
       {/* 추후 TopAppBar 컴포넌트로 교체 예정 */}
       <header className="h-[54px] w-full" />
       <main className="flex flex-1 flex-col px-5 pt-[37px] pb-11">
