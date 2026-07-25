@@ -5,8 +5,11 @@ import { suit } from '@/_app/fonts';
 import { AppLayout } from '@/shared/ui/layouts/app-layout';
 
 export const metadata: Metadata = {
-  title: '모여 WebView',
-  description: 'Next.js WebView surface for the Expo native app',
+  title: {
+    default: '모여',
+    template: '%s | 모여',
+  },
+  description: '모여와 함께 일정과 장소를 쉽고 편하게 조율해보세요.',
 };
 
 export default function RootLayout({
