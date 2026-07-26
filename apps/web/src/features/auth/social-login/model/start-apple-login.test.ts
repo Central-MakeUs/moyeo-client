@@ -35,10 +35,10 @@ describe('startAppleLogin', () => {
   it('should save provider=apple, state and nonce to sessionStorage when called', () => {
     startAppleLogin();
 
-    const tx = readOAuthTransaction();
-    expect(tx?.provider).toBe('apple');
-    expect(tx?.state).toBeTruthy();
-    expect(tx?.nonce).toBeTruthy();
+    const transaction = readOAuthTransaction();
+    expect(transaction?.provider).toBe('apple');
+    expect(transaction?.state).toBeTruthy();
+    expect(transaction?.nonce).toBeTruthy();
   });
 
   it('should call window.location.assign once with an Apple URL containing client_id, redirect_uri, state and nonce when called', () => {
@@ -56,9 +56,9 @@ describe('startAppleLogin', () => {
   it('should use the same state and nonce in sessionStorage and the redirect URL when called', () => {
     startAppleLogin();
 
-    const tx = readOAuthTransaction();
+    const transaction = readOAuthTransaction();
     const url = new URL(assignMock.mock.calls[0]?.[0] as string);
-    expect(url.searchParams.get('state')).toBe(tx?.state);
-    expect(url.searchParams.get('nonce')).toBe(tx?.nonce);
+    expect(url.searchParams.get('state')).toBe(transaction?.state);
+    expect(url.searchParams.get('nonce')).toBe(transaction?.nonce);
   });
 });

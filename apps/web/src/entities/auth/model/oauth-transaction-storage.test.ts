@@ -17,9 +17,9 @@ describe('oauth transaction storage', () => {
   });
 
   it('should return the same transaction when reading after saving', () => {
-    const tx: OAuthTransaction = { provider: 'apple', state: 's1', nonce: 'n1' };
-    saveOAuthTransaction(tx);
-    expect(readOAuthTransaction()).toEqual(tx);
+    const transaction: OAuthTransaction = { provider: 'apple', state: 's1', nonce: 'n1' };
+    saveOAuthTransaction(transaction);
+    expect(readOAuthTransaction()).toEqual(transaction);
   });
 
   it('should return null when reading after clearing', () => {

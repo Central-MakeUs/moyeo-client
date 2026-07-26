@@ -2,8 +2,8 @@ import type { OAuthTransaction } from './types';
 
 const STORAGE_KEY = 'moyeo.oauth.transaction';
 
-export function saveOAuthTransaction(tx: OAuthTransaction): void {
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(tx));
+export function saveOAuthTransaction(transaction: OAuthTransaction): void {
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(transaction));
 }
 
 export function readOAuthTransaction(): OAuthTransaction | null {
