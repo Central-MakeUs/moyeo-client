@@ -47,11 +47,11 @@ describe('SocialLoginButtons', () => {
     expect(assignMock).toHaveBeenCalledTimes(1);
   });
 
-  it('should not call window.location.assign when the Kakao button is clicked', async () => {
+  it('should call window.location.assign once when the Kakao button is clicked', async () => {
     render(<SocialLoginButtons />);
 
     await userEvent.click(screen.getByRole('button', { name: /카카오로 시작하기/ }));
 
-    expect(assignMock).not.toHaveBeenCalled();
+    expect(assignMock).toHaveBeenCalledTimes(1);
   });
 });

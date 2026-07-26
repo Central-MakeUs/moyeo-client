@@ -5,8 +5,12 @@ export {
   type AppleAuthorizeParams,
 } from './model/build-apple-authorize-url';
 export {
+  buildKakaoAuthorizeUrl,
+  type KakaoAuthorizeParams,
+} from './model/build-kakao-authorize-url';
+export {
   saveOAuthTransaction,
   readOAuthTransaction,
   clearOAuthTransaction,
 } from './model/oauth-transaction-storage';
-export { getAppleClientId, getRedirectUri } from './model/oauth-config';
+export { getAppleClientId, getKakaoClientId, getRedirectUri } from './model/oauth-config';
