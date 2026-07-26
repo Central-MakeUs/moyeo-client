@@ -4,7 +4,18 @@
 > 참고: [spec-fixed.md](./spec-fixed.md) §3.8
 > ⚠️ 위치: 이슈 본문의 `app/(public)/onboarding`은 인트로 슬라이드(ONB-01, 별개 화면)라 오기.
 > 닉네임 설정은 #87 `resolvePostLoginPath`의 목적지인 **`(protected)/nickname`** (ACC-01-F07).
-> API는 인라인 fetch(래퍼 없음) — Orval 도입 시 `putOnboarding` 함수/`OnboardingRequest` 타입만 생성물로 교체.
+
+## 🔄 Orval 전환 (현재 구현)
+
+초기엔 인라인 fetch로 구현했으나, Orval 도입 후 생성 훅/스키마로 전환됨:
+
+- `putOnboarding`(인라인) → 생성 훅 **`useCompleteOnboarding`** (폼에서 뮤테이션, `onSuccess`→홈)
+- 수기 `OnboardingRequest` → 생성 스키마 **`CompleteOnboardingRequest`**
+- 폼: 수동 `isSubmitting`/try-catch 제거 → `isPending`으로 버튼 disabled
+- 페이지: placeholder header → 공용 **`TopAppBar`**(뒤로가기)
+- 테스트: `isValidNickname`(순수 단위) / `NicknameOnboardingForm` RTL(`useCompleteOnboarding` 목)
+
+> 아래 **확정된 시그니처·테스트 시나리오**는 초기 TDD 설계(히스토리)이며, 현재 코드는 위 전환을 반영한다.
 
 ## 확정된 시그니처
 

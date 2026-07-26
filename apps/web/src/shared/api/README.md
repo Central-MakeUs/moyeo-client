@@ -1,6 +1,6 @@
 # shared/api
 
-HTTP client 설정, Orval 생성 API client, transport-level DTO를 관리한다.
+HTTP client 설정, Orval 생성 API client, transport-level DTO, 토큰 저장을 관리한다.
 
 ## 구조
 
@@ -8,7 +8,9 @@ HTTP client 설정, Orval 생성 API client, transport-level DTO를 관리한다
 shared/api/
 ├─ generated/           # Orval 생성 전용. 직접 수정하지 않는다.
 │  └─ schemas/          # OpenAPI schema에서 생성한 transport DTO
-├─ axios-instance.ts    # Axios 공통 instance와 Orval mutator
+├─ axios-instance.ts    # Axios 공통 instance, Orval mutator, 인증 인터셉터
+├─ token-storage.ts     # 액세스 토큰 저장 (localStorage)
+├─ index.ts             # 공개 API 배럴 (@/shared/api)
 └─ README.md
 ```
 
@@ -16,6 +18,11 @@ shared/api/
   추가하지 않는다.
 - 상위 FSD layer는 `shared/api`를 사용할 수 있지만, `shared/api`는 상위 layer를 import하지
   않는다.
+
+## 공개 API (배럴)
+
+상위 layer는 `@/shared/api`(배럴)로만 접근하고 `generated` 내부 경로를 직접 import하지 않는다.
+`index.ts`가 axios instance · token-storage · Orval 생성 client/schema를 재노출한다.
 
 ## Axios instance
 
@@ -28,8 +35,9 @@ mutator다. Axios 응답 전체가 아니라 `response.data`를 반환한다.
 NEXT_PUBLIC_API_BASE_URL=https://api.example.com
 ```
 
-인증 방식이 확정되기 전까지 cookie, token, 401 refresh interceptor는 공통 instance에 넣지 않는다.
-추후 인증 정책에 맞춰 `withCredentials` 또는 request/response interceptor를 추가한다.
+요청 인터셉터가 `token-storage`의 `getToken()`으로 저장된 액세스 토큰을 읽어
+`Authorization: Bearer` 헤더를 자동 부착한다(토큰이 없거나 SSR이면 생략).
+refresh token은 미도입이라 401 refresh interceptor는 아직 없다.
 
 ## 생성
 

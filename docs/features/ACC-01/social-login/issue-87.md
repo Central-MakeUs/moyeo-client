@@ -2,7 +2,19 @@
 
 > Epic #85 · 브랜치 `feat/#85/social-login-apple` · 의존: #86
 > 참고: [spec-fixed.md](./spec-fixed.md)
-> API는 인라인 fetch(래퍼 없음) — Orval 도입 시 `postAppleLogin` 함수만 생성물로 교체.
+
+## 🔄 Orval 전환 (현재 구현)
+
+초기엔 인라인 fetch로 구현했으나, Orval 도입 후 생성 훅/스키마로 전환됨:
+
+- `postAppleLogin`(인라인) → 생성 함수 **`loginApple`** (배럴 `@/shared/api`)
+- `exchangeAppleCallback`(오케스트레이션) → 순수 **`validateAppleCallback`**(검증) + 콜백 페이지가 **`useLoginApple`** 훅으로 교환
+- 수기 DTO(`AppleLoginRequest`·`AuthResponse` 등) → **Orval 생성 스키마**
+- 토큰 저장 `token-storage` → `entities/auth`에서 **`shared/api`로 이동**, axios 인터셉터가 Bearer 자동 부착
+- 콜백 실패 → 에러 화면 대신 **`/login` 복귀**
+- 테스트: `validateAppleCallback`·`resolvePostLoginPath`·`token-storage`(단위) / 콜백 페이지는 얇은 wiring(미검증)
+
+> 아래 **확정된 시그니처·테스트 시나리오**는 초기 TDD 설계(히스토리)이며, 현재 코드는 위 전환을 반영한다.
 
 ## 확정된 시그니처
 
