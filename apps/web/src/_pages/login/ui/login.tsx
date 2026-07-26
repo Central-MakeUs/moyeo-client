@@ -1,11 +1,11 @@
 import MoyeoLogo from '@/shared/assets/illustrations/moyeo-logo.svg';
 import { SocialLoginButtons } from '@/features/auth/social-login';
+import { TopAppBar } from '@/shared/ui/top-app-bar';
 
 export function LoginPage() {
   return (
     <div className="flex min-h-dvh flex-col bg-white">
-      {/* 추후 TopAppBar 컴포넌트로 교체 예정 */}
-      <header className="h-[54px] w-full" />
+      <TopAppBar />
       <main className="flex flex-1 flex-col px-5 pt-[37px] pb-11">
         <div className="flex flex-col gap-4">
           <MoyeoLogo width={70} height={70} />
