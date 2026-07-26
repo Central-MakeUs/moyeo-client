@@ -12,6 +12,11 @@ const nextConfig = {
     '172.30.1.*',
     ...(localAllowedDevOrigins ?? []), // 개인 네트워크 주입
   ],
+  // 루트(/)는 /home으로 보낸다. 세션 판정·리다이렉트(login/nickname)는 (protected)의 AuthGuard가 담당.
+  // permanent:false(307) — "/→home" 정책이 바뀔 수 있으니 브라우저가 영구 캐싱(308)하지 않게.
+  async redirects() {
+    return [{ source: '/', destination: '/home', permanent: false }];
+  },
   turbopack: {
     rules: {
       '*.svg': {
