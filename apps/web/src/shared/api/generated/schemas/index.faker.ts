@@ -21,6 +21,7 @@ import type {
   DepartureRequest,
   DevAuthTokensResponse,
   GuestJoinRequest,
+  KakaoLoginRequest,
   MeetingCoverResponse,
   MeetingInvitationResponse,
   MeetingViewResponse,
@@ -313,6 +314,13 @@ export const getDeparturePlaceSearchResponseMock = (
     })),
     undefined,
   ]),
+  ...overrideResponse,
+});
+
+export const getKakaoLoginRequestMock = (
+  overrideResponse: Partial<KakaoLoginRequest> = {}
+): KakaoLoginRequest => ({
+  code: faker.string.alpha({ length: { min: 0, max: 4096 } }),
   ...overrideResponse,
 });
 

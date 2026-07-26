@@ -21,7 +21,12 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query';
 
-import type { AppleLoginRequest, AuthResponse, AuthUserResponse } from '../schemas';
+import type {
+  AppleLoginRequest,
+  AuthResponse,
+  AuthUserResponse,
+  KakaoLoginRequest,
+} from '../schemas';
 
 import { customInstance } from '../../axios-instance';
 import type { ErrorType, BodyType } from '../../axios-instance';
@@ -43,6 +48,91 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
+/**
+ * 프론트엔드가 카카오 GET 콜백의 state를 검증한 뒤 일회용 code를 전달합니다.
+ * 서버가 카카오와 code를 교환하고 회원번호를 확인한 뒤 Moyeo Access Token을 발급합니다.
+ * 최초 로그인도 즉시 가입 처리하며 nickname은 null, onboardingCompleted는 false로 반환합니다.
+ * @summary 카카오 로그인
+ */
+export const loginKakao = (
+  kakaoLoginRequest: BodyType<KakaoLoginRequest>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<AuthResponse>(
+    {
+      url: `/api/auth/kakao`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: kakaoLoginRequest,
+      signal,
+    },
+    options
+  );
+};
+
+export const getLoginKakaoMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof loginKakao>>,
+    TError,
+    { data: BodyType<KakaoLoginRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof loginKakao>>,
+  TError,
+  { data: BodyType<KakaoLoginRequest> },
+  TContext
+> => {
+  const mutationKey = ['loginKakao'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof loginKakao>>,
+    { data: BodyType<KakaoLoginRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return loginKakao(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type LoginKakaoMutationResult = NonNullable<Awaited<ReturnType<typeof loginKakao>>>;
+export type LoginKakaoMutationBody = BodyType<KakaoLoginRequest>;
+export type LoginKakaoMutationError = ErrorType<unknown>;
+
+/**
+ * @summary 카카오 로그인
+ */
+export const useLoginKakao = <TError = ErrorType<unknown>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof loginKakao>>,
+      TError,
+      { data: BodyType<KakaoLoginRequest> },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof loginKakao>>,
+  TError,
+  { data: BodyType<KakaoLoginRequest> },
+  TContext
+> => {
+  return useMutation(getLoginKakaoMutationOptions(options), queryClient);
+};
 /**
  * 프론트가 Apple GET 콜백에서 받은 일회용 code와 로그인 요청 전에 만든 nonce를 전달합니다.
  * 서버가 Apple과 code를 교환하고 사용자 정보를 검증한 뒤 Moyeo Access Token을 발급합니다.
