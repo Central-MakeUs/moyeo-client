@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     default: '모여',
     template: '%s | 모여',
   },
-  description: '모여와 함께 일정과 장소를 쉽고 편하게 조율해보세요.',
+  description: '함께 만나는 가장 쉬운 방법, 모여',
 };
 
 export default function RootLayout({
