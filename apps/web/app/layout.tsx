@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import '@/_app/globals.css';
 import { QueryProvider } from '@/_app';
 import { suit } from '@/_app/fonts';
+import { SessionProvider } from '@/entities/session';
 import { AppLayout } from '@/shared/ui/layouts/app-layout';
 
 export const metadata: Metadata = {
@@ -18,7 +19,9 @@ export default function RootLayout({
     <html lang="ko">
       <body className={`${suit.variable}`}>
         <QueryProvider>
-          <AppLayout>{children}</AppLayout>
+          <SessionProvider>
+            <AppLayout>{children}</AppLayout>
+          </SessionProvider>
         </QueryProvider>
       </body>
     </html>
