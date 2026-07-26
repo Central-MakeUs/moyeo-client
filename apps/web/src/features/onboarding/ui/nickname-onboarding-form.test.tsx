@@ -2,41 +2,44 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { putOnboarding } from '@/entities/auth';
-
 import { NicknameOnboardingForm } from './nickname-onboarding-form';
 
 const pushMock = vi.fn();
+const mutateMock = vi.fn();
+let mutationOptions: { mutation?: { onSuccess?: () => void } } | undefined;
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: pushMock }),
 }));
 
-vi.mock('@/entities/auth', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/entities/auth')>();
-  return { ...actual, putOnboarding: vi.fn() };
-});
-
-const ONBOARDING_RESPONSE = { id: 1, nickname: '모여', onboardingCompleted: true };
+vi.mock('@/shared/api', () => ({
+  useCompleteOnboarding: (options: { mutation?: { onSuccess?: () => void } }) => {
+    mutationOptions = options;
+    return { mutate: mutateMock, isPending: false };
+  },
+}));
 
 describe('NicknameOnboardingForm', () => {
   beforeEach(() => {
     pushMock.mockReset();
-    vi.mocked(putOnboarding).mockReset();
+    mutateMock.mockReset();
+    mutationOptions = undefined;
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("should call putOnboarding({ nickname: '모여' }) and router.push('/home') when submitting a valid nickname", async () => {
-    vi.mocked(putOnboarding).mockResolvedValue(ONBOARDING_RESPONSE);
+  it("should mutate with { nickname: '모여' } and navigate to '/home' on success when submitting a valid nickname", async () => {
     render(<NicknameOnboardingForm />);
 
     await userEvent.type(screen.getByRole('textbox'), '모여');
     await userEvent.click(screen.getByRole('button', { name: '다음' }));
 
-    expect(putOnboarding).toHaveBeenCalledWith({ nickname: '모여' });
+    expect(mutateMock).toHaveBeenCalledWith({ data: { nickname: '모여' } });
+
+    // 뮤테이션 성공 콜백이 홈으로 이동시킨다
+    mutationOptions?.mutation?.onSuccess?.();
     expect(pushMock).toHaveBeenCalledWith('/home');
   });
 
@@ -55,13 +58,12 @@ describe('NicknameOnboardingForm', () => {
     expect(screen.getByText('* 2~10자로 공백없이 한글과 영어만 입력해주세요')).toBeInTheDocument();
   });
 
-  it('should not call router.push when putOnboarding rejects', async () => {
-    vi.mocked(putOnboarding).mockRejectedValue(new Error('network'));
+  it("should not mutate when the '다음' button is clicked with an invalid nickname", async () => {
     render(<NicknameOnboardingForm />);
 
-    await userEvent.type(screen.getByRole('textbox'), '모여');
+    await userEvent.type(screen.getByRole('textbox'), '모');
     await userEvent.click(screen.getByRole('button', { name: '다음' }));
 
-    expect(pushMock).not.toHaveBeenCalled();
+    expect(mutateMock).not.toHaveBeenCalled();
   });
 });

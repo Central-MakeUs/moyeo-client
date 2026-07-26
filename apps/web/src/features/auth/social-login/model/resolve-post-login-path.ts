@@ -1,5 +1,5 @@
-import type { AuthUserResponse } from '@/entities/auth';
+import type { AuthUserResponse } from '@/shared/api';
 
-export function resolvePostLoginPath(user: AuthUserResponse): string {
-  return user.onboardingCompleted ? '/home' : '/nickname';
+export function resolvePostLoginPath(user: AuthUserResponse | undefined): string {
+  return user?.onboardingCompleted ? '/home' : '/nickname';
 }

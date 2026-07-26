@@ -1,39 +1,51 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 
-import { exchangeAppleCallback } from '@/features/auth/social-login';
+import { clearOAuthTransaction, readOAuthTransaction } from '@/entities/auth';
+import { resolvePostLoginPath, validateAppleCallback } from '@/features/auth/social-login';
+import { setToken, useLoginApple } from '@/shared/api';
 
 function OAuthCallbackContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [status, setStatus] = useState<'pending' | 'error'>('pending');
+
+  const { mutate } = useLoginApple({
+    mutation: {
+      onSuccess: (res) => {
+        setToken(res.accessToken ?? '');
+        clearOAuthTransaction();
+        router.replace(resolvePostLoginPath(res.user));
+      },
+      // 교환(API) 실패 → 로그인 복귀. TODO(에러-UX): 로그인 화면에서 실패 토스트.
+      onError: () => router.replace('/login'),
+    },
+  });
 
   useEffect(() => {
     if (params.provider !== 'apple') return;
 
-    exchangeAppleCallback({
-      code: searchParams.get('code'),
-      state: searchParams.get('state'),
-      error: searchParams.get('error'),
-    }).then((result) => {
-      if (result.status === 'success') {
-        router.replace(result.redirectTo);
-      } else {
-        setStatus('error');
-      }
-    });
-  }, [params.provider, searchParams, router]);
+    const result = validateAppleCallback(
+      {
+        code: searchParams.get('code'),
+        state: searchParams.get('state'),
+        error: searchParams.get('error'),
+      },
+      readOAuthTransaction()
+    );
 
-  if (status === 'error') {
-    // TODO(에러-UX 후속): 실패 시 여기서 화면을 띄우지 않고 로그인 페이지로 돌아가 토스트로 안내.
-    //   토스트 도입 전까지 아래는 임시 placeholder.
-    return <main>로그인에 실패했어요. 다시 시도해주세요.</main>;
-  }
+    if (result.status === 'error') {
+      // 검증 실패(취소·state·code) → 로그인 복귀. TODO(에러-UX): 로그인 화면에서 실패 토스트.
+      router.replace('/login');
+      return;
+    }
 
-  // TODO(디자인 확정): 로딩 UI
+    mutate({ data: { code: result.code, nonce: result.nonce } });
+  }, [params.provider, searchParams, router, mutate]);
+
+  // 성공·실패 모두 리다이렉트 → 항상 처리 중. TODO(디자인): 텍스트 대신 스피너.
   return <main>로그인 처리 중...</main>;
 }
 
