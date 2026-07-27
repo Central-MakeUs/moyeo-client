@@ -27,6 +27,12 @@
     "web": {
       "output": "static"
     },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/803023d0-2fee-4c1a-af40-728ea7521444"
+    },
     "plugins": [
       "expo-router",
       [
