@@ -25,7 +25,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const handleNativeMessage = useCallback((message: NativeToWebMessage) => {
     // RN에 저장된 auth token이 있는 경우
     if (message.type === 'AUTH_TOKEN') {
-      setSessionToken(message.payload.token); // 네이티브가 보관하던 토큰으로 웹 세션 복원
+      // 네이티브가 보관하던 토큰으로 웹 세션 복원.
+      // 방금 네이티브에서 받은 값이므로 다시 보관을 요청하지 않는다.
+      setSessionToken(message.payload.token, { notifyNative: false });
       return;
     }
 

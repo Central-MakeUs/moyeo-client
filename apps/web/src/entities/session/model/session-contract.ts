@@ -9,9 +9,27 @@ import { useSessionStore } from './session-store';
  * 토큰 획득 방법은 달라도 세션을 만드는 방법은 하나여야 가드가 갈라지지 않는다.
  */
 
-export function setSessionToken(accessToken: string): void {
+interface SetSessionTokenOptions {
+  /**
+   * 네이티브 SecureStore에도 토큰을 보관시킬지.
+   *
+   * 기본값은 `true`다. 네이티브가 보낸 `AUTH_TOKEN`으로 세션을 복원할 때만 `false`를 준다.
+   * 방금 받은 토큰을 그대로 돌려보내는 왕복이기 때문이다.
+   */
+  notifyNative?: boolean;
+}
+
+export function setSessionToken(accessToken: string, options?: SetSessionTokenOptions): void {
   writeStoredToken(accessToken);
   useSessionStore.getState().setToken(accessToken);
+
+  if (options?.notifyNative === false) return;
+
+  // 네이티브가 다음 실행에서 AUTH_TOKEN으로 돌려줄 수 있도록 보관을 요청한다.
+  // 네이티브가 아직 듣지 않아도 무해하다.
+  if (isNativeContext()) {
+    postToNative({ type: 'AUTH_SIGNED_IN', payload: { token: accessToken } });
+  }
 }
 
 export function getSessionToken(): string | null {

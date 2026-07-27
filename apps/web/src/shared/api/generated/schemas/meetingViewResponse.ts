@@ -38,9 +38,9 @@ export interface MeetingViewResponse {
   maxParticipants?: number;
   /** 현재 참여 인원. 방장을 포함합니다. */
   participantCount?: number;
-  /** 모임 참여/응답 마감 일시 */
+  /** 모임 참여/응답 마감 일시입니다. 마감 없는 모임에서는 반환하지 않습니다. */
   deadlineAt?: string;
-  /** 현재 서버 시간 기준 마감까지 남은 분. 이미 마감된 경우 0입니다. */
+  /** 현재 서버 시간 기준 마감까지 남은 분입니다. 이미 마감된 경우 0이며, 마감 없는 모임에서는 반환하지 않습니다. */
   remainingMinutes?: number;
   /** 참여자 목록. 방장이 먼저 오고 이후 참여 순서로 정렬됩니다. */
   participants?: ParticipantResponse[];

@@ -1,3 +1,1 @@
-export default function LoginPage() {
-  return <main>ACC-01 login placeholder</main>;
-}
+export { LoginPage as default, metadata } from '@/_pages/login';

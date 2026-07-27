@@ -9,6 +9,8 @@ import { playwright } from '@vitest/browser-playwright';
 
 import react from '@vitejs/plugin-react';
 
+import svgr from 'vite-plugin-svgr';
+
 const dirname =
   typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
 
@@ -36,7 +38,8 @@ export default defineConfig({
       {
         // unit test 프로젝트 — 순수 함수 + 훅/컴포넌트(RTL). jsdom 환경.
         extends: true,
-        plugins: [react()],
+        // svg를 React 컴포넌트로 로드 (Next의 @svgr/webpack과 동일하게 default export = 컴포넌트)
+        plugins: [react(), svgr({ include: '**/*.svg', svgrOptions: { exportType: 'default' } })],
         resolve: {
           alias: {
             '@': path.join(dirname, 'src'),

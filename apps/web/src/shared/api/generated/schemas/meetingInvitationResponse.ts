@@ -70,7 +70,7 @@ export interface MeetingInvitationResponse {
    * </ul>
    */
   placeRecommendationStrategy?: MeetingInvitationResponsePlaceRecommendationStrategy;
-  /** 서버가 계산한 모임 참여/응답 마감 일시 */
+  /** 서버가 계산한 모임 참여/응답 마감 일시입니다. 마감 없는 모임에서는 반환하지 않습니다. */
   deadlineAt?: string;
   /** 현재 참여 인원. 방장을 포함합니다. */
   participantCount?: number;

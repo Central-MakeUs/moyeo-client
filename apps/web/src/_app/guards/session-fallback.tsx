@@ -7,17 +7,8 @@
  * 빈 화면으로 고착돼 원인을 구분할 수 없기 때문이다.
  */
 
-export function AppSplash() {
-  return (
-    <main
-      className="flex min-h-dvh items-center justify-center bg-neutral-0"
-      aria-busy="true"
-      aria-live="polite"
-    >
-      <p className="text-medium-14 text-neutral-400">불러오는 중...</p>
-    </main>
-  );
-}
+// 대기 화면은 OAuth 콜백(_pages)에서도 쓰므로 shared에 둔다. (pages는 _app을 import할 수 없다)
+export { AppSplash } from '@/shared/ui/app-splash';
 
 export function SessionErrorScreen({ onRetry }: { onRetry: () => void }) {
   return (

@@ -60,6 +60,7 @@
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
+    "@repo/types": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/react": "~19.1.0",
     "eslint": "^9.25.0",

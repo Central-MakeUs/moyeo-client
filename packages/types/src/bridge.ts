@@ -10,6 +10,9 @@ export type NativeToWebMessage =
 // WebView → RN: 웹이 네이티브 기능 요청
 export type WebToNativeMessage =
   | { type: 'READY' }
+  // 웹에서 로그인했으니 네이티브 저장소(SecureStore)에도 토큰을 보관하라는 통지.
+  // 이 메시지가 없으면 네이티브는 보관할 토큰을 얻지 못해 다음 실행에서 AUTH_TOKEN을 보낼 수 없다.
+  | { type: 'AUTH_SIGNED_IN'; payload: { token: string } }
   // 웹에서 로그아웃했으니 네이티브 저장소(SecureStore)도 비우라는 통지
   | { type: 'AUTH_SIGNED_OUT' }
   | { type: 'OPEN_CAMERA' }

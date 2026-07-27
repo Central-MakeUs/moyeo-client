@@ -7,6 +7,7 @@
  */
 
 export * from './appleLoginRequest';
+export * from './appleLoginRequestRedirectTarget';
 export * from './authResponse';
 export * from './authUserResponse';
 export * from './candidateResponse';
@@ -26,6 +27,8 @@ export * from './getCoverImageParams';
 export * from './getScheduleViewParams';
 export * from './guestJoinRequest';
 export * from './health200';
+export * from './kakaoLoginRequest';
+export * from './kakaoLoginRequestRedirectTarget';
 export * from './meetingCoverResponse';
 export * from './meetingInvitationResponse';
 export * from './meetingInvitationResponsePlaceMode';

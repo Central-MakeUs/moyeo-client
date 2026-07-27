@@ -5,6 +5,7 @@
  * CMC Moyeo MVP server API
  * OpenAPI spec version: v1
  */
+import type { AppleLoginRequestRedirectTarget } from './appleLoginRequestRedirectTarget';
 
 /**
  * Apple 로그인 요청
@@ -22,4 +23,6 @@ export interface AppleLoginRequest {
    * @maxLength 255
    */
   nonce: string;
+  /** 서버에 등록된 Apple 콜백 환경. local은 Apple 웹 로그인에서 지원하지 않습니다. */
+  redirectTarget: AppleLoginRequestRedirectTarget;
 }

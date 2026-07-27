@@ -56,9 +56,11 @@ export interface CreateMeetingRequest {
   /** 방장의 출발지와 이동수단입니다. 장소 조율 모임에서 필수입니다. */
   departure?: DepartureRequest;
   /**
-   * 생성 요청 처리 시점부터 마감까지 남은 시간(분)입니다. 10분 단위이며 최소 10분, 최대 72시간입니다.
+   * noDeadline가 false이거나 생략된 경우 필수입니다. 생성 요청 처리 시점부터 마감까지 남은 시간(분)이며, 10분 단위로 최소 10분, 최대 72시간입니다. noDeadline가 true이면 생략하거나 null로 보냅니다.
    * @minimum 10
    * @maximum 4320
    */
   deadlineMinutes?: number;
+  /** true이면 참여/응답 마감 없이 모임을 생성합니다. 이 경우 deadlineMinutes는 생략하거나 null로 보냅니다. 생략하거나 false이면 deadlineMinutes가 필요합니다. */
+  noDeadline?: boolean;
 }

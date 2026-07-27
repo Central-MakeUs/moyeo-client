@@ -27,6 +27,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# 값 없는 예시 파일은 공유한다 (어떤 변수를 채워야 하는지 문서 역할)
+!.env.example
 
 # vercel
 .vercel
