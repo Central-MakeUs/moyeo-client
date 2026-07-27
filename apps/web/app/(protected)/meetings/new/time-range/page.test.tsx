@@ -36,10 +36,11 @@ describe('CreateMeetingTimeRangePage', () => {
     expect(push).toHaveBeenCalledWith('/meetings/new/deadline');
   });
 
-  it("should replace '/meetings/new' when planningType is null (guard)", () => {
+  // 유형이 없으면 흐름이 없다 → resolver를 거치지 않고 곧장 HOME으로(resolveEntryPath).
+  it("should replace '/home' when planningType is null (guard)", () => {
     useCreateMeetingDraft.setState({ planningType: null });
     render(<CreateMeetingTimeRangePage />);
 
-    expect(replace).toHaveBeenCalledWith('/meetings/new');
+    expect(replace).toHaveBeenCalledWith('/home');
   });
 });
