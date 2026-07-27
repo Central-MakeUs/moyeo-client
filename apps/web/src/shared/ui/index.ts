@@ -7,6 +7,7 @@ export * from './progress';
 export * from './radio-group';
 export * from './switch';
 export * from './time-picker';
+export * from './toast';
 export * from './wheel-picker';
 export * from './cta-section';
 export * from './calendar';
