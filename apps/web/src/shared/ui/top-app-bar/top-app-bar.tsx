@@ -13,7 +13,7 @@ export function TopAppBar({ leading, title, trailing, className, ...props }: Top
     <header
       data-slot="top-app-bar"
       className={cn(
-        'grid h-[54px] w-full grid-cols-[64px_minmax(0,1fr)_64px] items-center bg-white px-5 text-neutral-950',
+        'grid h-[54px] w-full grid-cols-[64px_minmax(0,1fr)_64px] items-center bg-transparent px-5 text-neutral-950',
         className
       )}
       {...props}

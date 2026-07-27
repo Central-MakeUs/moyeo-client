@@ -18,7 +18,7 @@ export default function CreateMeetingCreatedPage() {
 
   return (
     <WizardStepLayout
-      className="items-center gap-18"
+      className="relative items-center gap-18 bg-[radial-gradient(circle,#FFF4F4_0%,#FFFFFF_100%)]"
       header={
         <PageHeader
           align="center"
@@ -37,7 +37,10 @@ export default function CreateMeetingCreatedPage() {
         </CTASection>
       }
     >
-      <Icon className="size-[110px]" name="confetti" />
+      <Icon
+        className="absolute top-1/2 left-1/2 size-[110px] -translate-x-1/2 -translate-y-1/2"
+        name="confetti"
+      />
     </WizardStepLayout>
   );
 }
