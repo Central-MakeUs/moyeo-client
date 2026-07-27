@@ -9,6 +9,7 @@ import {
   getSteps,
   isStepComplete,
   nextStep,
+  prevStep,
   progressPercent,
   stepFromPath,
   stepPhase,
@@ -343,5 +344,23 @@ describe('nextStep', () => {
 
   it("should return null when step is 'schedule-times' and planningType is SCHEDULE_ONLY", () => {
     expect(nextStep('schedule-times', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBeNull();
+  });
+});
+
+describe('prevStep', () => {
+  it("should return 'basic' when step is 'time-range' and flow is SCHEDULE_ONLY + DATE_AND_TIME", () => {
+    expect(prevStep('time-range', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe('basic');
+  });
+
+  it("should return 'basic' when step is 'deadline' and flow is PLACE_ONLY (time-range를 건너뛴 흐름)", () => {
+    expect(prevStep('deadline', flow('PLACE_ONLY', null))).toBe('basic');
+  });
+
+  it("should return null when step is 'basic' (첫 스텝 = 위저드 종료 지점)", () => {
+    expect(prevStep('basic', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBeNull();
+  });
+
+  it("should return null when step is not in the current flow (PLACE_ONLY + 'time-range')", () => {
+    expect(prevStep('time-range', flow('PLACE_ONLY', null))).toBeNull();
   });
 });
