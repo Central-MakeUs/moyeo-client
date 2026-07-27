@@ -18,6 +18,14 @@ if (typeof window !== 'undefined' && typeof window.matchMedia !== 'function') {
     }) as MediaQueryList;
 }
 
+// jsdom에는 Pointer Capture API도 없다. vaul이 드래그 시작 시 호출해 미처리 예외를 던지므로
+// no-op으로 채운다. (vitest가 "unhandled error → false positive 가능"으로 경고하는 원인)
+if (typeof Element !== 'undefined' && typeof Element.prototype.setPointerCapture !== 'function') {
+  Element.prototype.setPointerCapture = () => {};
+  Element.prototype.releasePointerCapture = () => {};
+  Element.prototype.hasPointerCapture = () => false;
+}
+
 // 각 테스트 후 렌더 결과를 언마운트해 DOM 누적을 막는다.
 afterEach(() => {
   cleanup();
