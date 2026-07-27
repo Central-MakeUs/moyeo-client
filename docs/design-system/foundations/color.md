@@ -52,6 +52,7 @@ Primary(빨강)의 명도 스케일. 상태(hover/active/focus)·에러 표현�
 
 | 토큰             | HEX       | 대표 용도                  |
 | ---------------- | --------- | -------------------------- |
+| `accessible-10`  | `#fffcfc` | 앱 아이콘 배경(거의 흰색)  |
 | `accessible-50`  | `#fef2f2` | date-item 선택 배경(옅음)  |
 | `accessible-100` | `#ffe2e1` |                            |
 | `accessible-200` | `#ffcac8` |                            |
