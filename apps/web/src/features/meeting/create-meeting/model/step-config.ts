@@ -128,18 +128,48 @@ export function stepFromPath(pathname: string): StepKey | null {
 }
 
 /**
- * 진행바 퍼센트. 분모는 해당 흐름의 입력 화면 수(Bridge인 created만 제외, host 스텝 포함).
- * 모임 유형(CRT-01)은 위저드 스텝이 아니므로 분모에 없다.
+ * 진행률 구간. Bridge(`created`)를 경계로 흐름이 둘로 나뉜다.
+ * - `'create'` — 모임 정보 입력(CRT-02~CRT-04). 마지막 스텝에서 100%가 된다.
+ * - `'host'`   — 모임장 참여 정보 입력(INV 화면 재사용). 0에서 다시 시작한다.
+ */
+export type StepPhase = 'create' | 'host';
+
+/**
+ * 스텝이 속한 진행률 구간. 흐름 밖이거나 Bridge면 null.
+ * 경계는 `getSteps` 안의 `created` 위치로 판정하므로 스텝이 늘어도 따로 손댈 곳이 없다.
+ */
+export function stepPhase(step: StepKey, input: StepFlowInput): StepPhase | null {
+  if (step === 'created') return null;
+
+  const steps = getSteps(input);
+  const index = steps.indexOf(step);
+
+  if (index === -1) return null;
+
+  return index < steps.indexOf('created') ? 'create' : 'host';
+}
+
+/**
+ * 진행바 퍼센트. **분모는 전체 흐름이 아니라 현재 구간(`stepPhase`)의 입력 화면 수**다.
  *
- * ℹ️ 'cover' 재활성화 시 분모가 한 칸 늘어난다.
+ * CRT-06(`created`)은 "모임 정보 입력이 다 끝났다"를 알리는 Bridge라, 그 직전 스텝(CRT-04
+ * deadline)에서 진행률이 **100%로 꽉 차야** 한다. 이어지는 host 입력 구간은 별개의 진행률로
+ * 0부터 다시 시작한다. 모임 유형(CRT-01)은 위저드 스텝이 아니므로 어느 분모에도 없다.
+ *
+ * ℹ️ 'cover' 재활성화 시 create 구간 분모가 한 칸 늘어난다.
  */
 export function progressPercent(step: StepKey, input: StepFlowInput): number {
-  const inputSteps: StepKey[] = getSteps(input).filter((s) => s !== 'created');
-  const index = inputSteps.indexOf(step);
+  const phase = stepPhase(step, input);
 
-  if (index === -1) return 100; // 흐름 밖(created 등)은 100%
+  if (phase === null) return 100; // 흐름 밖(created 등)은 100%
 
-  return Math.round(((index + 1) / inputSteps.length) * 100);
+  const steps = getSteps(input);
+  const bridgeIndex = steps.indexOf('created');
+  const phaseSteps =
+    phase === 'create' ? steps.slice(0, bridgeIndex) : steps.slice(bridgeIndex + 1);
+  const index = phaseSteps.indexOf(step);
+
+  return Math.round(((index + 1) / phaseSteps.length) * 100);
 }
 
 /** getSteps 순서에서 현재 스텝의 다음 스텝. 마지막이면 null(= 제출 지점). */

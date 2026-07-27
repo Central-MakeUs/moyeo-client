@@ -11,6 +11,7 @@ import {
   nextStep,
   progressPercent,
   stepFromPath,
+  stepPhase,
   stepToPath,
 } from './step-config';
 
@@ -249,29 +250,75 @@ describe('isStepComplete', () => {
   });
 });
 
-// ℹ️ 'cover' 재활성화 시 분모가 한 칸 늘어난다. 그때 아래 기대값을 다시 계산한다.
-describe('progressPercent (분모 = created·유형선택 제외 입력 스텝 수)', () => {
-  it("should return 20 when step is 'basic' and flow is SCHEDULE_ONLY + DATE_AND_TIME (5 input steps)", () => {
-    expect(progressPercent('basic', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe(20);
+describe('stepPhase (created 를 경계로 갈리는 진행률 구간)', () => {
+  it("should return 'create' for 'basic'·'time-range'·'deadline' when SCHEDULE_ONLY and DATE_AND_TIME", () => {
+    const input = flow('SCHEDULE_ONLY', 'DATE_AND_TIME');
+
+    expect(stepPhase('basic', input)).toBe('create');
+    expect(stepPhase('time-range', input)).toBe('create');
+    expect(stepPhase('deadline', input)).toBe('create');
   });
 
-  it("should return 40 when step is 'time-range' and flow is SCHEDULE_ONLY + DATE_AND_TIME", () => {
-    expect(progressPercent('time-range', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe(40);
+  it("should return 'host' for 'schedule-dates'·'schedule-times' when SCHEDULE_ONLY and DATE_AND_TIME", () => {
+    const input = flow('SCHEDULE_ONLY', 'DATE_AND_TIME');
+
+    expect(stepPhase('schedule-dates', input)).toBe('host');
+    expect(stepPhase('schedule-times', input)).toBe('host');
   });
 
-  it("should return 33 when step is 'basic' and flow is PLACE_ONLY (3 input steps)", () => {
-    expect(progressPercent('basic', flow('PLACE_ONLY', null))).toBe(33);
+  it("should return 'host' for 'departure' when planningType is PLACE_ONLY", () => {
+    expect(stepPhase('departure', flow('PLACE_ONLY', null))).toBe('host');
   });
 
-  it("should return 80 for 'schedule-dates' and 100 for 'schedule-times' when SCHEDULE_ONLY and DATE_AND_TIME", () => {
-    expect(progressPercent('schedule-dates', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe(80);
+  it("should return null for 'created' (Bridge 는 어느 구간에도 속하지 않는다)", () => {
+    expect(stepPhase('created', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBeNull();
+  });
+
+  it("should return null for 'time-range' when planningType is PLACE_ONLY (흐름 밖)", () => {
+    expect(stepPhase('time-range', flow('PLACE_ONLY', null))).toBeNull();
+  });
+});
+
+// ℹ️ 'cover' 재활성화 시 create 구간 분모가 한 칸 늘어난다. 그때 아래 기대값을 다시 계산한다.
+describe('progressPercent (분모 = 현재 구간의 입력 스텝 수)', () => {
+  // create 구간: basic·time-range·deadline = 3칸
+  it("should return 33 when step is 'basic' and flow is SCHEDULE_ONLY + DATE_AND_TIME (create 3 steps)", () => {
+    expect(progressPercent('basic', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe(33);
+  });
+
+  it("should return 67 when step is 'time-range' and flow is SCHEDULE_ONLY + DATE_AND_TIME", () => {
+    expect(progressPercent('time-range', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe(67);
+  });
+
+  it("should return 100 when step is 'deadline' (create 구간 마지막 — CRT-06 은 이게 꽉 차서 나온다)", () => {
+    expect(progressPercent('deadline', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe(100);
+  });
+
+  // create 구간: basic·deadline = 2칸 (PLACE_ONLY 는 time-range 를 건너뛴다)
+  it("should return 50 when step is 'basic' and flow is PLACE_ONLY (create 2 steps)", () => {
+    expect(progressPercent('basic', flow('PLACE_ONLY', null))).toBe(50);
+  });
+
+  it("should return 100 when step is 'deadline' and flow is PLACE_ONLY", () => {
+    expect(progressPercent('deadline', flow('PLACE_ONLY', null))).toBe(100);
+  });
+
+  // host 구간: created 다음부터 0에서 다시 시작한다
+  it("should restart at 50 for 'schedule-dates' and reach 100 at 'schedule-times' when SCHEDULE_ONLY and DATE_AND_TIME", () => {
+    expect(progressPercent('schedule-dates', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe(50);
     expect(progressPercent('schedule-times', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe(100);
   });
 
-  it("should return a value below 100 for 'schedule-dates' when SCHEDULE_ONLY and DATE_AND_TIME", () => {
-    expect(progressPercent('schedule-dates', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBeLessThan(
-      100
-    );
+  it("should return 100 for the only host step 'schedule-dates' when SCHEDULE_ONLY and DATE_ONLY", () => {
+    expect(progressPercent('schedule-dates', flow('SCHEDULE_ONLY', 'DATE_ONLY'))).toBe(100);
+  });
+
+  it('should return 33·67·100 across host steps when SCHEDULE_AND_PLACE and DATE_AND_TIME (host 3 steps)', () => {
+    const input = flow('SCHEDULE_AND_PLACE', 'DATE_AND_TIME');
+
+    expect(progressPercent('schedule-dates', input)).toBe(33);
+    expect(progressPercent('schedule-times', input)).toBe(67);
+    expect(progressPercent('departure', input)).toBe(100);
   });
 });
 

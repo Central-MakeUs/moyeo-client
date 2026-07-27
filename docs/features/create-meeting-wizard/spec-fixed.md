@@ -254,10 +254,22 @@ CRT-03으로 돌아오면 시간 입력은 초기 화면으로 표시하되, 이
 CRT-06에서 CRT-04로 돌아오면 마감 입력은 초기 화면으로 표시하되 `noDeadline=true` 분기값은
 유지한다. 새 마감 시간을 선택하면 `noDeadline=false`로 변경한다.
 
-### 5-3. Progress 분모
+### 5-3. Progress 분모 — **구간별**(2026-07-28 확정)
 
-**`getSteps(planningType)`에서 Bridge(`created`)를 제외한 입력 스텝 수** (host 스텝 포함).
-유형에 따라 분모가 달라진다. **모임 유형 선택(CRT-01)은 위저드 스텝이 아니므로 분모에 포함하지 않는다.**
+**진행률은 하나가 아니라 `created`(CRT-06)를 경계로 둘로 나뉜다.** CRT-06은 "모임 정보 입력이
+끝났다"를 알리는 Bridge이므로, **그 직전 스텝(CRT-04 deadline)에서 진행률이 100%로 꽉 차야
+CRT-06이 나오는 것**과 화면이 정합한다. 이어지는 host 입력 구간은 별개의 진행률로 0부터 다시 시작한다.
+
+| 구간                  | 스텝                           | 분모                                     |
+| --------------------- | ------------------------------ | ---------------------------------------- |
+| **create** (CRT)      | `getSteps` 중 `created` **앞** | 유형별 2~3칸 (basic·time-range·deadline) |
+| **host** (INV 재사용) | `getSteps` 중 `created` **뒤** | 유형별 1~3칸 (schedule-\*·departure)     |
+
+예) `SCHEDULE_ONLY`+`DATE_AND_TIME` → basic 33 · time-range 67 · **deadline 100** ·
+(created 진행바 없음) · schedule-dates 50 · schedule-times 100.
+`PLACE_ONLY` → basic 50 · **deadline 100** · departure 100.
+
+**모임 유형 선택(CRT-01)은 위저드 스텝이 아니므로 어느 분모에도 포함하지 않는다.**
 (CRT-02-F01 "CRT-01에서 고른 유형에 따라 가변"과 정합.)
 
 ---
