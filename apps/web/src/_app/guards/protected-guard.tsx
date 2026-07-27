@@ -26,6 +26,11 @@ export function ProtectedGuard({ children }: { children: React.ReactNode }) {
     !session.viewer.onboardingCompleted &&
     pathname !== ONBOARDING_PATH;
 
+  const shouldLeaveOnboarding =
+    session.status === 'authenticated' &&
+    session.viewer.onboardingCompleted &&
+    pathname === ONBOARDING_PATH;
+
   useEffect(() => {
     if (session.status === 'anonymous') {
       // 초대 링크로 들어온 사용자가 로그인 후 목적지를 잃지 않도록 현재 위치를 보존한다.
@@ -37,15 +42,21 @@ export function ProtectedGuard({ children }: { children: React.ReactNode }) {
     // TODO: 온보딩에서도 next 경로를 저장할지 고민
     if (needsOnboarding) {
       router.replace(ONBOARDING_PATH);
+      return;
     }
-  }, [session.status, needsOnboarding, router]);
+
+    // 최초 등록 전용 화면이므로 온보딩을 마친 사용자의 재접근은 홈으로 보낸다.
+    if (shouldLeaveOnboarding) {
+      router.replace('/home');
+    }
+  }, [session.status, needsOnboarding, shouldLeaveOnboarding, router]);
 
   if (session.status === 'error') {
     return <SessionErrorScreen onRetry={session.retry} />;
   }
 
   // 세션 복원 중이거나 리다이렉트 전 잠깐 렌더링되는 대기 화면
-  if (session.status !== 'authenticated' || needsOnboarding) {
+  if (session.status !== 'authenticated' || needsOnboarding || shouldLeaveOnboarding) {
     return <AppSplash />;
   }
 
