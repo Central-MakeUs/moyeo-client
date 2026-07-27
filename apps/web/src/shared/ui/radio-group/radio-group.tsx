@@ -104,4 +104,64 @@ function RadioGroupCard({
   );
 }
 
-export { RadioGroup, RadioGroupCard };
+/**
+ * 아이콘형 카드 라디오 옵션. 라디오 점 대신 **아이콘이 선택 표시를 대체**한다.
+ * 선택/미선택 아이콘은 별도 에셋(멀티컬러 일러스트라 CSS 틴트 불가)을 받아
+ * radix `data-[state=checked]` 로 swap 한다.
+ */
+function RadioGroupIconCard({
+  className,
+  title,
+  description,
+  selectedIcon,
+  unselectedIcon,
+  ...props
+}: Omit<React.ComponentProps<typeof RadioGroupPrimitive.Item>, 'children'> & {
+  /** 카드 제목 */
+  title: React.ReactNode;
+  /** 카드 보조 설명 */
+  description?: React.ReactNode;
+  /** 선택됐을 때 표시할 아이콘 */
+  selectedIcon: React.ReactNode;
+  /** 선택되지 않았을 때 표시할 아이콘 */
+  unselectedIcon: React.ReactNode;
+}) {
+  return (
+    <RadioGroupPrimitive.Item
+      data-slot="radio-group-icon-card"
+      className={cn(
+        // 레이아웃 (아이콘 + 텍스트, 아이콘이 점을 대체)
+        'group/radio-group-icon-card flex w-full items-center gap-5 rounded-12 px-6 py-5 text-left transition-colors outline-none',
+
+        // 키보드 포커스
+        'focus-visible:ring-3 focus-visible:ring-ring/50',
+
+        // 비활성화
+        'disabled:cursor-not-allowed',
+
+        'bg-neutral-10 text-neutral-600 data-[state=checked]:bg-accessible-50 data-[state=checked]:text-accessible-900',
+        className
+      )}
+      {...props}
+    >
+      {/** 아이콘 */}
+      <span
+        aria-hidden="true"
+        className="relative flex size-7 shrink-0 items-center justify-center"
+      >
+        <span className="flex size-full">{unselectedIcon}</span>
+        <RadioGroupPrimitive.Indicator className="absolute inset-0 flex items-center justify-center bg-accessible-50">
+          {selectedIcon}
+        </RadioGroupPrimitive.Indicator>
+      </span>
+
+      {/* 텍스트 */}
+      <span className="flex flex-col gap-0.5">
+        <span className="text-bold-16">{title}</span>
+        {description ? <span className="text-medium-12">{description}</span> : null}
+      </span>
+    </RadioGroupPrimitive.Item>
+  );
+}
+
+export { RadioGroup, RadioGroupCard, RadioGroupIconCard };
