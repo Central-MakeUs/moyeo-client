@@ -37,7 +37,7 @@ describe('TimeRangeStep', () => {
     vi.restoreAllMocks();
   });
 
-  it("should set start '09:00' end '18:00' and scheduleInputType DATE_AND_TIME when '하루종일' is clicked", async () => {
+  it("should set start '09:00' end '23:00' and scheduleInputType DATE_AND_TIME when '하루종일' is clicked", async () => {
     render(<TimeRangeStep onNext={vi.fn()} />);
 
     await userEvent.click(screen.getByRole('button', { name: '하루종일' }));
@@ -45,7 +45,7 @@ describe('TimeRangeStep', () => {
     const state = useCreateMeetingDraft.getState();
     expect(state.scheduleInputType).toBe('DATE_AND_TIME');
     expect(state.availableStartTime).toBe('09:00');
-    expect(state.availableEndTime).toBe('18:00');
+    expect(state.availableEndTime).toBe('23:00');
   });
 
   it("should enable the 다음 button when '하루종일' is selected", async () => {
@@ -64,12 +64,35 @@ describe('TimeRangeStep', () => {
     expect(useCreateMeetingDraft.getState().scheduleInputType).toBe('DATE_ONLY');
   });
 
-  it("should disable the '하루종일' quick-select when '날짜만 정하고 싶어요' is selected", async () => {
-    render(<TimeRangeStep onNext={vi.fn()} />);
+  // 날짜만 정하기는 토글이 아니라 CRT-04로 즉시 이동하는 동작이다(crt-03.md F03).
+  it("should call onNext once when '날짜만 정하고 싶어요' is clicked", async () => {
+    const onNext = vi.fn();
+    render(<TimeRangeStep onNext={onNext} />);
 
     await userEvent.click(screen.getByRole('button', { name: '날짜만 정하고 싶어요' }));
 
-    expect(screen.getByRole('button', { name: '하루종일' })).toBeDisabled();
+    expect(onNext).toHaveBeenCalledOnce();
+  });
+
+  it("should discard the entered time range when '날짜만 정하고 싶어요' is clicked", async () => {
+    render(<TimeRangeStep onNext={vi.fn()} />);
+    await userEvent.click(screen.getByRole('button', { name: '하루종일' }));
+
+    await userEvent.click(screen.getByRole('button', { name: '날짜만 정하고 싶어요' }));
+
+    const state = useCreateMeetingDraft.getState();
+    expect(state.availableStartTime).toBeNull();
+    expect(state.availableEndTime).toBeNull();
+  });
+
+  // CRT-04에서 뒤로 돌아오면 시간 미선택 초기 화면이어야 한다(crt-03.md F03).
+  it('should show the initial unselected state when re-entered with scheduleInputType DATE_ONLY', () => {
+    useCreateMeetingDraft.setState({ scheduleInputType: 'DATE_ONLY' });
+
+    render(<TimeRangeStep onNext={vi.fn()} />);
+
+    // 시간 필드는 비어 있고(placeholder), 빠른 선택도 강조되지 않는다.
+    expect(screen.getAllByText('시간 선택')).toHaveLength(2);
   });
 
   it('should keep the 다음 button disabled when nothing is selected (scheduleInputType null)', () => {

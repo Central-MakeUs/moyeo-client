@@ -12,7 +12,7 @@ const QUICK_PRESETS = [
   { label: '아침', value: { start: '06:00', end: '12:00' } },
   { label: '점심', value: { start: '12:00', end: '18:00' } },
   { label: '저녁', value: { start: '18:00', end: '23:00' } },
-  { label: '하루종일', value: { start: '09:00', end: '18:00' } },
+  { label: '하루종일', value: { start: '09:00', end: '23:00' } },
 ];
 
 const INVALID_TIME_RANGE_MESSAGE = '시작 시간은 종료 시간보다 빨라야 해요';
@@ -46,8 +46,6 @@ export function TimeRangeStep({ onNext }: TimeRangeStepProps) {
   const setAvailableStartTime = useCreateMeetingDraft((s) => s.setAvailableStartTime);
   const setAvailableEndTime = useCreateMeetingDraft((s) => s.setAvailableEndTime);
 
-  /** 날짜만 정하고 싶어요 선택 유무 */
-  const isDateOnly = scheduleInputType === 'DATE_ONLY';
   const canGoNext = isStepComplete('time-range', draft);
 
   /** 빠른 선택 버튼 클릭 시 preset 적용하는 함수 */
@@ -57,8 +55,15 @@ export function TimeRangeStep({ onNext }: TimeRangeStepProps) {
     setAvailableEndTime(end);
   };
 
-  const toggleDateOnly = () => {
-    setScheduleInputType(isDateOnly ? 'DATE_AND_TIME' : 'DATE_ONLY');
+  /**
+   * 날짜만 정하기는 토글이 아니라 CRT-04로 즉시 이동하는 동작이다(crt-03.md F03).
+   * 입력하던 시간은 저장하지 않고 버린다 — 돌아왔을 때 초기 화면이어야 하기 때문이다.
+   */
+  const chooseDateOnly = () => {
+    setAvailableStartTime(null);
+    setAvailableEndTime(null);
+    setScheduleInputType('DATE_ONLY');
+    onNext();
   };
 
   const selectStartTime = (value: TimePickerValue) => {
@@ -106,9 +111,8 @@ export function TimeRangeStep({ onNext }: TimeRangeStepProps) {
           {/**TODO:  이 부분 수정해야 함 */}
           <button
             type="button"
-            onClick={toggleDateOnly}
-            className="text-medium-14 text-neutral-500 underline underline-offset-4 aria-pressed:text-primary"
-            aria-pressed={isDateOnly}
+            onClick={chooseDateOnly}
+            className="text-medium-14 text-neutral-500 underline underline-offset-4"
           >
             날짜만 정하고 싶어요
           </button>
@@ -119,9 +123,8 @@ export function TimeRangeStep({ onNext }: TimeRangeStepProps) {
       <div className="flex flex-col gap-6">
         <QuickSelectGroup
           items={QUICK_PRESETS}
-          disabled={isDateOnly}
           isSelected={(preset) =>
-            !isDateOnly && availableStartTime === preset.start && availableEndTime === preset.end
+            availableStartTime === preset.start && availableEndTime === preset.end
           }
           onSelect={(preset) => applyPreset(preset.start, preset.end)}
         />
@@ -131,18 +134,16 @@ export function TimeRangeStep({ onNext }: TimeRangeStepProps) {
             label="시작 시간"
             title="시작 시간 선택"
             placeholder="시간 선택"
-            value={availableStartTime && !isDateOnly ? parseTime(availableStartTime) : undefined}
+            value={availableStartTime ? parseTime(availableStartTime) : undefined}
             defaultValue={{ period: '오전', hour: 9 }}
-            disabled={isDateOnly}
             onValueChange={selectStartTime}
           />
           <TimeSelect
             label="종료 시간"
             title="종료 시간 선택"
             placeholder="시간 선택"
-            value={availableEndTime && !isDateOnly ? parseTime(availableEndTime) : undefined}
+            value={availableEndTime ? parseTime(availableEndTime) : undefined}
             defaultValue={{ period: '오후', hour: 6 }}
-            disabled={isDateOnly}
             onValueChange={selectEndTime}
           />
         </div>

@@ -28,8 +28,8 @@ interface CreateMeetingDraftActions {
   setMaxParticipants: (value: number | null) => void;
   setPlanningType: (value: PlanningType) => void;
   setScheduleInputType: (value: ScheduleInputType | null) => void;
-  setAvailableStartTime: (value: string) => void;
-  setAvailableEndTime: (value: string) => void;
+  setAvailableStartTime: (value: string | null) => void;
+  setAvailableEndTime: (value: string | null) => void;
   setDeadlineMinutes: (value: number | null) => void;
   setNoDeadline: (value: boolean) => void;
   setScheduleCandidateDates: (value: string[]) => void;
