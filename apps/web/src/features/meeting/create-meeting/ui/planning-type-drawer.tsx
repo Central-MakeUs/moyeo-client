@@ -10,8 +10,6 @@ import {
   DrawerBody,
   DrawerContent,
   DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
   DrawerTrigger,
   RadioGroup,
   RadioGroupIconCard,
@@ -91,13 +89,14 @@ export function PlanningTypeDrawer({ trigger }: PlanningTypeDrawerProps): React.
     <Drawer open={isOpen} onOpenChange={handleOpenChange}>
       <DrawerTrigger asChild>{trigger}</DrawerTrigger>
 
-      <DrawerContent className="gap-6">
+      <DrawerContent>
         <PageHeader
+          className="mt-3"
           title="무엇을 정해볼까요?"
           description="이번 모임에서 조율이 필요한 항목을 선택해주세요"
         />
 
-        <DrawerBody>
+        <DrawerBody className="pt-6">
           {/* 미선택을 undefined가 아닌 ''로 둔다 — undefined면 RadioGroup이 uncontrolled로 시작한다. */}
           <RadioGroup
             value={selected ?? ''}
@@ -116,7 +115,7 @@ export function PlanningTypeDrawer({ trigger }: PlanningTypeDrawerProps): React.
           </RadioGroup>
         </DrawerBody>
 
-        <DrawerFooter className="pt-0">
+        <DrawerFooter className="pt-6">
           <Button fullWidth disabled={selected === null} onClick={handleConfirm}>
             선택
           </Button>
