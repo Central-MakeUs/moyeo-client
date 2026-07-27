@@ -1,3 +1,4 @@
+'use client';
 import * as React from 'react';
 import { ChevronProps, DayPicker, RootProps } from 'react-day-picker';
 import { ko } from 'date-fns/locale';
