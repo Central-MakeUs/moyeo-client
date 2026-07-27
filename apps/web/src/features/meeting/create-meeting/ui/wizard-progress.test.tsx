@@ -63,4 +63,15 @@ describe('모임 생성 위저드 진행률', () => {
 
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
   });
+
+  // 뒤로가기로 위저드를 벗어날 때 draft가 먼저 비워진다. 그 사이 경로는 아직 스텝이라,
+  // 흐름이 사라진 상태에서 진행바가 100%로 잠깐 보이는 일이 없어야 한다.
+  it('모임 유형이 없으면 진행바를 렌더하지 않는다', () => {
+    useCreateMeetingDraft.getState().reset();
+    pathname.value = '/meetings/new/basic';
+
+    render(<WizardProgress />);
+
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+  });
 });
