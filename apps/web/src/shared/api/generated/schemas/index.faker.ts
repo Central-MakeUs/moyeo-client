@@ -21,6 +21,7 @@ import type {
   DepartureRequest,
   DevAuthTokensResponse,
   GuestJoinRequest,
+  KakaoLoginRequest,
   MeetingCoverResponse,
   MeetingInvitationResponse,
   MeetingViewResponse,
@@ -159,6 +160,7 @@ export const getCreateMeetingRequestMock = (
     faker.number.int({ min: 10, max: 4320 }),
     undefined,
   ]),
+  noDeadline: faker.datatype.boolean(),
   ...overrideResponse,
 });
 
@@ -316,6 +318,14 @@ export const getDeparturePlaceSearchResponseMock = (
   ...overrideResponse,
 });
 
+export const getKakaoLoginRequestMock = (
+  overrideResponse: Partial<KakaoLoginRequest> = {}
+): KakaoLoginRequest => ({
+  code: faker.string.alpha({ length: { min: 0, max: 4096 } }),
+  redirectTarget: faker.helpers.arrayElement(['local', 'dev', 'prod'] as const),
+  ...overrideResponse,
+});
+
 export const getAuthResponseMock = (
   overrideResponse: Partial<AuthResponse> = {}
 ): AuthResponse => ({
@@ -344,6 +354,7 @@ export const getAppleLoginRequestMock = (
 ): AppleLoginRequest => ({
   code: faker.string.alpha({ length: { min: 0, max: 4096 } }),
   nonce: faker.string.alpha({ length: { min: 0, max: 255 } }),
+  redirectTarget: faker.helpers.arrayElement(['dev', 'prod'] as const),
   ...overrideResponse,
 });
 
