@@ -65,11 +65,11 @@ describe('CreateMeetingCreatedPage', () => {
     expect(push).toHaveBeenCalledWith('/meetings/new/departure');
   });
 
-  it("should replace to '/meetings/new' and render nothing when preceding steps are incomplete", () => {
+  it('should replace to the first unfilled step and render nothing when preceding steps are incomplete', () => {
     useCreateMeetingDraft.setState({ name: '', planningType: 'SCHEDULE_ONLY' });
     render(<CreateMeetingCreatedPage />);
 
-    expect(replace).toHaveBeenCalledWith('/meetings/new');
+    expect(replace).toHaveBeenCalledWith('/meetings/new/basic');
     expect(screen.queryByText('모임을 만들었어요!')).not.toBeInTheDocument();
   });
 });
