@@ -108,7 +108,10 @@ describe('DraggableCalendar', () => {
 });
 
 describe('DraggableCalendar — 드래그 페인트 (Issue 2)', () => {
-  const cell = (n: number) => screen.getByText(String(n));
+  // 7월 그리드 마지막 주에는 8/1 같은 outside day도 렌더된다.
+  // getByText('1')은 7/01과 8/01을 함께 잡으므로 data-date로 특정한다.
+  const cell = (n: number) =>
+    document.querySelector<HTMLElement>(`[data-date="2026-07-${String(n).padStart(2, '0')}"]`)!;
   const dayNums = (dates: Date[]) => dates.map((x) => x.getDate()).sort((a, b) => a - b);
 
   it('should call onChange with [7/09..7/13] when pointer-dragging 7/09→7/13', () => {
@@ -203,7 +206,10 @@ describe('DraggableCalendar — 드래그 페인트 (Issue 2)', () => {
 });
 
 describe('DraggableCalendar — 개수 제한 (Issue 3)', () => {
-  const cell = (n: number) => screen.getByText(String(n));
+  // 7월 그리드 마지막 주에는 8/1 같은 outside day도 렌더된다.
+  // getByText('1')은 7/01과 8/01을 함께 잡으므로 data-date로 특정한다.
+  const cell = (n: number) =>
+    document.querySelector<HTMLElement>(`[data-date="2026-07-${String(n).padStart(2, '0')}"]`)!;
   const dayNums = (dates: Date[]) => dates.map((x) => x.getDate()).sort((a, b) => a - b);
   const range = (from: number, to: number) =>
     Array.from({ length: to - from + 1 }, (_, i) => from + i);
@@ -279,7 +285,10 @@ describe('DraggableCalendar — 연속 런 세그먼트 렌더링 (Issue 4)', ()
 });
 
 describe('DraggableCalendar — 런 재렌더 (Issue 4, 상태 변화)', () => {
-  const cell = (n: number) => screen.getByText(String(n));
+  // 7월 그리드 마지막 주에는 8/1 같은 outside day도 렌더된다.
+  // getByText('1')은 7/01과 8/01을 함께 잡으므로 data-date로 특정한다.
+  const cell = (n: number) =>
+    document.querySelector<HTMLElement>(`[data-date="2026-07-${String(n).padStart(2, '0')}"]`)!;
 
   // value를 상태로 들고 초기값을 주입하는 제어 하네스 (드래그 확정/토글 후 재렌더 검증용).
   function ControlledHarness({ initial }: { initial: Date[] }) {
@@ -324,7 +333,10 @@ describe('DraggableCalendar — 런 재렌더 (Issue 4, 상태 변화)', () => {
 });
 
 describe('DraggableCalendar — 셀 리마운트 방지 (실브라우저 드래그 무결성)', () => {
-  const cell = (n: number) => screen.getByText(String(n));
+  // 7월 그리드 마지막 주에는 8/1 같은 outside day도 렌더된다.
+  // getByText('1')은 7/01과 8/01을 함께 잡으므로 data-date로 특정한다.
+  const cell = (n: number) =>
+    document.querySelector<HTMLElement>(`[data-date="2026-07-${String(n).padStart(2, '0')}"]`)!;
 
   // 드래그 시작(state 변경) 시 셀 DOM 노드가 교체되면 실제 브라우저에서 포인터 제스처가 끊긴다.
   // 같은 노드가 유지돼야(리렌더 O, 리마운트 X) 드래그가 이어진다.
@@ -340,7 +352,10 @@ describe('DraggableCalendar — 셀 리마운트 방지 (실브라우저 드래�
 });
 
 describe('DraggableCalendar — 모바일 터치 (Issue 5)', () => {
-  const cell = (n: number) => screen.getByText(String(n));
+  // 7월 그리드 마지막 주에는 8/1 같은 outside day도 렌더된다.
+  // getByText('1')은 7/01과 8/01을 함께 잡으므로 data-date로 특정한다.
+  const cell = (n: number) =>
+    document.querySelector<HTMLElement>(`[data-date="2026-07-${String(n).padStart(2, '0')}"]`)!;
   const dayNums = (dates: Date[]) => dates.map((x) => x.getDate()).sort((a, b) => a - b);
   const range = (from: number, to: number) =>
     Array.from({ length: to - from + 1 }, (_, i) => from + i);

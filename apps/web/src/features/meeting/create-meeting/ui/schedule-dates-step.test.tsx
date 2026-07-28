@@ -146,7 +146,7 @@ describe('ScheduleDatesStep', () => {
     await userEvent.click(screen.getByText('22'));
 
     expect(toastSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ description: '최대 21일까지 선택 가능' })
+      expect.objectContaining({ description: '최대 21일까지 선택 가능합니다' })
     );
     expect(useCreateMeetingDraft.getState().scheduleCandidateDates).toHaveLength(21);
     expect(useCreateMeetingDraft.getState().scheduleCandidateDates).not.toContain('2026-07-22');
