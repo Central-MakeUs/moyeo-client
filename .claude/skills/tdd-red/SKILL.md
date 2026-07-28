@@ -81,14 +81,20 @@ stub은 시그니처(이름·파라미터·반환 타입)만 옮긴 껍데기이
   describe('paint', () => { ... })
 })`
 
-- `it`: **should [기대 동작] when [조건]** 형식 (영문 BDD)
+- `it`: **[조건]일 때 [동작]하면 [기대 결과]한다** 형식 (한국어 BDD)
+  - 조건이 자명하면 생략하고 `[동작]하면 [기대 결과]한다`로 쓴다.
   - 예:
-    - `it('should call onChange with [7/15] when tapping 7/15 given value=[]')`
-    - `it('should not call onChange when tapping a disabled day')`
+    - `it('value가 비어 있을 때 7/15를 탭하면 onChange가 [7/15]로 호출된다')`
+    - `it('비활성 날짜를 탭하면 onChange가 호출되지 않는다')`
+    - `it('[7/05, 7/04]를 넘기면 ["2026-07-04", "2026-07-05"]를 반환한다')`
 
-- issue-{N}.md 의 시나리오 문장에 이미
-  `should ... when ...`
-  형식이 들어 있으면 거의 그대로 옮긴다.
+- 값·식별자·경로는 **원문 그대로** 둔다. `onChange`를 "변경 콜백"으로 옮기지 않는다.
+  읽는 사람이 코드와 대조할 수 있어야 한다.
+
+- issue-{N}.md 의 시나리오 문장을 거의 그대로 테스트 이름으로 옮긴다.
+
+> 기존 테스트에는 영문 `should ... when ...` 이름이 남아 있다. 일괄 전환 전까지는
+> **새로 쓰는 테스트만** 한국어로 쓰고, 기존 파일의 이름을 손대지 않는다.
 
 ### 사용 도구
 
@@ -246,7 +252,7 @@ stub만 있으면:
 
 issue-{N}.md 의 다음 미작성 시나리오를 선택한다.
 
-시나리오 문장의 should ... when ... 부분을 그대로 테스트 이름으로 사용한다.
+시나리오 문장의 `[조건]일 때 [동작]하면 [기대 결과]한다` 부분을 그대로 테스트 이름으로 사용한다.
 
 ### 2. 테스트 작성
 
@@ -315,13 +321,13 @@ import { describe, it, expect } from 'vitest';
 import { toScheduleCandidateDates } from './to-schedule-candidate-dates';
 
 describe('toScheduleCandidateDates', () => {
-  it('should return ["2026-07-04", "2026-07-05"] when given [7/05, 7/04]', () => {
+  it('[7/05, 7/04]를 넘기면 ["2026-07-04", "2026-07-05"]를 반환한다', () => {
     const result = toScheduleCandidateDates([new Date(2026, 6, 5), new Date(2026, 6, 4)]);
 
     expect(result).toEqual(['2026-07-04', '2026-07-05']);
   });
 
-  it('should return [] when given []', () => {
+  it('[]를 넘기면 []를 반환한다', () => {
     expect(toScheduleCandidateDates([])).toEqual([]);
   });
 });
@@ -335,7 +341,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useDragSelect } from './use-drag-select';
 
 describe('useDragSelect', () => {
-  it('should add day to selection when a day is painted', () => {
+  it('날짜를 paint하면 선택 집합에 추가된다', () => {
     const { result } = renderHook(() => useDragSelect([]));
 
     act(() => result.current.paint(new Date(2026, 6, 15)));
@@ -354,7 +360,7 @@ import userEvent from '@testing-library/user-event';
 import { DraggableCalendar } from './draggable-calendar';
 
 describe('DraggableCalendar', () => {
-  it('should call onChange with [7/15] when tapping 7/15 given value=[]', async () => {
+  it('value가 비어 있을 때 7/15를 탭하면 onChange가 [7/15]로 호출된다', async () => {
     const onChange = vi.fn();
     render(<DraggableCalendar value={[]} onChange={onChange} month={new Date(2026, 6, 1)} />);
 
@@ -363,7 +369,7 @@ describe('DraggableCalendar', () => {
     expect(onChange).toHaveBeenCalledWith([new Date(2026, 6, 15)]);
   });
 
-  it('should not call onChange when tapping a disabled day', async () => {
+  it('비활성 날짜를 탭하면 onChange가 호출되지 않는다', async () => {
     const onChange = vi.fn();
     render(
       <DraggableCalendar
@@ -404,7 +410,7 @@ describe('DraggableCalendar', () => {
 
 - **`-t` 필터 안 쓰고 매번 전체 실행**
   - 매 시나리오마다 전체 스위트를 돌리면 느리다.
-  - `-t "should ... when ..."` 로 좁혀 검증.
+  - `-t "…하면 …한다"` 로 좁혀 검증.
 
 - **시그니처 무시하고 작성**
   - 시그니처에 `onChange` 라고 적혀 있는데 테스트에서는 `onSelect` 라고 호출하면 작성자가 시그니처를 바꾸어 해석한 것이다.

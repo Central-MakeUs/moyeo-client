@@ -158,15 +158,15 @@ to?: Date;
 각 시나리오는 아래 한 줄 형식을 따른다.
 
 ```
-[정상/경계/예외] 함수명 — should [기대동작] when [조건]
+[정상/경계/예외] 함수명 — [조건]일 때 [동작]하면 [기대 결과]한다
 ```
 
 **예시:**
 
 ```
-[정상] Calendar — should set range from and to when user selects July 10 then July 12
-[경계] Calendar — should restart range when user selects July 14 after completed July 10-12 range
-[예외] Calendar — should not select disabled day when disabled date is before today
+[정상] Calendar — 7월 10일과 12일을 차례로 선택하면 시작·종료 범위가 설정된다
+[경계] Calendar — 7월 10-12일 범위가 완성된 상태에서 14일을 선택하면 범위가 새로 시작된다
+[예외] Calendar — 오늘 이전이라 비활성인 날짜를 선택하면 선택되지 않는다
 ```
 
 조건과 기대동작에는 시그니처에서 확정한 구체적 값(타입·개수·반환값)을 쓴다.
@@ -190,15 +190,15 @@ to?: Date;
 
 ### 정상
 
-- [ ] [정상] Calendar — should ... when ...
+- [ ] [정상] Calendar — …하면 …한다
 
 ### 경계
 
-- [ ] [경계] Calendar — should ... when ...
+- [ ] [경계] Calendar — …하면 …한다
 
 ### 예외
 
-- [ ] [예외] Calendar — should ... when ...
+- [ ] [예외] Calendar — …하면 …한다
 
 ## AC 커버리지
 

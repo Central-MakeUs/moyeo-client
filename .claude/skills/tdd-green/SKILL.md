@@ -127,7 +127,7 @@ pnpm test
   - 5회 후에도 실패하면 멈추고, **무엇이 왜 실패하는지(에러 메시지·시도한 수정·막힌 지점)** 를 사용자에게 보고한다. 테스트를 고쳐서 억지로 통과시키지 않는다.
 - **새로 깨진 기존 테스트(회귀)** 가 있으면 그것도 같은 루프로 즉시 처리한다 — 회귀를 남긴 채 다음으로 넘어가지 않는다.
 
-> 빠르게 좁혀 돌리려면 `pnpm --filter @repo/web test -- <파일경로>` 또는 `pnpm --filter @repo/web exec vitest run -t "should ... when ..."` 로 단건 확인 후, 마지막에 `pnpm test` 전체로 회귀를 본다.
+> 빠르게 좁혀 돌리려면 `pnpm --filter @repo/web test -- <파일경로>` 또는 `pnpm --filter @repo/web exec vitest run -t "…하면 …한다"` 로 단건 확인 후, 마지막에 `pnpm test` 전체로 회귀를 본다.
 
 ## 단계 6: issue-{N}.md 체크
 
