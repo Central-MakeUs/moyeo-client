@@ -126,6 +126,16 @@ export function AvailabilityTimeGrid({
     autoScroll.stop();
   };
 
+  // 드래그 취소 — 커밋 없이 되돌린다(그리드 밖으로 나가거나 OS가 제스처를 가져갈 때).
+  const handlePointerCancel = () => {
+    if (!anchorRef.current) return;
+
+    drag.cancel();
+    anchorRef.current = null;
+    isDragStartedRef.current = false;
+    autoScroll.stop();
+  };
+
   // 탭은 누른 셀 하나를 앵커로 보는 드래그와 같다 — 모드 판정을 드래그와 공유한다.
   const handleCellClick = (key: string) => {
     if (suppressClickRef.current) return;
@@ -142,7 +152,10 @@ export function AvailabilityTimeGrid({
       className={cn('relative touch-none overflow-auto overscroll-none', className)}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
+      // pointercancel은 OS/브라우저가 제스처를 가져간 상황이라 부분 선택을 커밋하면 안 된다.
+      onPointerCancel={handlePointerCancel}
+      // onPointerLeave로 취소하지 않는다 — 이 그리드는 스크롤 컨테이너라
+      // 가장자리에 다가가는 것이 useEdgeAutoScroll의 트리거다. 경계에서 취소하면 둘이 충돌한다.
     >
       <div className="min-w-max">
         <div data-time-grid-column-header-row className="sticky top-0 z-20 flex gap-1 bg-white">

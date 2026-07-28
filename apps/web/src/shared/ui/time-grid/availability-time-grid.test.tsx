@@ -226,4 +226,37 @@ describe('AvailabilityTimeGrid — 드래그 페인트', () => {
 
     expect(onChange).toHaveBeenCalledTimes(1);
   });
+
+  // 이 그리드는 스크롤 컨테이너라 가장자리 접근이 자동 스크롤 트리거다.
+  // 경계를 벗어났다고 취소하면 자동 스크롤과 충돌하므로, 취소는 pointercancel에서만 한다.
+  it('드래그 중 포인터가 그리드 경계를 벗어나도 취소하지 않는다', () => {
+    const onChange = vi.fn();
+    const { container } = render(
+      <AvailabilityTimeGrid columns={COLUMNS} rows={ROWS} value={[]} onChange={onChange} />
+    );
+
+    fireEvent.pointerDown(cell(container, '2026-07-10 18:00')!);
+    fireEvent.pointerEnter(cell(container, '2026-07-10 20:00')!);
+    fireEvent.pointerLeave(container.firstElementChild!);
+    fireEvent.pointerUp(cell(container, '2026-07-10 20:00')!);
+
+    expect(onChange).toHaveBeenCalledWith([
+      '2026-07-10 18:00',
+      '2026-07-10 19:00',
+      '2026-07-10 20:00',
+    ]);
+  });
+
+  it('pointercancel이 오면 진행 중인 선택을 커밋하지 않는다', () => {
+    const onChange = vi.fn();
+    const { container } = render(
+      <AvailabilityTimeGrid columns={COLUMNS} rows={ROWS} value={[]} onChange={onChange} />
+    );
+
+    fireEvent.pointerDown(cell(container, '2026-07-10 18:00')!);
+    fireEvent.pointerEnter(cell(container, '2026-07-10 20:00')!);
+    fireEvent.pointerCancel(container.firstElementChild!);
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
 });
