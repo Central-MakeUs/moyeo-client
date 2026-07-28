@@ -1,8 +1,8 @@
-import { describe, it, expect, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { AvailabilityTimeGrid } from './availability-time-grid';
+import { AvailabilityTimeGrid, LONG_PRESS_MS } from './availability-time-grid';
 
 const COLUMNS = ['2026-07-10', '2026-07-11'];
 const ROWS = ['18:00', '19:00', '20:00'];
@@ -258,5 +258,86 @@ describe('AvailabilityTimeGrid — 드래그 페인트', () => {
     fireEvent.pointerCancel(container.firstElementChild!);
 
     expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * 손가락 하나로 스크롤과 선택을 모두 해야 해서, 터치는 롱프레스로 의도를 가른다.
+ * 이동 방향으로는 나눌 수 없다 — 선택도 스크롤도 가로·세로를 모두 쓰기 때문이다.
+ */
+describe('AvailabilityTimeGrid — 터치 롱프레스', () => {
+  const touch = { pointerType: 'touch', pointerId: 1 } as const;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    HTMLElement.prototype.setPointerCapture = vi.fn();
+    HTMLElement.prototype.releasePointerCapture = vi.fn();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  const renderGrid = (props?: Partial<React.ComponentProps<typeof AvailabilityTimeGrid>>) => {
+    const onChange = vi.fn();
+    const view = render(
+      <AvailabilityTimeGrid
+        columns={COLUMNS}
+        rows={ROWS}
+        value={[]}
+        onChange={onChange}
+        {...props}
+      />
+    );
+    return { ...view, onChange };
+  };
+
+  it('롱프레스 전에 8px 넘게 움직이면 선택이 시작되지 않는다', () => {
+    const { container, onChange } = renderGrid();
+    const start = cell(container, '2026-07-10 18:00')!;
+
+    fireEvent.pointerDown(start, { ...touch, clientX: 10, clientY: 10 });
+    fireEvent.pointerMove(container.firstElementChild!, { ...touch, clientX: 10, clientY: 40 });
+    act(() => vi.advanceTimersByTime(500));
+    fireEvent.pointerUp(container.firstElementChild!, touch);
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('움직이지 않고 300ms 유지하면 onSelectionStart가 호출된다', () => {
+    const onSelectionStart = vi.fn();
+    const { container } = renderGrid({ onSelectionStart });
+
+    fireEvent.pointerDown(cell(container, '2026-07-10 18:00')!, {
+      ...touch,
+      clientX: 10,
+      clientY: 10,
+    });
+    act(() => vi.advanceTimersByTime(LONG_PRESS_MS));
+
+    expect(onSelectionStart).toHaveBeenCalledTimes(1);
+  });
+
+  it('롱프레스 전에 손을 떼면 onSelectionStart가 호출되지 않는다', () => {
+    const onSelectionStart = vi.fn();
+    const { container } = renderGrid({ onSelectionStart });
+    const start = cell(container, '2026-07-10 18:00')!;
+
+    fireEvent.pointerDown(start, { ...touch, clientX: 10, clientY: 10 });
+    fireEvent.pointerUp(start, touch);
+    act(() => vi.advanceTimersByTime(500));
+
+    expect(onSelectionStart).not.toHaveBeenCalled();
+  });
+
+  it('마우스는 롱프레스 없이 즉시 드래그로 선택된다', () => {
+    const { container, onChange } = renderGrid();
+
+    fireEvent.pointerDown(cell(container, '2026-07-10 18:00')!);
+    fireEvent.pointerEnter(cell(container, '2026-07-10 19:00')!);
+    fireEvent.pointerUp(cell(container, '2026-07-10 19:00')!);
+
+    expect(onChange).toHaveBeenCalledWith(['2026-07-10 18:00', '2026-07-10 19:00']);
   });
 });

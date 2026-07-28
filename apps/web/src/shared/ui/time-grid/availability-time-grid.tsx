@@ -29,6 +29,11 @@ const CELL_WIDTH = 'w-[60px] shrink-0';
 /** disabledKeys 미주입 시 매 렌더 새 Set을 만들지 않도록 고정한다. */
 const EMPTY_KEYS: ReadonlySet<string> = new Set<string>();
 
+/** 터치를 이만큼 유지하면 선택 모드로 본다. 그 전에 움직이면 스크롤이다. */
+export const LONG_PRESS_MS = 300;
+/** 손가락은 미세하게 흔들린다. 이 거리까지는 '멈춰 있다'로 본다. */
+const MOVE_TOLERANCE_PX = 8;
+
 /** 셀의 접근성 이름. 빈 버튼이라 라벨이 없으면 스크린리더가 읽을 게 없다. */
 function formatCellLabel(date: string, time: string): string {
   return `${format(parseISO(date), 'M월 d일')} ${time.slice(0, 2)}시`;
@@ -45,6 +50,13 @@ export interface AvailabilityTimeGridProps {
   onChange: (next: string[]) => void;
   /** 비활성 셀 키. 탭·드래그 어느 경로로도 선택되지 않는다. */
   disabledKeys?: ReadonlySet<string>;
+  /**
+   * 터치 롱프레스로 선택 모드에 들어간 순간 호출된다.
+   *
+   * 이 그리드는 플랫폼을 모르므로 햅틱 같은 피드백은 호출부가 붙인다.
+   * 사용자가 "지금부터 스크롤이 아니라 선택"임을 알아채는 유일한 신호라 중요하다.
+   */
+  onSelectionStart?: () => void;
   className?: string;
 }
 
@@ -61,6 +73,7 @@ export function AvailabilityTimeGrid({
   value,
   onChange,
   disabledKeys,
+  onSelectionStart,
   className,
 }: AvailabilityTimeGridProps): React.JSX.Element {
   const disabled = disabledKeys ?? EMPTY_KEYS;
@@ -73,8 +86,51 @@ export function AvailabilityTimeGrid({
   const isDragStartedRef = React.useRef(false);
   const suppressClickRef = React.useRef(false);
 
+  /**
+   * 터치 제스처 판정 상태.
+   *
+   * 손가락 하나로 스크롤과 선택을 모두 해야 해서, 누른 직후에는 무엇인지 확정하지 않는다.
+   * 이동 방향으로는 나눌 수 없다 — 선택도 스크롤도 가로·세로를 모두 쓰기 때문이다.
+   */
+  const touchRef = React.useRef<{
+    phase: 'pending' | 'scrolling' | 'selecting';
+    startX: number;
+    startY: number;
+    timerId: number;
+  } | null>(null);
+
+  const isSelectingRef = React.useRef(false);
+
+  const clearTouchTimer = () => {
+    if (touchRef.current) window.clearTimeout(touchRef.current.timerId);
+  };
+
+  const resetTouch = () => {
+    clearTouchTimer();
+    touchRef.current = null;
+    isSelectingRef.current = false;
+  };
+
   // 드래그 중에는 미리보기를 그린다. 커밋 전에도 화면이 바로 반응한다.
   const selectedKeys = React.useMemo(() => new Set(drag.previewValue), [drag.previewValue]);
+
+  /**
+   * 선택 모드에서만 브라우저 스크롤을 막는다.
+   *
+   * `touch-action`은 제스처가 시작될 때 확정돼서 도중에 바꿔도 이미 시작된 제스처엔 안 먹는다.
+   * 대신 롱프레스 시점엔 손가락이 멈춰 있어 스크롤이 아직 시작되지 않았으므로,
+   * 그때부터 `preventDefault`로 막을 수 있다. 단 리스너가 passive가 아니어야 해서 직접 붙인다.
+   */
+  React.useEffect(() => {
+    if (!gridElement) return;
+
+    const blockScrollWhileSelecting = (event: TouchEvent) => {
+      if (isSelectingRef.current) event.preventDefault();
+    };
+
+    gridElement.addEventListener('touchmove', blockScrollWhileSelecting, { passive: false });
+    return () => gridElement.removeEventListener('touchmove', blockScrollWhileSelecting);
+  }, [gridElement]);
 
   // 셀 진입 공통 처리 — 마우스(pointerenter)와 터치 좌표 매핑(pointermove)이 공유한다.
   const enterCell = (key: string) => {
@@ -95,15 +151,52 @@ export function AvailabilityTimeGrid({
     anchorRef.current = key;
     isDragStartedRef.current = false;
 
-    // 터치는 시작 셀에 포인터가 캡처돼 다른 셀 pointerenter가 안 뜬다 →
-    // 캡처를 걸어 pointermove를 계속 받고 좌표로 셀을 해석한다.
-    if (e.pointerType === 'touch' && typeof e.currentTarget.setPointerCapture === 'function') {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    }
+    // 마우스는 지금까지처럼 즉시 드래그한다. 휠·스크롤바가 따로 있어 충돌하지 않는다.
+    if (e.pointerType !== 'touch') return;
+
+    const target = e.currentTarget;
+    const pointerId = e.pointerId;
+
+    touchRef.current = {
+      phase: 'pending',
+      startX: e.clientX,
+      startY: e.clientY,
+      timerId: window.setTimeout(() => {
+        const touch = touchRef.current;
+        if (!touch || touch.phase !== 'pending') return;
+
+        touch.phase = 'selecting';
+        isSelectingRef.current = true;
+
+        // 롱프레스 시점엔 손가락이 멈춰 있어 브라우저 스크롤이 아직 시작되지 않았다.
+        // 그래서 이제부터 touchmove를 preventDefault 하면 스크롤을 막을 수 있다.
+        // 시작 셀 밖으로 나가도 pointermove를 계속 받도록 캡처도 건다.
+        if (typeof target.setPointerCapture === 'function') {
+          target.setPointerCapture(pointerId);
+        }
+        onSelectionStart?.();
+      }, LONG_PRESS_MS),
+    };
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!anchorRef.current) return;
+
+    const touch = touchRef.current;
+
+    if (touch) {
+      // 롱프레스 전에 움직였다면 스크롤 의도로 본다 — 선택에 개입하지 않는다.
+      if (touch.phase === 'pending') {
+        const distance = Math.hypot(e.clientX - touch.startX, e.clientY - touch.startY);
+        if (distance > MOVE_TOLERANCE_PX) {
+          clearTouchTimer();
+          touch.phase = 'scrolling';
+        }
+        return;
+      }
+
+      if (touch.phase === 'scrolling') return;
+    }
 
     // 가장자리에 닿으면 스크롤을 굴린다(가로=그리드, 세로=바깥 스크롤 조상).
     autoScroll.track(e.clientX, e.clientY);
@@ -123,6 +216,7 @@ export function AvailabilityTimeGrid({
 
     anchorRef.current = null;
     isDragStartedRef.current = false;
+    resetTouch();
     autoScroll.stop();
   };
 
@@ -133,6 +227,7 @@ export function AvailabilityTimeGrid({
     drag.cancel();
     anchorRef.current = null;
     isDragStartedRef.current = false;
+    resetTouch();
     autoScroll.stop();
   };
 
@@ -145,11 +240,11 @@ export function AvailabilityTimeGrid({
   };
 
   return (
-    // 드래그 중 페이지가 함께 움직이지 않도록 그리드 위에서 스크롤 제스처를 막는다.
-    // 대신 가장자리 자동 스크롤(useEdgeAutoScroll)이 이동을 담당한다.
+    // 기본은 브라우저 스크롤에 맡긴다 — 손가락 하나로 21일치를 훑어야 하기 때문이다.
+    // 선택은 롱프레스로 진입하고, 그때부터만 touchmove를 막는다(위 useEffect).
     <div
       ref={setGridElement}
-      className={cn('relative touch-none overflow-auto overscroll-none', className)}
+      className={cn('relative overflow-auto overscroll-none', className)}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       // pointercancel은 OS/브라우저가 제스처를 가져간 상황이라 부분 선택을 커밋하면 안 된다.
