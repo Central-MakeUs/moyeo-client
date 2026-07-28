@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
 import Constants from 'expo-constants';
@@ -101,6 +101,14 @@ export default function HomeScreen() {
             // no-op
           }
           return;
+
+        case 'SHARE_SMS': {
+          // body 구분자가 플랫폼마다 다르다 — iOS는 `&`, Android는 `?`.
+          const separator = Platform.OS === 'ios' ? '&' : '?';
+          const url = `sms:${separator}body=${encodeURIComponent(message.payload.message)}`;
+          Linking.openURL(url).catch(() => {});
+          return;
+        }
 
         default:
           return;

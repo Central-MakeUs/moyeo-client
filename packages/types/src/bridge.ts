@@ -18,4 +18,6 @@ export type WebToNativeMessage =
   | { type: 'OPEN_CAMERA' }
   | { type: 'HAPTIC_FEEDBACK'; payload: { style: 'light' | 'medium' | 'heavy' } }
   | { type: 'NAVIGATE_NATIVE'; payload: { screen: string } }
-  | { type: 'REQUEST_PERMISSION'; payload: { type: 'camera' | 'location' } };
+  | { type: 'REQUEST_PERMISSION'; payload: { type: 'camera' | 'location' } }
+  // SMS 문자 작성 화면을 본문 미리 채운 채로 열어달라는 요청.
+  | { type: 'SHARE_SMS'; payload: { message: string } };
