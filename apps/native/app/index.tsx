@@ -3,6 +3,7 @@ import { Platform, StyleSheet } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
 import Constants from 'expo-constants';
+import * as Haptics from 'expo-haptics';
 import * as Linking from 'expo-linking';
 import * as SecureStore from 'expo-secure-store';
 import * as Clipboard from 'expo-clipboard';
@@ -20,6 +21,13 @@ const ACCESS_TOKEN_KEY = 'moyeo.session.accessToken';
 
 /** WebView가 스스로 열 수 있는 스킴. 나머지는 OS에 넘긴다. */
 const IN_APP_SCHEMES = ['http:', 'https:', 'about:', 'data:'];
+
+/** 웹이 보내는 세기 → Expo 임팩트 스타일. */
+const IMPACT_STYLE = {
+  light: Haptics.ImpactFeedbackStyle.Light,
+  medium: Haptics.ImpactFeedbackStyle.Medium,
+  heavy: Haptics.ImpactFeedbackStyle.Heavy,
+} as const;
 
 function getScheme(url: string): string {
   const [scheme] = url.split(':', 1);
@@ -92,6 +100,16 @@ export default function HomeScreen() {
           } catch {
             // 저장 실패해도 웹은 자체 저장소로 세션을 유지한다.
             // (iOS는 2KB를 넘는 값을 거부할 수 있어 긴 토큰이 여기로 떨어질 수 있다)
+          }
+          return;
+
+        // 시간표 롱프레스처럼 "지금부터 모드가 바뀐다"를 알리는 촉각 신호.
+        // 기기가 지원하지 않거나 시스템 설정으로 꺼져 있으면 조용히 실패한다.
+        case 'HAPTIC_FEEDBACK':
+          try {
+            await Haptics.impactAsync(IMPACT_STYLE[message.payload.style]);
+          } catch {
+            // 햅틱은 보조 피드백이라 실패해도 흐름을 막지 않는다.
           }
           return;
 

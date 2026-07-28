@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 
+import { postMessageToNative } from '@/shared/model';
 import { AvailabilityTimeGrid, buildTimeRows, CTASection } from '@/shared/ui';
 import { Button } from '@/shared/ui/button';
 import { PageHeader } from '@/shared/ui/page-header';
@@ -25,6 +26,16 @@ export interface ScheduleTimesStepProps {
 
 export function ScheduleTimesStep({ onNext }: ScheduleTimesStepProps): React.JSX.Element {
   const { serverToday, status, refetch } = useServerToday();
+
+  /**
+   * 롱프레스로 선택 모드에 들어간 순간 촉각으로 알린다.
+   *
+   * 손가락 하나로 스크롤과 선택을 오가는 화면이라, 모드가 바뀐 걸 알 방법이 이것뿐이다.
+   * 웹 브라우저에서는 브리지가 없어 아무 일도 일어나지 않는다.
+   */
+  const notifySelectionStart = () => {
+    postMessageToNative({ type: 'HAPTIC_FEEDBACK', payload: { style: 'light' } });
+  };
 
   const draft = useCreateMeetingDraft();
   const setScheduleResponse = useCreateMeetingDraft((s) => s.setScheduleResponse);
@@ -80,6 +91,7 @@ export function ScheduleTimesStep({ onNext }: ScheduleTimesStepProps): React.JSX
             setScheduleResponse({ availableTimeRanges: toAvailabilityTimeRanges(next) })
           }
           disabledKeys={disabledKeys}
+          onSelectionStart={notifySelectionStart}
           // 오른쪽·아래는 레이아웃 패딩(px-5 py-10)을 상쇄해 화면 끝과 CTA에 붙인다.
           // 잘린 열이 보여야 더 스크롤할 게 있다는 게 드러나고(시안 inv-02-B-1),
           // 자동 스크롤 임계 구간(48px)이 실제 화면 가장자리와 정렬돼 드래그와 충돌하지 않는다.
