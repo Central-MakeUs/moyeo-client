@@ -26,6 +26,7 @@ export interface DraggableCalendarProps {
   maxSelectedDays?: number;
   /** 개수 초과(드래그 clamp / 탭 거부) 시 제스처당 1회 호출. */
   onLimitExceeded?: () => void;
+  showOutsideDays?: boolean;
 }
 
 export function DraggableCalendar({
@@ -37,6 +38,7 @@ export function DraggableCalendar({
   className,
   maxSelectedDays,
   onLimitExceeded,
+  showOutsideDays = true,
 }: DraggableCalendarProps): React.JSX.Element {
   const drag = useDragSelect({ value, isDateDisabled, maxSelectedDays, onLimitExceeded });
   const anchorRef = React.useRef<Date | null>(null);
@@ -161,7 +163,7 @@ export function DraggableCalendar({
     >
       <Calendar
         mode="multiple"
-        showOutsideDays={false}
+        showOutsideDays={showOutsideDays}
         selected={shown}
         modifiers={{
           runStart: runs.runStart,
