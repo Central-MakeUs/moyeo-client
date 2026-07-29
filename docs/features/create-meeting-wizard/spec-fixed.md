@@ -70,10 +70,10 @@ CRT-06 created  ── "모임을 만들었어요!" (Bridge, 아직 서버 생�
                                                                 departure (+search)
         │
         ▼  마지막 host 스텝에서
-POST /api/meetings (single multipart)  →  { meetingId?, inviteCode?, invitePath? }
+POST /api/meetings (single multipart)  →  { meetingId?, inviteCode? }
         │  성공 시에만
         ▼
-draft.reset() + CRT-07 (/meetings/[meetingId]/invite) 로 replace
+CRT-07 (/meetings/[meetingId]/invite?code={inviteCode}) 로 replace → 도착지에서 draft.reset()
 ```
 
 - **위저드 전 구간에서 서버 호출 없음.** `meetingId`는 마지막 제출 응답에서 처음 생긴다.
@@ -298,10 +298,16 @@ POST /api/meetings   # multipart/form-data
   # coverImage는 1차 MVP 제외. 후속 개발에서 선택 파트로 재도입.
 ```
 
-- 응답 `{ meetingId?, inviteCode?, invitePath? }` — **전부 optional** → 존재 여부 방어 필수.
-  - 링크 생성 성공 판정에 필요한 필드는 crt-05 확인필요 #2에서 확정.
-- 성공 후: `draft.reset()` → CRT-07(`/meetings/[meetingId]/invite`)로 **`replace`**.
-- 공유 링크는 프론트가 `invitePath`(상대 경로)로 조립한다.
+- 응답 `{ meetingId?, inviteCode? }` — **전부 optional** → 존재 여부 방어 필수.
+  - `meetingId` 없으면 CRT-07 경로를 만들 수 없어 이동하지 않고 오류로 드러낸다.
+  - `inviteCode` 없으면 링크를 만들 수 없어 공유·복사 버튼을 비활성화한다.
+- 성공 후: CRT-07(`/meetings/[meetingId]/invite?code={inviteCode}`)로 **`replace`**.
+- **`draft.reset()`은 제출 훅이 아니라 도착지인 CRT-07이 한다** (2026-07-29 정정).
+  `router.replace`는 위저드 페이지를 동기적으로 언마운트하지 않아, 제출 직후 비우면 아직 살아
+  있는 페이지가 리렌더되고 스텝 가드가 빈 draft를 보고 홈으로 되돌려 이동을 덮어쓴다.
+- 공유 링크는 프론트가 **`inviteCode`로** `{origin}/i/{inviteCode}` 형태로 조립한다
+  (2026-07-29 정정). 서버가 주던 `invitePath`(`/meetings/invitations/{code}`)는 API 리소스
+  경로라 앱에 없는 경로여서 쓰지 않으며, 백엔드와 합의해 응답에서 제거하기로 했다.
 
 ### 입력 유지 · 멱등성 (확정)
 
