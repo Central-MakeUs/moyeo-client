@@ -24,18 +24,23 @@
 ```typescript
 // apps/web/src/features/meeting/create-meeting/model/create-meeting-draft.ts
 
-/** 화면이 고른 출발지. 그대로 CreateMeetingRequest.departure가 된다. */
+/** 화면이 고른 출발지. 최종 요청에서 transportationMode와 합쳐 DepartureRequest가 된다. */
 export interface DepartureDraft {
   /** 표시명. 목록·필드에 보여줄 이름이며 요청의 name으로도 쓴다. */
   name: string;
   address: string;
   latitude?: number;
   longitude?: number;
-  transportationMode: 'PUBLIC_TRANSIT' | 'CAR' | null;
 }
+
+export type TransportationMode = 'PUBLIC_TRANSIT' | 'CAR';
 ```
 
-draft에 `departure: DepartureDraft | null`과 `setDeparture`를 추가한다.
+draft에 `departure: DepartureDraft | null` · `setDeparture` 와
+`transportationMode: TransportationMode | null` · `setTransportationMode` 을 추가한다.
+
+`transportationMode`는 `DepartureDraft` 안이 아니라 draft 루트에 둔다. 출발지를 다시 검색해
+바꿔도 이동수단 선택이 유지돼야 하는데, 안에 두면 `setDeparture` 한 번에 같이 지워진다.
 
 ### 순수 함수
 

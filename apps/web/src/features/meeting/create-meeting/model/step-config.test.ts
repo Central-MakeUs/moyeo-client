@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 import type {
   CreateMeetingDraftState,
+  DepartureDraft,
   PlanningType,
   ScheduleInputType,
 } from './create-meeting-draft';
@@ -28,6 +29,8 @@ const draft = (partial: Partial<CreateMeetingDraftState> = {}): CreateMeetingDra
   noDeadline: false,
   scheduleCandidateDates: [],
   scheduleResponse: null,
+  departure: null,
+  transportationMode: null,
   ...partial,
 });
 
@@ -362,5 +365,44 @@ describe('prevStep', () => {
 
   it("should return null when step is not in the current flow (PLACE_ONLY + 'time-range')", () => {
     expect(prevStep('time-range', flow('PLACE_ONLY', null))).toBeNull();
+  });
+});
+
+// INV-03 방장 출발지. 출발지(address)와 이동수단이 모두 있어야 완성이다.
+describe("isStepComplete — 'departure'", () => {
+  const departure = (over: Partial<DepartureDraft> = {}): DepartureDraft => ({
+    name: '강남역',
+    address: '서울 강남구 강남대로 396',
+    ...over,
+  });
+
+  it('출발지와 이동수단이 모두 있으면 true', () => {
+    expect(
+      isStepComplete(
+        'departure',
+        draft({ departure: departure(), transportationMode: 'PUBLIC_TRANSIT' })
+      )
+    ).toBe(true);
+  });
+
+  it('출발지만 있고 이동수단이 없으면 false', () => {
+    expect(
+      isStepComplete('departure', draft({ departure: departure(), transportationMode: null }))
+    ).toBe(false);
+  });
+
+  it('이동수단만 있고 주소가 비어 있으면 false', () => {
+    expect(
+      isStepComplete(
+        'departure',
+        draft({ departure: departure({ address: '' }), transportationMode: 'CAR' })
+      )
+    ).toBe(false);
+  });
+
+  it('departure가 null이면 false', () => {
+    expect(isStepComplete('departure', draft({ departure: null, transportationMode: 'CAR' }))).toBe(
+      false
+    );
   });
 });
