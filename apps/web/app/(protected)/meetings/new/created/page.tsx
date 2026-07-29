@@ -18,7 +18,7 @@ export default function CreateMeetingCreatedPage() {
 
   return (
     <WizardStepLayout
-      className="relative items-center gap-18 bg-[radial-gradient(circle,#FFF4F4_0%,#FFFFFF_100%)]"
+      className="relative items-center gap-18 bg-celebration"
       header={
         <PageHeader
           align="center"
