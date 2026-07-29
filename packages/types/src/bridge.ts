@@ -4,6 +4,7 @@ export type NativeToWebMessage =
   // 네이티브에 저장된 토큰이 없음을 알린다.
   // 이 응답이 없으면 웹은 비로그인 여부를 타임아웃으로만 판단할 수 있다.
   | { type: 'AUTH_NONE' }
+  | { type: 'COPY_RESULT'; payload: { state: 'success' | 'error' } }
   | { type: 'DEVICE_INFO'; payload: { os: 'ios' | 'android' } }
   | { type: 'APP_STATE'; payload: { state: 'active' | 'background' } };
 
@@ -18,4 +19,5 @@ export type WebToNativeMessage =
   | { type: 'OPEN_CAMERA' }
   | { type: 'HAPTIC_FEEDBACK'; payload: { style: 'light' | 'medium' | 'heavy' } }
   | { type: 'NAVIGATE_NATIVE'; payload: { screen: string } }
+  | { type: 'COPY_TO_CLIPBOARD'; payload: { text: string } }
   | { type: 'REQUEST_PERMISSION'; payload: { type: 'camera' | 'location' } };

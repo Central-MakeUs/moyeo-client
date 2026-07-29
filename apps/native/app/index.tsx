@@ -5,6 +5,7 @@ import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTyp
 import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import * as SecureStore from 'expo-secure-store';
+import * as Clipboard from 'expo-clipboard';
 
 import type { NativeToWebMessage, WebToNativeMessage } from '@repo/types';
 
@@ -102,11 +103,33 @@ export default function HomeScreen() {
           }
           return;
 
+        case 'COPY_TO_CLIPBOARD': {
+          try {
+            const copied = await Clipboard.setStringAsync(message.payload.text);
+
+            postToWeb({
+              type: 'COPY_RESULT',
+              payload: {
+                state: copied ? 'success' : 'error',
+              },
+            });
+          } catch {
+            postToWeb({
+              type: 'COPY_RESULT',
+              payload: {
+                state: 'error',
+              },
+            });
+          }
+
+          return;
+        }
+
         default:
           return;
       }
     },
-    [sendStoredToken]
+    [postToWeb, sendStoredToken]
   );
 
   /**

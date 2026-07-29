@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useCallback } from 'react';
 import type { NativeToWebMessage, WebToNativeMessage } from '@repo/types';
 
