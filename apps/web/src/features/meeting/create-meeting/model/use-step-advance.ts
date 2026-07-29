@@ -8,8 +8,20 @@ import { nextStep, stepToPath, type StepKey } from './step-config';
 import { useStepFlow } from './use-step-flow';
 import { useSubmitMeeting } from './use-submit-meeting';
 
-/** 생성 직후 초대 링크 화면. meetingId를 못 받으면 열 수 없다. */
-const invitePath = (meetingId: number) => `/meetings/${meetingId}/invite`;
+/**
+ * 생성 직후 초대 링크 화면(CRT-07). meetingId를 못 받으면 열 수 없다.
+ *
+ * `inviteCode`를 쿼리로 넘긴다. 공유 링크를 만들 수 있는 값이 생성 응답에만 들어 있어,
+ * 넘기지 않으면 CRT-07이 링크를 조립할 수 없다. 쿼리로 두면 새로고침에도 남는다.
+ *
+ * 서버가 함께 주는 `invitePath`(`/meetings/invitations/{code}`)는 쓰지 않는다. API 리소스
+ * 경로라 우리 앱에 없는 경로이고, 공유 링크의 canonical 진입점은 `/i/{inviteCode}`다.
+ */
+function invitePath(meetingId: number, inviteCode: string | undefined): string {
+  const path = `/meetings/${meetingId}/invite`;
+
+  return inviteCode === undefined ? path : `${path}?code=${encodeURIComponent(inviteCode)}`;
+}
 
 /**
  * 위저드에서 "다음"을 눌렀을 때 할 일.
@@ -35,7 +47,7 @@ export function useStepAdvance(step: StepKey) {
       }
 
       // 뒤로가기로 제출된 위저드에 돌아오지 않도록 replace로 바꾼다.
-      router.replace(invitePath(response.meetingId));
+      router.replace(invitePath(response.meetingId, response.inviteCode));
     },
   });
 

@@ -11,7 +11,15 @@ import { renderWithQuery } from '@/shared/lib/render-with-query';
 import CreateMeetingScheduleDatesPage from './page';
 
 /** 마지막 스텝은 이동이 아니라 제출이라 생성 API가 필요하다. */
-const server = setupServer(http.post('*/api/meetings', () => HttpResponse.json({ meetingId: 42 })));
+const server = setupServer(
+  http.post('*/api/meetings', () =>
+    HttpResponse.json({
+      meetingId: 42,
+      inviteCode: '5UKSN9MC2M',
+      invitePath: '/meetings/invitations/5UKSN9MC2M',
+    })
+  )
+);
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'bypass' }));
 afterAll(() => server.close());
@@ -78,12 +86,26 @@ describe('CreateMeetingScheduleDatesPage', () => {
 
     // 다음 스텝이 없으므로 push가 아니라 제출 → replace다.
     expect(push).not.toHaveBeenCalled();
-    await waitFor(() => expect(replace).toHaveBeenCalledWith('/meetings/42/invite'));
+    // 공유 링크를 만들 수 있는 값이 생성 응답에만 있어 inviteCode를 쿼리로 넘긴다.
+    await waitFor(() =>
+      expect(replace).toHaveBeenCalledWith('/meetings/42/invite?code=5UKSN9MC2M')
+    );
 
     // draft를 비우면 아직 마운트된 위저드가 리렌더되고, 가드가 빈 draft를 보고 홈으로
     // 되돌린다. 마지막 이동이 초대 화면이어야 한다 — toHaveBeenCalledWith는 여러 번
     // 불린 것 중 하나만 맞아도 통과하므로 마지막 호출을 본다.
-    expect(replace).toHaveBeenLastCalledWith('/meetings/42/invite');
+    expect(replace).toHaveBeenLastCalledWith('/meetings/42/invite?code=5UKSN9MC2M');
+  });
+
+  it('inviteCode 없이 성공하면 쿼리 없이 초대 화면으로 바꾼다', async () => {
+    server.use(http.post('*/api/meetings', () => HttpResponse.json({ meetingId: 42 })));
+    useCreateMeetingDraft.setState({ ...completedDraft, scheduleInputType: 'DATE_ONLY' });
+    renderWithQuery(<CreateMeetingScheduleDatesPage />);
+
+    await userEvent.click(screen.getByRole('button', { name: '다음' }));
+
+    // 응답 필드가 전부 optional이다. 링크는 못 만들어도 화면 자체는 열어준다.
+    await waitFor(() => expect(replace).toHaveBeenLastCalledWith('/meetings/42/invite'));
   });
 
   it("should replace to '/meetings/new/basic' and render nothing when preceding steps are incomplete", () => {
