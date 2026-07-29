@@ -6,6 +6,7 @@ export * from './input-button';
 export * from './number-picker';
 export * from './progress';
 export * from './radio-group';
+export * from './search-field';
 export * from './skeleton';
 export * from './switch';
 export * from './time-grid';
