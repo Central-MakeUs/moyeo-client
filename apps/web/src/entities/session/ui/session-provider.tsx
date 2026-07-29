@@ -4,9 +4,9 @@ import { useCallback, useEffect } from 'react';
 
 import type { NativeToWebMessage } from '@repo/types';
 
-import { useNativeMessage, usePostMessage } from '@/shared/model';
+import { isNativeContext, useNativeMessage, usePostMessage } from '@/shared/model';
 
-import { isNativeContext, NATIVE_HANDSHAKE_TIMEOUT_MS } from '../model/native-bridge';
+import { NATIVE_HANDSHAKE_TIMEOUT_MS } from '../model/native-bridge';
 import { setSessionToken } from '../model/session-contract';
 import { readStoredToken } from '../model/session-storage';
 import { useSessionStore } from '../model/session-store';
