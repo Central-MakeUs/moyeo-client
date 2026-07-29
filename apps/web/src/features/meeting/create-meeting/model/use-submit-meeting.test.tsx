@@ -75,7 +75,7 @@ describe('useSubmitMeeting', () => {
     await waitFor(() => expect(requestCount).toBe(1));
   });
 
-  it('성공하면 응답을 넘기고 draft를 비운다', async () => {
+  it('성공하면 응답을 그대로 넘긴다', async () => {
     let received: unknown = null;
     const { result } = renderSubmit((response) => {
       received = response;
@@ -85,7 +85,20 @@ describe('useSubmitMeeting', () => {
 
     await waitFor(() => expect(received).not.toBeNull());
     expect(received).toEqual({ meetingId: 42, inviteCode: 'ABCD1234', invitePath: '/i/ABCD1234' });
-    expect(useCreateMeetingDraft.getState().name).toBe('');
+  });
+
+  it('성공해도 draft를 비우지 않는다', async () => {
+    let received: unknown = null;
+    const { result } = renderSubmit((response) => {
+      received = response;
+    });
+
+    act(() => result.current.submit());
+
+    await waitFor(() => expect(received).not.toBeNull());
+    // 여기서 비우면 아직 마운트된 위저드가 리렌더되고 가드가 홈으로 되돌린다.
+    // 비우는 일은 도착지(CRT-07)가 맡는다.
+    expect(useCreateMeetingDraft.getState().name).toBe('팀 회식');
   });
 
   it('연타해도 요청을 한 번만 보낸다', async () => {

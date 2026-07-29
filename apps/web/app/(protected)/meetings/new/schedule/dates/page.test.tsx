@@ -1,11 +1,20 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, afterAll, beforeAll, beforeEach, vi } from 'vitest';
+import { screen, waitFor } from '@testing-library/react';
+import { HttpResponse, http } from 'msw';
+import { setupServer } from 'msw/node';
 import userEvent from '@testing-library/user-event';
 
 import { useCreateMeetingDraft } from '@/features/meeting/create-meeting';
 import type { CreateMeetingDraftState } from '@/features/meeting/create-meeting/model/create-meeting-draft';
+import { renderWithQuery } from '@/shared/lib/render-with-query';
 
 import CreateMeetingScheduleDatesPage from './page';
+
+/** 마지막 스텝은 이동이 아니라 제출이라 생성 API가 필요하다. */
+const server = setupServer(http.post('*/api/meetings', () => HttpResponse.json({ meetingId: 42 })));
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'bypass' }));
+afterAll(() => server.close());
 
 const { push, replace } = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn() }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push, replace }) }));
@@ -54,25 +63,32 @@ describe('CreateMeetingScheduleDatesPage', () => {
       availableStartTime: '17:00',
       availableEndTime: '23:00',
     });
-    render(<CreateMeetingScheduleDatesPage />);
+    renderWithQuery(<CreateMeetingScheduleDatesPage />);
 
     await userEvent.click(screen.getByRole('button', { name: '다음' }));
 
     expect(push).toHaveBeenCalledWith('/meetings/new/schedule/times');
   });
 
-  it('should not call router.push when 다음 is clicked given DATE_ONLY (제출은 Issue 6)', async () => {
+  it('DATE_ONLY면 마지막 스텝이라 다음을 탭하면 제출하고 초대 화면으로 바꾼다', async () => {
     useCreateMeetingDraft.setState({ ...completedDraft, scheduleInputType: 'DATE_ONLY' });
-    render(<CreateMeetingScheduleDatesPage />);
+    renderWithQuery(<CreateMeetingScheduleDatesPage />);
 
     await userEvent.click(screen.getByRole('button', { name: '다음' }));
 
+    // 다음 스텝이 없으므로 push가 아니라 제출 → replace다.
     expect(push).not.toHaveBeenCalled();
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/meetings/42/invite'));
+
+    // draft를 비우면 아직 마운트된 위저드가 리렌더되고, 가드가 빈 draft를 보고 홈으로
+    // 되돌린다. 마지막 이동이 초대 화면이어야 한다 — toHaveBeenCalledWith는 여러 번
+    // 불린 것 중 하나만 맞아도 통과하므로 마지막 호출을 본다.
+    expect(replace).toHaveBeenLastCalledWith('/meetings/42/invite');
   });
 
   it("should replace to '/meetings/new/basic' and render nothing when preceding steps are incomplete", () => {
     useCreateMeetingDraft.setState({ ...completedDraft, name: '' });
-    render(<CreateMeetingScheduleDatesPage />);
+    renderWithQuery(<CreateMeetingScheduleDatesPage />);
 
     // resolveEntryPath는 첫 미완성 스텝으로 보낸다. 여기선 name이 비어 basic이 미완성이다.
     expect(replace).toHaveBeenCalledWith('/meetings/new/basic');
