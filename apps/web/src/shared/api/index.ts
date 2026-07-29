@@ -12,6 +12,9 @@ export * from './generated/auth/auth';
 export * from './generated/development-auth/development-auth';
 export * from './generated/member/member';
 export * from './generated/time/time';
+export * from './generated/departure-place/departure-place';
+// my-place(저장 장소)는 1차 출시 범위에서 제외됐다. 되살릴 때 이 줄만 다시 열면 된다.
+// export * from './generated/my-place/my-place';
 export * from './generated/schemas';
 
 export { AXIOS_INSTANCE, customInstance } from './axios-instance';

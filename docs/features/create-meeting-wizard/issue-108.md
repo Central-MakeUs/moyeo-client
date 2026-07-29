@@ -13,8 +13,8 @@
 | 항목           | 결정                                     | 근거                                                                                                                     |
 | -------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | 검색 화면 표현 | **인터셉팅 라우트** (`@modal` 병렬 슬롯) | 검색을 일반 하위 라우트로 두면 위저드 레이아웃의 앱 바와 겹쳐 헤더가 두 겹이 된다(`inv-03.md` §Intercepting Routes 구조) |
-| 표시명         | `alias` → `displayName` → `address`      | 앞의 둘이 모두 선택 필드다                                                                                               |
-| 저장 장소      | **조회·선택만**                          | 등록·수정·삭제는 마이페이지 소관(`inv-03.md` §4)                                                                         |
+| 표시명         | `displayName` → `address`                | `displayName`이 선택 필드다. `alias`는 저장 장소 전용이라 함께 뺐다                                                      |
+| 저장 장소      | **1차 출시 제외**                        | 앱스토어 출시 일정상 구현하지 못했다. 코드는 stash로 보관하고 `my-place` API export도 닫아뒀다                           |
 | GPS            | 제외                                     | #127로 분리                                                                                                              |
 
 ## 확정된 시그니처
@@ -43,14 +43,10 @@ draft에 `departure: DepartureDraft | null`과 `setDeparture`를 추가한다.
 // apps/web/src/features/meeting/create-meeting/model/to-place-label.ts
 
 /**
- * 저장 장소·검색 결과의 표시명. alias → displayName → address 순으로 있는 값을 쓴다.
- * 셋 다 없으면 빈 문자열.
+ * 검색 결과의 표시명. displayName → address 순으로 있는 값을 쓴다.
+ * 둘 다 없으면 빈 문자열.
  */
-export function toPlaceLabel(place: {
-  alias?: string;
-  displayName?: string;
-  address?: string;
-}): string {
+export function toPlaceLabel(place: { displayName?: string; address?: string }): string {
   /* 구현 예정 */
 }
 ```
@@ -85,8 +81,7 @@ export interface DepartureSearchStepProps {
 ### 에러 / 경계 동작
 
 - 검색 결과가 비어 있으면 빈 결과 안내를 보이고, 선택 없이 돌아갈 수 있다.
-- 저장 장소 조회가 성공하고 `places`가 비어 있을 때만 Empty State를 보인다.
-  조회 중·실패를 빈 목록으로 오인하지 않는다(`inv-03.md` §7 F03).
+- 검색어를 입력하기 전에는 결과 목록도 빈 결과 안내도 보이지 않는다.
 - `transportationMode`는 단일 선택이다. 다른 항목을 누르면 기존 선택이 해제된다.
 - 출발지와 이동수단 중 하나라도 없으면 `다음`이 비활성이다.
 
@@ -94,11 +89,11 @@ export interface DepartureSearchStepProps {
 
 ```text
 [출발지 입력]  TopAppBar(뒤로가기) · 출발지 필드(탭 → 검색) · 이동수단 2택 · CTA 다음
-[출발지 검색]  TopAppBar(뒤로가기) · SearchField · 저장된 출발지 목록 또는 Empty State
-               · 검색 결과 목록
+[출발지 검색]  TopAppBar(뒤로가기) · SearchField · 검색 결과 목록 또는 빈 결과 안내
 ```
 
 "현재 위치로 찾기" 버튼은 이번 범위에서 렌더링하지 않는다(#127).
+저장된 출발지 목록도 1차 출시 범위에서 제외됐다(위 표 참고).
 
 ---
 
@@ -106,32 +101,30 @@ export interface DepartureSearchStepProps {
 
 ### 정상
 
-- [x] [정상] toPlaceLabel — `alias`가 있으면 `alias`를 반환한다
+- [x] [정상] toPlaceLabel — `displayName`이 있으면 `displayName`을 반환한다
 - [x] [정상] DepartureStep — 출발지와 이동수단이 모두 선택되면 `다음`이 활성화된다
 - [x] [정상] DepartureStep — 출발지 필드를 탭하면 `onSearch`가 호출된다
 - [x] [정상] DepartureStep — `대중교통`을 선택하면 draft `transportationMode`가 `'PUBLIC_TRANSIT'`이 된다
 - [x] [정상] DepartureSearchStep — 검색 결과 1건을 선택하면 표시명·주소·좌표로 `onSelect`가 호출된다
-- [x] [정상] DepartureSearchStep — 저장된 출발지가 1건 이상이면 표시명과 주소가 목록에 보인다
-- [x] [정상] DepartureSearchStep — 저장된 출발지를 선택하면 검색 결과와 같은 형태로 `onSelect`가 호출된다
+- [x] [정상] DepartureSearchStep — 뒤로가기를 탭하면 `onBack`이 호출된다
+- [x] [정상] DepartureSearchStep — 타이핑이 멈춘 뒤에 한 번만 검색을 요청한다
 - [ ] [정상] Page — `PLACE_ONLY` draft로 진입하면 출발지 화면이 보인다
 - [x] [정상] isStepComplete — 출발지와 이동수단이 모두 있으면 `true`
 
 ### 경계
 
-- [x] [경계] toPlaceLabel — `alias`가 없으면 `displayName`을 반환한다
-- [x] [경계] toPlaceLabel — `alias`와 `displayName`이 모두 없으면 `address`를 반환한다
+- [x] [경계] toPlaceLabel — `displayName`이 없으면 `address`를 반환한다
 - [x] [경계] DepartureStep — 출발지만 있고 이동수단이 없으면 `다음`이 비활성이다
 - [x] [경계] DepartureStep — 이동수단만 있고 출발지가 없으면 `다음`이 비활성이다
 - [x] [경계] DepartureStep — 다른 이동수단을 선택하면 기존 선택이 해제된다
-- [x] [경계] DepartureSearchStep — 저장된 출발지가 0건이면 "저장된 출발지가 없어요"가 보인다
+- [x] [경계] DepartureSearchStep — 검색어를 입력하기 전에는 빈 결과 안내가 보이지 않는다
 - [x] [경계] DepartureSearchStep — 검색 결과가 0건이면 빈 결과 안내가 보인다
 - [x] [경계] isStepComplete — 출발지만 있으면 `false`
 
 ### 예외
 
-- [x] [예외] toPlaceLabel — 셋 다 없으면 빈 문자열을 반환한다
+- [x] [예외] toPlaceLabel — 둘 다 없으면 빈 문자열을 반환한다
 - [x] [예외] isStepComplete — `departure`가 null이면 `false`
-- [x] [예외] DepartureSearchStep — 저장 장소 조회 중에는 Empty State를 보이지 않는다
 - [ ] [예외] Page — `SCHEDULE_ONLY` draft로 직접 진입하면 가드가 resolver로 되돌린다
 
 ## AC 커버리지
@@ -142,10 +135,10 @@ export interface DepartureSearchStepProps {
 | AC-2  | [정상] DepartureStep — 필드 탭 시 `onSearch`                         |
 | AC-3  | [정상] DepartureSearchStep — 검색 결과 선택                          |
 | AC-4  | [경계] DepartureSearchStep — 검색 결과 0건                           |
-| AC-5  | [정상] DepartureSearchStep — 저장 목록 표시                          |
-| AC-6  | [경계] DepartureSearchStep — 저장 0건 Empty State                    |
-| AC-7  | [정상] DepartureSearchStep — 저장 장소 선택                          |
-| AC-8  | [경계]/[예외] toPlaceLabel 3건                                       |
+| AC-5  | **1차 출시 제외** — 저장 목록 표시                                   |
+| AC-6  | **1차 출시 제외** — 저장 0건 Empty State                             |
+| AC-7  | **1차 출시 제외** — 저장 장소 선택                                   |
+| AC-8  | [정상]/[경계]/[예외] toPlaceLabel 3건                                |
 | AC-9  | [정상] DepartureStep — 대중교통 선택 후 `다음` 활성                  |
 | AC-10 | [예외] isStepComplete — `departure` null                             |
 | AC-11 | [경계] isStepComplete — 출발지만 있음                                |
