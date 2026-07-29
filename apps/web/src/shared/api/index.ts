@@ -17,6 +17,8 @@ export * from './generated/departure-place/departure-place';
 // export * from './generated/my-place/my-place';
 export * from './generated/schemas';
 
+export { createMeeting, buildCreateMeetingFormData, CREATE_MEETING_PATH } from './create-meeting';
+
 export { AXIOS_INSTANCE, customInstance } from './axios-instance';
 export type { BodyType, ErrorType } from './axios-instance';
 
