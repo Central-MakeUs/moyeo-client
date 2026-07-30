@@ -21,6 +21,7 @@ export type DevAccount = 'userOne' | 'userTwo';
 
 const LOGIN_PATH = '/login';
 const ONBOARDING_PATH = '/nickname';
+const devAccessToken = process.env.NEXT_PUBLIC_DEV_ACCESS_TOKEN?.trim() ?? '';
 
 export function useDevAuth() {
   const router = useRouter();
@@ -76,10 +77,29 @@ export function useDevAuth() {
     router.replace(LOGIN_PATH);
   }, [queryClient, router]);
 
+  const signInWithAccessToken = useCallback(() => {
+    setError(null);
+
+    if (!devAccessToken) {
+      setError('NEXT_PUBLIC_DEV_ACCESS_TOKEN이 설정되지 않았습니다.');
+      return;
+    }
+
+    queryClient.clear();
+    setSessionToken(devAccessToken);
+
+    if (pathname === LOGIN_PATH) {
+      const next = new URLSearchParams(window.location.search).get(NEXT_PARAM);
+      router.replace(resolveNextPath(next));
+    }
+  }, [pathname, queryClient, router]);
+
   return {
     signIn,
+    signInWithAccessToken,
     signOut,
     isPending: issueTokens.isPending,
+    hasDevAccessToken: devAccessToken.length > 0,
     error,
   };
 }

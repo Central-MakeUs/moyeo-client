@@ -15,7 +15,8 @@ import { useDevAuth } from '../model/use-dev-auth';
 export function DevAuthPanel() {
   const [isOpen, setIsOpen] = useState(false);
   const session = useSession();
-  const { signIn, signOut, isPending, error } = useDevAuth();
+  const { signIn, signInWithAccessToken, signOut, isPending, hasDevAccessToken, error } =
+    useDevAuth();
 
   const accessToken = session.status === 'authenticated' ? session.accessToken : null;
 
@@ -71,6 +72,12 @@ export function DevAuthPanel() {
             </DevButton>
             <DevButton onClick={signOut} disabled={isPending}>
               logout
+            </DevButton>
+          </div>
+
+          <div className="mb-2">
+            <DevButton onClick={signInWithAccessToken} disabled={isPending || !hasDevAccessToken}>
+              mobile webview
             </DevButton>
           </div>
 
