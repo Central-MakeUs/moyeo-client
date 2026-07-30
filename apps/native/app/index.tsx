@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
 import Constants from 'expo-constants';
@@ -103,6 +103,17 @@ export default function HomeScreen() {
           }
           return;
 
+        case 'SHARE_SMS': {
+          // body 구분자가 플랫폼마다 다르다 — iOS는 `&`, Android는 `?`.
+          const separator = Platform.OS === 'ios' ? '&' : '?';
+          const url = `sms:${separator}body=${encodeURIComponent(message.payload.message)}`;
+
+          // 메시지 앱이 없거나(시뮬레이터) 사용자가 취소해도 앱이 죽지 않게 삼킨다. - TODO 알림이 필요하면 이 부분은 수정 필요
+          Linking.openURL(url).catch((error) => {
+            console.warn('Failed to open SMS app', error);
+          });
+          return;
+        }
         case 'COPY_TO_CLIPBOARD': {
           try {
             const copied = await Clipboard.setStringAsync(message.payload.text);

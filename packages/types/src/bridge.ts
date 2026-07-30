@@ -20,4 +20,7 @@ export type WebToNativeMessage =
   | { type: 'HAPTIC_FEEDBACK'; payload: { style: 'light' | 'medium' | 'heavy' } }
   | { type: 'NAVIGATE_NATIVE'; payload: { screen: string } }
   | { type: 'COPY_TO_CLIPBOARD'; payload: { text: string } }
+  // 초대 링크를 문자로 공유한다. WebView에서 sms: 스킴을 직접 열면 동작이 OS마다 갈려
+  // 네이티브가 메시지 앱을 연다.
+  | { type: 'SHARE_SMS'; payload: { message: string } }
   | { type: 'REQUEST_PERMISSION'; payload: { type: 'camera' | 'location' } };
