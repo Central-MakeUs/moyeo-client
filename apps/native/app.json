@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Moyeo",
+    "name": "모여",
     "slug": "moyeo",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -18,17 +18,20 @@
     "android": {
       "package": "com.moyeozo.moyeo",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#ffffff",
+        "foregroundImage": "./assets/images/android-icon-foreground.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "output": "static"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/803023d0-2fee-4c1a-af40-728ea7521444"
     },
     "plugins": [
       "expo-router",
@@ -36,12 +39,9 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
+          "imageWidth": 134,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
-          "dark": {
-            "backgroundColor": "#000000"
-          }
+          "backgroundColor": "#fef2f2"
         }
       ],
       "expo-secure-store",
