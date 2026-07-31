@@ -1,5 +1,9 @@
-export const INVITE_SHARE_IMAGE_URL = 'https://medieval-tomato-osvvo9iw.edgeone.dev/file.png';
+const INVITE_SHARE_IMAGE_PATH = '/invite-share.png';
 export const INVITE_SHARE_MESSAGE = '모임에 참여해서 일정과 위치를 정해보세요!';
+
+export function getInviteShareImageUrl(): string {
+  return `${window.location.origin}${INVITE_SHARE_IMAGE_PATH}`;
+}
 
 /**
  * 링크를 실제로 공유한 사용자를 기준으로 초대 문구 타이틀을 만든다.

@@ -1,6 +1,6 @@
 import {
   INVITE_SHARE_MESSAGE,
-  INVITE_SHARE_IMAGE_URL,
+  getInviteShareImageUrl,
   createInviteShareTitle,
 } from './create-invite-share-message';
 
@@ -60,7 +60,7 @@ export function shareInviteKakao({ shareUrl, senderNickname }: ShareInviteKakaoP
     content: {
       title: `${createInviteShareTitle(senderNickname)}💌`,
       description: INVITE_SHARE_MESSAGE,
-      imageUrl: INVITE_SHARE_IMAGE_URL,
+      imageUrl: getInviteShareImageUrl(),
       link,
     },
     buttonTitle: '초대장 보기',

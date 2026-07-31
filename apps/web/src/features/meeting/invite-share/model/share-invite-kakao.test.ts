@@ -26,7 +26,7 @@ describe('shareInviteKakao', () => {
       content: {
         title: '하은님이 보내신 초대장이 왔어요💌',
         description: '모임에 참여해서 일정과 위치를 정해보세요!',
-        imageUrl: 'https://medieval-tomato-osvvo9iw.edgeone.dev/file.png',
+        imageUrl: `${window.location.origin}/invite-share.png`,
         link: {
           webUrl: 'https://moyeo.app/i/5UKSN9MC2M',
           mobileWebUrl: 'https://moyeo.app/i/5UKSN9MC2M',
