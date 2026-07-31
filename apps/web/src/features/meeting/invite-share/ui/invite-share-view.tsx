@@ -3,9 +3,10 @@
 import * as React from 'react';
 
 import { cn } from '@/shared/lib/cn';
-import { CTASection, ToastOffsetBoundary } from '@/shared/ui';
+import { Button, CTASection } from '@/shared/ui';
 import { Icon } from '@/shared/ui/icon';
 import { IconButton } from '@/shared/ui/icon-button';
+import { CompletionLayout } from '@/shared/ui/layouts';
 import { PageHeader } from '@/shared/ui/page-header';
 import { TopAppBar } from '@/shared/ui/top-app-bar';
 
@@ -50,65 +51,67 @@ export function InviteShareView({
         leading={<IconButton icon="chevron-left" aria-label="뒤로가기" onClick={onBack} />}
       />
 
-      <main className="flex min-h-0 flex-1 flex-col items-center justify-center px-5 pb-10">
-        <div className="flex h-fit w-full flex-col items-center justify-center gap-16">
+      <CompletionLayout
+        header={
           <PageHeader
             align="center"
             title="초대장을 만들었어요!"
             description="함께하고 싶은 친구들에게 초대장을 보내주세요"
           />
-
-          <div className="flex h-[180px] items-center justify-center" aria-hidden="true">
-            <Icon name="plane" className="size-[75px]" />
+        }
+        visual={<Icon name="plane" className="size-[75px]" />}
+        footer={
+          <CTASection
+            primaryAction={
+              <Button fullWidth onClick={onGoHome}>
+                홈으로 돌아가기
+              </Button>
+            }
+          />
+        }
+      >
+        <section className="flex w-full flex-col gap-9">
+          <div className="flex w-full shrink-0 items-center gap-1.5 rounded-12 border border-accessible-100 bg-accessible-50 px-4 py-3">
+            <Icon name="link" className="size-6 shrink-0 text-accessible-400" />
+            {canShare ? (
+              <span className="truncate text-semibold-16 text-accessible-400">{shareUrl}</span>
+            ) : (
+              <span className="truncate text-semibold-16 text-neutral-400">
+                링크를 불러오지 못했어요
+              </span>
+            )}
           </div>
 
-          <section className="flex w-full flex-col gap-9">
-            <div className="flex w-full shrink-0 items-center gap-1.5 rounded-12 border border-accessible-100 bg-accessible-50 px-4 py-3">
-              <Icon name="link" className="size-6 shrink-0 text-accessible-400" />
-              {canShare ? (
-                <span className="truncate text-semibold-16 text-accessible-400">{shareUrl}</span>
-              ) : (
-                <span className="truncate text-semibold-16 text-neutral-400">
-                  링크를 불러오지 못했어요
-                </span>
-              )}
-            </div>
+          <div className="grid shrink-0 grid-cols-3">
+            <ShareAction
+              label="SMS"
+              disabled={!canShare}
+              onClick={onShareSms}
+              className="bg-neutral-50 text-neutral-600"
+            >
+              <Icon name="envelope" className="size-8" />
+            </ShareAction>
 
-            <div className="grid shrink-0 grid-cols-3">
-              <ShareAction
-                label="SMS"
-                disabled={!canShare}
-                onClick={onShareSms}
-                className="bg-neutral-50 text-neutral-600"
-              >
-                <Icon name="envelope" className="size-8" />
-              </ShareAction>
+            <ShareAction
+              label="카카오톡"
+              disabled={!canShare}
+              onClick={onShareKakao}
+              className="bg-[#FEE500] text-black"
+            >
+              <Icon name="kakao-text" className="h-fit w-[26px] shrink-0" />
+            </ShareAction>
 
-              <ShareAction
-                label="카카오톡"
-                disabled={!canShare}
-                onClick={onShareKakao}
-                className="bg-[#FEE500] text-black"
-              >
-                <Icon name="kakao-text" className="h-fit w-[26px] shrink-0" />
-              </ShareAction>
-
-              <ShareAction
-                label="URL 복사"
-                disabled={!canShare}
-                onClick={onCopyLink}
-                className="bg-neutral-20 text-neutral-400"
-              >
-                <Icon name="link" className="size-8" />
-              </ShareAction>
-            </div>
-          </section>
-        </div>
-      </main>
-
-      <ToastOffsetBoundary>
-        <CTASection onClick={onGoHome}>홈으로 돌아가기</CTASection>
-      </ToastOffsetBoundary>
+            <ShareAction
+              label="URL 복사"
+              disabled={!canShare}
+              onClick={onCopyLink}
+              className="bg-neutral-20 text-neutral-400"
+            >
+              <Icon name="link" className="size-8" />
+            </ShareAction>
+          </div>
+        </section>
+      </CompletionLayout>
     </div>
   );
 }
