@@ -4,7 +4,6 @@ import { CTASection, DurationSelect, type DurationValue } from '@/shared/ui';
 import { PageHeader } from '@/shared/ui/page-header';
 
 import { useCreateMeetingDraft } from '../model/create-meeting-draft';
-import { isStepComplete } from '../model/step-config';
 import { toDeadlineMinutes } from '../model/to-deadline-minutes';
 import { QuickSelectGroup } from './quick-select-group';
 import { WizardStepLayout } from './wizard-step-layout';
@@ -15,6 +14,9 @@ const QUICK_PRESETS = [
   { label: '3일', value: { days: 3, hours: 0 } },
   { label: '7일', value: { days: 7, hours: 0 } },
 ];
+
+/** 서버 계약상 최소 마감(분). */
+const MIN_DEADLINE_MINUTES = 10;
 
 const NO_DEADLINE_LABEL = '마감 기한 없이 여유롭게 답변받을래요';
 
@@ -32,7 +34,13 @@ export function DeadlineStep({ onNext }: DeadlineStepProps) {
   const setDeadlineMinutes = useCreateMeetingDraft((s) => s.setDeadlineMinutes);
   const setNoDeadline = useCreateMeetingDraft((s) => s.setNoDeadline);
 
-  const canGoNext = isStepComplete('deadline', draft);
+  /**
+   * 다음 버튼은 **마감 시간을 입력한 경우에만** 활성이다(crt-04.md F04).
+   * isStepComplete은 noDeadline도 완성으로 보지만, 그건 `마감 기한 없이`가
+   * 자기 버튼으로 이미 이동을 끝낸 경우다. CRT-06에서 되돌아오면 화면에 고른 값이
+   * 없으므로 다음도 눌리지 않아야 한다.
+   */
+  const canGoNext = deadlineMinutes !== null && deadlineMinutes >= MIN_DEADLINE_MINUTES;
 
   const applyDuration = ({ days, hours }: DurationValue) => {
     setNoDeadline(false);

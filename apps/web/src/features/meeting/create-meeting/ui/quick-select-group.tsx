@@ -35,10 +35,15 @@ export function QuickSelectGroup<T>({
         {items.map((item) => (
           <Button
             key={item.label}
+            // 선택 상태를 aria로 노출한다. 스크린리더 전달과 스타일 훅을 겸한다.
+            aria-pressed={isSelected(item.value)}
             className={cn(
               'px-[18.5px] py-3 text-semibold-16',
-              isSelected(item.value) &&
-                'border border-accessible-300 bg-accessible-50 text-accessible-500'
+              'aria-pressed:border aria-pressed:border-accessible-300 aria-pressed:bg-accessible-50 aria-pressed:text-accessible-500',
+              // outline variant의 hover/active가 텍스트를 neutral로 덮어쓰므로 선택 상태를 다시 못 박는다.
+              // (hover:text-neutral-950 = 특이도 2, aria-pressed:hover:… = 3)
+              'aria-pressed:hover:border-accessible-300 aria-pressed:hover:text-accessible-500',
+              'aria-pressed:active:border-accessible-300 aria-pressed:active:text-accessible-500'
             )}
             variant="outline"
             disabled={disabled}

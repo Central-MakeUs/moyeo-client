@@ -91,8 +91,9 @@ describe('TimeRangeStep', () => {
 
     render(<TimeRangeStep onNext={vi.fn()} />);
 
-    // 시간 필드는 비어 있고(placeholder), 빠른 선택도 강조되지 않는다.
+    // 시간 필드는 비어 있고(placeholder), 고른 값이 없으니 다음도 눌리지 않는다.
     expect(screen.getAllByText('시간 선택')).toHaveLength(2);
+    expect(screen.getByRole('button', { name: '다음' })).toBeDisabled();
   });
 
   it('should keep the 다음 button disabled when nothing is selected (scheduleInputType null)', () => {

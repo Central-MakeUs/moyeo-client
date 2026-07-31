@@ -4,7 +4,6 @@ import { CTASection, TimeSelect, toast, type TimePickerValue } from '@/shared/ui
 import { PageHeader } from '@/shared/ui/page-header';
 
 import { useCreateMeetingDraft } from '../model/create-meeting-draft';
-import { isStepComplete } from '../model/step-config';
 import { QuickSelectGroup } from './quick-select-group';
 import { WizardStepLayout } from './wizard-step-layout';
 
@@ -46,7 +45,17 @@ export function TimeRangeStep({ onNext }: TimeRangeStepProps) {
   const setAvailableStartTime = useCreateMeetingDraft((s) => s.setAvailableStartTime);
   const setAvailableEndTime = useCreateMeetingDraft((s) => s.setAvailableEndTime);
 
-  const canGoNext = isStepComplete('time-range', draft);
+  /**
+   * 다음 버튼은 **시간 범위를 고른 경우에만** 활성이다(crt-03.md F04).
+   * isStepComplete은 DATE_ONLY도 완성으로 보지만, 그건 `날짜만 정하고 싶어요`가
+   * 자기 버튼으로 이미 이동을 끝낸 경우다. CRT-04에서 되돌아오면 화면에 고른 값이
+   * 없으므로 다음도 눌리지 않아야 한다.
+   */
+  const canGoNext =
+    scheduleInputType === 'DATE_AND_TIME' &&
+    availableStartTime !== null &&
+    availableEndTime !== null &&
+    availableEndTime > availableStartTime;
 
   /** 빠른 선택 버튼 클릭 시 preset 적용하는 함수 */
   const applyPreset = (start: string, end: string) => {

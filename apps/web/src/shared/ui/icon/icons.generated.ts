@@ -13,6 +13,7 @@ import ChevronSmallLeft from '@/shared/assets/icons/chevron-small-left.svg';
 import ChevronSmallRight from '@/shared/assets/icons/chevron-small-right.svg';
 import ChevronUp from '@/shared/assets/icons/chevron-up.svg';
 import Close from '@/shared/assets/icons/close.svg';
+import Confetti from '@/shared/assets/icons/confetti.svg';
 import Envelope from '@/shared/assets/icons/envelope.svg';
 import KakaoLogo from '@/shared/assets/icons/kakao-logo.svg';
 import Kakao from '@/shared/assets/icons/kakao.svg';
@@ -40,6 +41,7 @@ export const ICONS = {
   'chevron-small-right': ChevronSmallRight,
   'chevron-up': ChevronUp,
   close: Close,
+  confetti: Confetti,
   envelope: Envelope,
   'kakao-logo': KakaoLogo,
   kakao: Kakao,

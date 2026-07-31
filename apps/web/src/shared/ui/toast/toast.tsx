@@ -10,7 +10,7 @@ const toast = ToastPrimitive.createToastManager();
 const DEFAULT_TOAST_GAP = '1rem';
 
 const toastBaseStyles =
-  'group/toast pointer-events-auto absolute right-0 bottom-0 z-[calc(1000-var(--toast-index))] w-full origin-bottom rounded-12 bg-neutral-900/[52%] text-neutral-0 backdrop-blur-[64px] will-change-transform outline-none select-none';
+  'group/toast pointer-events-auto absolute right-0 bottom-0 z-[calc(1000-var(--toast-index))] w-full origin-bottom rounded-12 bg-neutral-900/[52%] text-neutral-0 backdrop-blur-[64px] will-change-transform outline-none select-none ';
 
 /** 겹친 Toast의 간격, 높이, 위치와 축소 비율을 계산한다. */
 const toastStackStyles =
@@ -41,7 +41,9 @@ function ToastViewport({ className, ...props }: ToastPrimitive.Viewport.Props) {
     <ToastPrimitive.Viewport
       data-slot="toast-viewport"
       className={cn(
-        'max-w-[var(--app-shell-max-width, 380px)] pointer-events-none fixed inset-x-5 bottom-[var(--toast-bottom-offset,1rem)] z-50 mx-auto w-auto outline-none',
+        // fixed라 app-shell 밖(뷰포트 기준)에 뜬다. .app-shell과 같은 --app-shell-max-width를
+        // 기준으로 삼되, 화면이 그보다 좁으면 좌우 여백(inset-x-5)을 뺀 폭을 따른다.
+        'pointer-events-none fixed inset-x-5 bottom-[var(--toast-bottom-offset,1rem)] z-50 mx-auto w-auto max-w-[calc(var(--app-shell-max-width)-2.5rem)] outline-none',
         className
       )}
       {...props}

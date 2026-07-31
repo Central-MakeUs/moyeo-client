@@ -61,6 +61,7 @@ describe('DeadlineStep', () => {
     render(<DeadlineStep onNext={vi.fn()} />);
 
     expect(screen.getByRole('button', { name: '1일' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: '다음' })).toBeDisabled();
   });
 
   it('should keep the 다음 button disabled when nothing is selected (deadlineMinutes null, noDeadline false)', () => {
