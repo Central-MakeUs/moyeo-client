@@ -2,7 +2,11 @@
 import Apple from '@/shared/assets/icons/apple.svg';
 import Avatar from '@/shared/assets/icons/avatar.svg';
 import CalendarPrimary from '@/shared/assets/icons/calendar-primary.svg';
+import Bus from '@/shared/assets/icons/bus.svg';
+import BusSelected from '@/shared/assets/icons/bus-selected.svg';
 import Calendar from '@/shared/assets/icons/calendar.svg';
+import CarSelected from '@/shared/assets/icons/car-selected.svg';
+import Car from '@/shared/assets/icons/car.svg';
 import CaretDown from '@/shared/assets/icons/caret-down.svg';
 import CaretUp from '@/shared/assets/icons/caret-up.svg';
 import Check from '@/shared/assets/icons/check.svg';
@@ -25,12 +29,17 @@ import Note from '@/shared/assets/icons/note.svg';
 import PinnedPrimary from '@/shared/assets/icons/pinned-primary.svg';
 import Pinned from '@/shared/assets/icons/pinned.svg';
 import Plus from '@/shared/assets/icons/plus.svg';
+import Search from '@/shared/assets/icons/search.svg';
 
 export const ICONS = {
   apple: Apple,
   avatar: Avatar,
+  'bus-selected': BusSelected,
+  bus: Bus,
   'calendar-primary': CalendarPrimary,
   calendar: Calendar,
+  'car-selected': CarSelected,
+  car: Car,
   'caret-down': CaretDown,
   'caret-up': CaretUp,
   check: Check,
@@ -53,6 +62,7 @@ export const ICONS = {
   'pinned-primary': PinnedPrimary,
   pinned: Pinned,
   plus: Plus,
+  search: Search,
 } as const;
 
 export type IconName = keyof typeof ICONS;

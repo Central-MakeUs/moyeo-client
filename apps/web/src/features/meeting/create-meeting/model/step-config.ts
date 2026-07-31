@@ -108,6 +108,13 @@ export function isStepComplete(step: StepKey, draft: CreateMeetingDraftState): b
     case 'schedule-times':
       // 모임장은 availableTimeRanges만 채운다. availableDates만 있으면 미완성이다.
       return (draft.scheduleResponse?.availableTimeRanges?.length ?? 0) >= 1;
+    case 'departure':
+      // 주소와 이동수단이 둘 다 있어야 생성 요청의 departure를 만들 수 있다.
+      return (
+        draft.departure !== null &&
+        draft.departure.address.length >= 1 &&
+        draft.transportationMode !== null
+      );
     default:
       return false;
   }

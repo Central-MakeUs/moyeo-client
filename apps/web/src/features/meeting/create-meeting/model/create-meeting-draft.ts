@@ -5,6 +5,16 @@ import type { ScheduleResponseRequest } from '@/shared/api';
 
 export type PlanningType = 'SCHEDULE_ONLY' | 'PLACE_ONLY' | 'SCHEDULE_AND_PLACE';
 export type ScheduleInputType = 'DATE_ONLY' | 'DATE_AND_TIME';
+export type TransportationMode = 'PUBLIC_TRANSIT' | 'CAR';
+
+/** 화면이 고른 출발지. 최종 요청에서 transportationMode와 합쳐 DepartureRequest가 된다. */
+export interface DepartureDraft {
+  /** 표시명. 목록·필드에 보여줄 이름이며 요청의 name으로도 쓴다. */
+  name: string;
+  address: string;
+  latitude?: number;
+  longitude?: number;
+}
 
 export interface CreateMeetingDraftState {
   name: string;
@@ -20,6 +30,10 @@ export interface CreateMeetingDraftState {
   scheduleCandidateDates: string[];
   /** INV-02-B 방장 본인의 가능 일정. 후보 날짜와 다른 필드다. */
   scheduleResponse: ScheduleResponseRequest | null;
+  /** INV-03 방장 출발지. 위치 조율 모임에서만 채워진다. */
+  departure: DepartureDraft | null;
+  /** INV-03 방장 이동수단. 출발지 선택 전에도 독립적으로 고를 수 있다. */
+  transportationMode: TransportationMode | null;
 }
 
 interface CreateMeetingDraftActions {
@@ -34,6 +48,8 @@ interface CreateMeetingDraftActions {
   setNoDeadline: (value: boolean) => void;
   setScheduleCandidateDates: (value: string[]) => void;
   setScheduleResponse: (value: ScheduleResponseRequest | null) => void;
+  setDeparture: (value: DepartureDraft | null) => void;
+  setTransportationMode: (value: TransportationMode | null) => void;
   reset: () => void;
 }
 
@@ -51,6 +67,8 @@ const initialState: CreateMeetingDraftState = {
   noDeadline: false,
   scheduleCandidateDates: [],
   scheduleResponse: null,
+  departure: null,
+  transportationMode: null,
 };
 
 export const useCreateMeetingDraft = create<CreateMeetingDraftStore>()(
@@ -68,6 +86,8 @@ export const useCreateMeetingDraft = create<CreateMeetingDraftStore>()(
       setNoDeadline: (value) => set({ noDeadline: value }),
       setScheduleCandidateDates: (value) => set({ scheduleCandidateDates: value }),
       setScheduleResponse: (value) => set({ scheduleResponse: value }),
+      setDeparture: (value) => set({ departure: value }),
+      setTransportationMode: (value) => set({ transportationMode: value }),
       reset: () => set(initialState),
     }),
     {
