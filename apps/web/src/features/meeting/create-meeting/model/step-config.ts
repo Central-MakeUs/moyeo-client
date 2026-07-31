@@ -118,6 +118,26 @@ export function stepToPath(step: StepKey): string {
   return `${WIZARD_PATH_PREFIX}${STEP_PATHS[step]}`;
 }
 
+/** 모임 유형이 없어 위저드를 열 수 없을 때 돌아갈 곳. HOME의 FAB에서 유형 Drawer를 다시 연다. */
+const HOME_PATH = '/home';
+
+/**
+ * 지금 draft로 위저드를 열면 도착해야 할 경로.
+ *
+ * 진입점 resolver와 스텝 가드가 **같은 규칙**을 쓰도록 한 곳에 둔다.
+ * 가드가 resolver로 넘기고 resolver가 다시 판단하면 화면이 한 번 더 렌더되고,
+ * 두 곳의 규칙이 어긋나면 뒤로가기가 엉뚱한 곳으로 간다.
+ *
+ * - 유형 미선택(= 흐름 없음) → HOME
+ * - 그 외 → 아직 못 채운 첫 스텝. 전부 채웠으면 마지막 스텝(= 제출 지점)
+ */
+export function resolveEntryPath(draft: CreateMeetingDraftState): string {
+  const steps = getSteps(draft);
+  const target = steps.find((step) => !isStepComplete(step, draft)) ?? steps[steps.length - 1];
+
+  return target === undefined ? HOME_PATH : stepToPath(target);
+}
+
 /** 라우트 경로 → 스텝 키. 위저드 스텝이 아니면 null. */
 export function stepFromPath(pathname: string): StepKey | null {
   if (!pathname.startsWith(WIZARD_PATH_PREFIX)) return null;
@@ -170,6 +190,19 @@ export function progressPercent(step: StepKey, input: StepFlowInput): number {
   const index = phaseSteps.indexOf(step);
 
   return Math.round(((index + 1) / phaseSteps.length) * 100);
+}
+
+/**
+ * getSteps 순서에서 현재 스텝의 이전 스텝.
+ * 첫 스텝이면 null(= 위저드 종료 지점, 뒤로가기가 HOME으로 나가야 함).
+ */
+export function prevStep(step: StepKey, input: StepFlowInput): StepKey | null {
+  const steps = getSteps(input);
+  const index = steps.indexOf(step);
+
+  if (index <= 0) return null;
+
+  return steps[index - 1] ?? null;
 }
 
 /** getSteps 순서에서 현재 스텝의 다음 스텝. 마지막이면 null(= 제출 지점). */

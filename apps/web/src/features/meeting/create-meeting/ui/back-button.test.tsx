@@ -5,27 +5,81 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { useCreateMeetingDraft } from '../model/create-meeting-draft';
 import { BackButton } from './back-button';
 
-const { back } = vi.hoisted(() => ({
+const { back, push, replace, pathname } = vi.hoisted(() => ({
   back: vi.fn(),
+  push: vi.fn(),
+  replace: vi.fn(),
+  pathname: { current: '/meetings/new/basic' },
 }));
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ back }),
+  useRouter: () => ({ back, push, replace }),
+  usePathname: () => pathname.current,
 }));
+
+/** 현재 경로를 바꾼다. BackButton은 경로로 현재 스텝을 판단한다. */
+function setPathname(next: string) {
+  pathname.current = next;
+}
+
+async function clickBack() {
+  await userEvent.click(screen.getByRole('button', { name: '뒤로가기' }));
+}
 
 describe('위저드 뒤로가기 버튼', () => {
   beforeEach(() => {
     back.mockClear();
+    push.mockClear();
+    replace.mockClear();
+    setPathname('/meetings/new/basic');
+    useCreateMeetingDraft.getState().reset();
   });
 
-  it('버튼을 누르면 브라우저 방문 기록의 이전 화면으로 이동한다', async () => {
+  it("should reset the draft and call router.replace('/home') when the current step is 'basic'", async () => {
+    useCreateMeetingDraft.setState({ planningType: 'SCHEDULE_ONLY', name: '주말 등산' });
     render(<BackButton />);
 
-    await userEvent.click(screen.getByRole('button', { name: '뒤로가기' }));
+    await clickBack();
 
-    expect(back).toHaveBeenCalledOnce();
+    expect(useCreateMeetingDraft.getState().name).toBe('');
+    expect(useCreateMeetingDraft.getState().planningType).toBeNull();
+    expect(replace).toHaveBeenCalledWith('/home');
+  });
+
+  it("should call router.push('/meetings/new/time-range') when the current step is 'deadline' with SCHEDULE_ONLY", async () => {
+    useCreateMeetingDraft.setState({
+      planningType: 'SCHEDULE_ONLY',
+      scheduleInputType: 'DATE_AND_TIME',
+    });
+    setPathname('/meetings/new/deadline');
+    render(<BackButton />);
+
+    await clickBack();
+
+    expect(push).toHaveBeenCalledWith('/meetings/new/time-range');
+  });
+
+  it("should reset the draft and call router.replace('/home') when the pathname is not a wizard step", async () => {
+    useCreateMeetingDraft.setState({ planningType: 'SCHEDULE_ONLY', name: '주말 등산' });
+    setPathname('/meetings/new/unknown');
+    render(<BackButton />);
+
+    await clickBack();
+
+    expect(useCreateMeetingDraft.getState().name).toBe('');
+    expect(replace).toHaveBeenCalledWith('/home');
+  });
+
+  it('should not call router.back() when clicked (history 비의존)', async () => {
+    useCreateMeetingDraft.setState({ planningType: 'SCHEDULE_ONLY' });
+    render(<BackButton />);
+
+    await clickBack();
+
+    expect(back).not.toHaveBeenCalled();
   });
 
   it("App Router용 'next/navigation'의 useRouter를 사용한다", () => {

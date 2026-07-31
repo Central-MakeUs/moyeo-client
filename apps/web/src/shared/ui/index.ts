@@ -2,6 +2,7 @@ export * from './button';
 export * from './checkbox';
 export * from './duration-picker';
 export * from './input';
+export * from './input-button';
 export * from './number-picker';
 export * from './progress';
 export * from './radio-group';
