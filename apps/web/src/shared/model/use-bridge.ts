@@ -11,6 +11,27 @@ export function usePostMessage() {
 }
 
 /**
+ * message 이벤트 데이터를 브릿지 메시지로 좁히는 함수
+ *
+ * - 존재하지 않는 이벤트는 null을 반환
+ */
+function toNativeMessage(data: unknown): NativeToWebMessage | null {
+  if (typeof data !== 'string') return null;
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(data);
+  } catch {
+    return null;
+  }
+
+  if (typeof parsed !== 'object' || parsed === null) return null;
+  if (typeof (parsed as Record<string, unknown>).type !== 'string') return null;
+
+  return parsed as NativeToWebMessage;
+}
+
+/**
  * Native(WebView)에서 전달한 메시지를 web에서 구독할 수 있게 해주는 Hook.
  *
  * 컴포넌트가 마운트되면 message 이벤트를 등록하고,
@@ -20,16 +41,15 @@ export function usePostMessage() {
  */
 export function useNativeMessage(handler: (msg: NativeToWebMessage) => void) {
   useEffect(() => {
-    const listener = (e: MessageEvent) => {
-      try {
-        /** TODO: 파싱 + 검증까지 처리한다면 더 좋을 수 있음 ex) zod */
-        handler(JSON.parse(e.data));
-      } catch {
-        return;
-      }
+    const listener = (event: Event) => {
+      const message = toNativeMessage((event as MessageEvent).data);
+      if (message === null) return;
+
+      handler(message);
     };
-    window.addEventListener('message', listener);
-    return () => window.removeEventListener('message', listener);
+
+    window.addEventListener('message', listener, true);
+    return () => window.removeEventListener('message', listener, true);
   }, [handler]);
 }
 declare global {
