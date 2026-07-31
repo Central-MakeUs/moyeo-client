@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { getMeQueryKey, useCompleteOnboarding } from '@/shared/api';
+import { Button } from '@/shared/ui/button';
 import { CTASection } from '@/shared/ui/cta-section';
 import { InputField } from '@/shared/ui/input';
 
@@ -50,9 +51,13 @@ export function NicknameOnboardingForm() {
         />
       </div>
       <div className="mt-auto">
-        <CTASection disabled={!isValid || isPending} onClick={handleSubmit}>
-          다음
-        </CTASection>
+        <CTASection
+          primaryAction={
+            <Button fullWidth disabled={!isValid || isPending} onClick={handleSubmit}>
+              다음
+            </Button>
+          }
+        />
       </div>
     </div>
   );

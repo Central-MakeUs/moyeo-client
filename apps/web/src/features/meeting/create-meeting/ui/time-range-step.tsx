@@ -1,6 +1,6 @@
 'use client';
 
-import { CTASection, TimeSelect, toast, type TimePickerValue } from '@/shared/ui';
+import { Button, CTASection, TimeSelect, toast, type TimePickerValue } from '@/shared/ui';
 import { PageHeader } from '@/shared/ui/page-header';
 
 import { useCreateMeetingDraft } from '../model/create-meeting-draft';
@@ -116,17 +116,18 @@ export function TimeRangeStep({ onNext }: TimeRangeStepProps) {
         />
       }
       footer={
-        <div className="flex flex-col items-center gap-3 pb-2">
-          {/**TODO:  이 부분 수정해야 함 */}
-          <button
-            type="button"
-            onClick={chooseDateOnly}
-            className="text-medium-14 text-neutral-500 underline underline-offset-4"
-          >
-            날짜만 정하고 싶어요
-          </button>
-          <CTASection disabled={!canGoNext} onClick={onNext} />
-        </div>
+        <CTASection
+          secondaryAction={
+            <Button variant="link" onClick={chooseDateOnly}>
+              날짜만 정하고 싶어요
+            </Button>
+          }
+          primaryAction={
+            <Button fullWidth disabled={!canGoNext} onClick={onNext}>
+              다음
+            </Button>
+          }
+        />
       }
     >
       <div className="flex flex-col gap-6">

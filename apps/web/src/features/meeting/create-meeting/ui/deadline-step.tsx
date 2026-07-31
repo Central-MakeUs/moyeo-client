@@ -1,6 +1,6 @@
 'use client';
 
-import { CTASection, DurationSelect, type DurationValue } from '@/shared/ui';
+import { Button, CTASection, DurationSelect, type DurationValue } from '@/shared/ui';
 import { PageHeader } from '@/shared/ui/page-header';
 
 import { useCreateMeetingDraft } from '../model/create-meeting-draft';
@@ -66,16 +66,18 @@ export function DeadlineStep({ onNext }: DeadlineStepProps) {
         />
       }
       footer={
-        <div className="flex flex-col items-center gap-3">
-          <button
-            type="button"
-            onClick={chooseNoDeadline}
-            className="text-bold-14 text-neutral-500 underline underline-offset-4"
-          >
-            {NO_DEADLINE_LABEL}
-          </button>
-          <CTASection disabled={!canGoNext} onClick={onNext} />
-        </div>
+        <CTASection
+          secondaryAction={
+            <Button variant="link" onClick={chooseNoDeadline}>
+              {NO_DEADLINE_LABEL}
+            </Button>
+          }
+          primaryAction={
+            <Button fullWidth disabled={!canGoNext} onClick={onNext}>
+              다음
+            </Button>
+          }
+        />
       }
     >
       <div className="flex flex-col gap-4">

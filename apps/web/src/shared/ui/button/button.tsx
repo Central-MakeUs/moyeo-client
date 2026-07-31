@@ -54,6 +54,13 @@ const buttonVariants = cva(
           'active:bg-neutral-50',
           'disabled:text-neutral-70',
         ],
+        link: [
+          'rounded-none border-transparent bg-white text-neutral-500 underline underline-offset-4',
+          'hover:text-neutral-700',
+          'focus-visible:ring-accessible-300',
+          'active:text-neutral-900',
+          'disabled:text-neutral-200',
+        ],
       },
       size: {
         default:

@@ -53,9 +53,13 @@ export function ScheduleDatesStep({ onNext }: ScheduleDatesStepProps): React.JSX
         />
       }
       footer={
-        <CTASection disabled={!canGoNext} onClick={onNext}>
-          다음
-        </CTASection>
+        <CTASection
+          primaryAction={
+            <Button fullWidth disabled={!canGoNext} onClick={onNext}>
+              다음
+            </Button>
+          }
+        />
       }
     >
       {status === 'pending' && (
