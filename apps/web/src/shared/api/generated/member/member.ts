@@ -13,7 +13,11 @@ import type {
   UseMutationResult,
 } from '@tanstack/react-query';
 
-import type { AuthUserResponse, CompleteOnboardingRequest } from '../schemas';
+import type {
+  AuthUserResponse,
+  CompleteOnboardingRequest,
+  UpdateNicknameRequest,
+} from '../schemas';
 
 import { customInstance } from '../../axios-instance';
 import type { ErrorType, BodyType } from '../../axios-instance';
@@ -21,8 +25,8 @@ import type { ErrorType, BodyType } from '../../axios-instance';
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
- * 소셜 가입 직후 온보딩이 끝나지 않은 사용자의 닉네임을 최초 1회 등록합니다.
- * 같은 닉네임으로 다시 요청하면 성공하며, 다른 닉네임으로 변경하는 기능은 추후 별도 API로 제공합니다.
+ * 소셜 가입 직후 기본 닉네임이 없는 사용자의 닉네임을 최초 1회 등록합니다.
+ * 같은 닉네임으로 다시 요청하면 성공하며, 다른 닉네임으로 변경하는 기능은 별도 API로 제공합니다.
  * @summary 최초 닉네임 등록
  */
 export const completeOnboarding = (
@@ -107,10 +111,95 @@ export const useCompleteOnboarding = <TError = ErrorType<unknown>, TContext = un
   return useMutation(getCompleteOnboardingMutationOptions(options), queryClient);
 };
 /**
+ * 현재 사용자의 기본 닉네임을 수정합니다.
+ * 모임 안에서 이미 사용 중인 방장·회원 참여자 닉네임은 변경하지 않습니다.
+ * @summary 기본 닉네임 수정
+ */
+export const updateNickname = (
+  updateNicknameRequest: BodyType<UpdateNicknameRequest>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<AuthUserResponse>(
+    {
+      url: `/api/users/me/nickname`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: updateNicknameRequest,
+      signal,
+    },
+    options
+  );
+};
+
+export const getUpdateNicknameMutationOptions = <
+  TError = ErrorType<AuthUserResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateNickname>>,
+    TError,
+    { data: BodyType<UpdateNicknameRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateNickname>>,
+  TError,
+  { data: BodyType<UpdateNicknameRequest> },
+  TContext
+> => {
+  const mutationKey = ['updateNickname'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateNickname>>,
+    { data: BodyType<UpdateNicknameRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return updateNickname(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateNicknameMutationResult = NonNullable<Awaited<ReturnType<typeof updateNickname>>>;
+export type UpdateNicknameMutationBody = BodyType<UpdateNicknameRequest>;
+export type UpdateNicknameMutationError = ErrorType<AuthUserResponse>;
+
+/**
+ * @summary 기본 닉네임 수정
+ */
+export const useUpdateNickname = <TError = ErrorType<AuthUserResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateNickname>>,
+      TError,
+      { data: BodyType<UpdateNicknameRequest> },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateNickname>>,
+  TError,
+  { data: BodyType<UpdateNicknameRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateNicknameMutationOptions(options), queryClient);
+};
+/**
  * 현재 회원을 탈퇴 처리하고 본인이 생성한 모든 모임과 개인 소유 데이터를 삭제합니다.
- * 별도 소셜 재로그인 없이 저장된 연결 정보로 Apple 토큰 철회 또는 Kakao 연결 해제를 완료합니다.
- * 제공자 연결 해제에 실패하면 로컬 계정은 유지됩니다.
- * 다른 회원이 생성한 모임의 참여 기록은 유지되며 참가자 조회에서 탈퇴 회원으로 표시됩니다.
+ * 별도 소셜 로그인 없이 저장된 연결 정보로 Apple 토큰 철회 또는 Kakao 연결 해제를 완료합니다.
+ * 방장인 모임은 참여자·일정 후보·일정 가능 정보·모임 출발지 검색 이력·커버 이미지까지 삭제합니다.
+ * 다른 회원이 생성한 모임에서는 본인의 참여 행과 일정·출발지 정보를 모두 삭제합니다.
+ * 따라서 탈퇴 회원은 해당 모임의 참여자 목록, 인원 수, 일정 및 장소 계산에 포함되지 않습니다.
  * 닉네임 온보딩을 완료하지 않은 회원도 탈퇴할 수 있습니다.
  * @summary 회원 탈퇴
  */

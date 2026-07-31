@@ -7,11 +7,11 @@
  */
 
 /**
- * 최초 닉네임 등록 요청
+ * 기본 닉네임 수정 요청
  */
-export interface CompleteOnboardingRequest {
+export interface UpdateNicknameRequest {
   /**
-   * 사용자 기본 닉네임. 한글 또는 영문 2~10자이며 전역 고유값이 아닙니다.
+   * 사용자 기본 닉네임입니다. 한글 또는 영문 2~10자이며, 모임 안에서 사용하는 참여자 닉네임은 변경하지 않습니다.
    * @minLength 2
    * @maxLength 10
    * @pattern ^[가-힣A-Za-z]{2,10}$

@@ -5,6 +5,7 @@
  * CMC Moyeo MVP server API
  * OpenAPI spec version: v1
  */
+import type { RecommendationResponseCategoryName } from './recommendationResponseCategoryName';
 
 /**
  * 추천 상권
@@ -17,7 +18,7 @@ export interface RecommendationResponse {
   /** 상권명 */
   areaName?: string;
   /** 상권 분류명 */
-  categoryName?: string;
+  categoryName?: RecommendationResponseCategoryName;
   /** 상권 중심 위도 */
   latitude?: number;
   /** 상권 중심 경도 */

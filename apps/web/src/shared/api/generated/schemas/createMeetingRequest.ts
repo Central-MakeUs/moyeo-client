@@ -49,16 +49,21 @@ export interface CreateMeetingRequest {
   availableStartTime?: string;
   /** DATE_AND_TIME일 때 모든 후보 날짜에 공통으로 적용할 종료 시간입니다. 시작 시간보다 뒤여야 하고 1시간 단위이며 DATE_ONLY와 PLACE_ONLY에서는 보내지 않습니다. */
   availableEndTime?: string;
-  /** 방장이 정한 일정 후보 날짜입니다. 일정 조율 모임에서 필수이며 PLACE_ONLY에서는 보내지 않습니다. */
+  /**
+   * 방장이 정한 일정 후보 날짜입니다. 일정 조율 모임에서 필수이며 최대 21개까지 보낼 수 있습니다. PLACE_ONLY에서는 보내지 않습니다.
+   * @maxLength 21
+   * @minItems 0
+   * @maxItems 21
+   */
   scheduleCandidateDates?: string[];
   /** 방장의 일정 응답입니다. DATE_AND_TIME에서 availableTimeRanges를 보내고 DATE_ONLY에서는 생략합니다. */
   scheduleResponse?: ScheduleResponseRequest;
   /** 방장의 출발지와 이동수단입니다. 장소 조율 모임에서 필수입니다. */
   departure?: DepartureRequest;
   /**
-   * noDeadline가 false이거나 생략된 경우 필수입니다. 생성 요청 처리 시점부터 마감까지 남은 시간(분)이며, 10분 단위로 최소 10분, 최대 72시간입니다. noDeadline가 true이면 생략하거나 null로 보냅니다.
+   * noDeadline가 false이거나 생략된 경우 필수입니다. 생성 요청 처리 시점부터 마감까지 남은 시간(분)이며, 10분 단위로 최소 10분, 최대 7일입니다. noDeadline가 true이면 생략하거나 null로 보냅니다.
    * @minimum 10
-   * @maximum 4320
+   * @maximum 10080
    */
   deadlineMinutes?: number;
   /** true이면 참여/응답 마감 없이 모임을 생성합니다. 이 경우 deadlineMinutes는 생략하거나 null로 보냅니다. 생략하거나 false이면 deadlineMinutes가 필요합니다. */

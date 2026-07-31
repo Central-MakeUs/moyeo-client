@@ -8,21 +8,30 @@
 import { faker } from '@faker-js/faker';
 
 import type {
+  ActualRouteRecommendationResponse,
   CreateMeetingResponse,
+  MeetingConfirmationResponse,
   MeetingCoverResponse,
   MeetingInvitationResponse,
+  MeetingParticipantNicknameResponse,
   MeetingViewResponse,
+  MyMeetingDetailResponse,
+  MyMeetingListResponse,
   ParticipantJoinResponse,
   PlaceViewResponse,
   ScheduleViewResponse,
 } from '../schemas';
 
 import {
+  getAvailabilityStatusResponseMock,
   getCandidateResponseMock,
   getCoordinateResponseMock,
+  getItemMock,
   getParticipantDepartureResponseMock,
+  getParticipantMock,
   getParticipantResponseMock,
   getParticipationStatusResponseMock,
+  getRecommendationMock,
   getRecommendationResponseMock,
 } from '../schemas/index.faker';
 
@@ -44,8 +53,79 @@ export const getCreateMeetingWithCoverResponseMock = (
     faker.string.alpha({ length: { min: 10, max: 20 } }),
     undefined,
   ]),
-  invitePath: faker.helpers.arrayElement([
+  ...overrideResponse,
+});
+
+export const getConfirmScheduleResponseMock = (
+  overrideResponse: Partial<Extract<MeetingConfirmationResponse, object>> = {}
+): MeetingConfirmationResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  status: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['PLANNING', 'CONFIRMED'] as const),
+    undefined,
+  ]),
+  confirmedAt: faker.helpers.arrayElement([
+    faker.date.past().toISOString().slice(0, 19) + 'Z',
+    undefined,
+  ]),
+  scheduleDate: faker.helpers.arrayElement([
+    faker.date.past().toISOString().slice(0, 10),
+    undefined,
+  ]),
+  startTime: faker.helpers.arrayElement([
     faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  endTime: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  placeName: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getConfirmPlaceResponseMock = (
+  overrideResponse: Partial<Extract<MeetingConfirmationResponse, object>> = {}
+): MeetingConfirmationResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  status: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['PLANNING', 'CONFIRMED'] as const),
+    undefined,
+  ]),
+  confirmedAt: faker.helpers.arrayElement([
+    faker.date.past().toISOString().slice(0, 19) + 'Z',
+    undefined,
+  ]),
+  scheduleDate: faker.helpers.arrayElement([
+    faker.date.past().toISOString().slice(0, 10),
+    undefined,
+  ]),
+  startTime: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  endTime: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  placeName: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getCalculateActualRouteRecommendationResponseMock = (
+  overrideResponse: Partial<Extract<ActualRouteRecommendationResponse, object>> = {}
+): ActualRouteRecommendationResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  recommendations: faker.helpers.arrayElement([
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      ...getRecommendationMock(),
+    })),
     undefined,
   ]),
   ...overrideResponse,
@@ -78,6 +158,81 @@ export const getJoinGuestResponseMock = (
   ]),
   participantType: faker.helpers.arrayElement([
     faker.helpers.arrayElement(['HOST', 'MEMBER', 'GUEST'] as const),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getUpdateMeetingParticipantNicknameResponseMock = (
+  overrideResponse: Partial<Extract<MeetingParticipantNicknameResponse, object>> = {}
+): MeetingParticipantNicknameResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  participantId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  nickname: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getGetMyMeetingDetailResponseMock = (
+  overrideResponse: Partial<Extract<MyMeetingDetailResponse, object>> = {}
+): MyMeetingDetailResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  name: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  description: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  coverImageUrl: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  hostNickname: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  confirmedScheduleDate: faker.helpers.arrayElement([
+    faker.date.past().toISOString().slice(0, 10),
+    undefined,
+  ]),
+  confirmedStartTime: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  confirmedEndTime: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  confirmedPlaceName: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  participants: faker.helpers.arrayElement([
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      ...getParticipantMock(),
+    })),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getGetMyMeetingsResponseMock = (
+  overrideResponse: Partial<Extract<MyMeetingListResponse, object>> = {}
+): MyMeetingListResponse => ({
+  planningMeetings: faker.helpers.arrayElement([
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      ...getItemMock(),
+    })),
+    undefined,
+  ]),
+  confirmedMeetings: faker.helpers.arrayElement([
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      ...getItemMock(),
+    })),
     undefined,
   ]),
   ...overrideResponse,
@@ -218,6 +373,12 @@ export const getGetScheduleViewResponseMock = (
   candidates: faker.helpers.arrayElement([
     Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
       ...getCandidateResponseMock(),
+    })),
+    undefined,
+  ]),
+  availabilityStatuses: faker.helpers.arrayElement([
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      ...getAvailabilityStatusResponseMock(),
     })),
     undefined,
   ]),

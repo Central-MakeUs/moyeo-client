@@ -5,9 +5,10 @@
  * CMC Moyeo MVP server API
  * OpenAPI spec version: v1
  */
+import type { AvailableParticipantResponse } from './availableParticipantResponse';
 
 /**
- * 일정 후보
+ * 최적 일정 후보
  */
 export interface CandidateResponse {
   /** 후보 날짜 */
@@ -18,4 +19,6 @@ export interface CandidateResponse {
   endTime?: string;
   /** 해당 날짜 또는 시간에 참여 가능한 인원 수 */
   availableParticipantCount?: number;
+  /** 해당 후보 시간에 가능한 참여자 목록입니다. 링크로 조회한 비로그인 사용자에게도 공개됩니다. */
+  availableParticipants?: AvailableParticipantResponse[];
 }

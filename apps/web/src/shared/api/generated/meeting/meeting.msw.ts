@@ -11,21 +11,30 @@ import { HttpResponse, http } from 'msw';
 import type { RequestHandlerOptions } from 'msw';
 
 import type {
+  ActualRouteRecommendationResponse,
   CreateMeetingResponse,
+  MeetingConfirmationResponse,
   MeetingCoverResponse,
   MeetingInvitationResponse,
+  MeetingParticipantNicknameResponse,
   MeetingViewResponse,
+  MyMeetingDetailResponse,
+  MyMeetingListResponse,
   ParticipantJoinResponse,
   PlaceViewResponse,
   ScheduleViewResponse,
 } from '../schemas';
 
 import {
+  getAvailabilityStatusResponseMock,
   getCandidateResponseMock,
   getCoordinateResponseMock,
+  getItemMock,
   getParticipantDepartureResponseMock,
+  getParticipantMock,
   getParticipantResponseMock,
   getParticipationStatusResponseMock,
+  getRecommendationMock,
   getRecommendationResponseMock,
 } from '../schemas/index.faker';
 
@@ -47,8 +56,79 @@ export const getCreateMeetingWithCoverResponseMock = (
     faker.string.alpha({ length: { min: 10, max: 20 } }),
     undefined,
   ]),
-  invitePath: faker.helpers.arrayElement([
+  ...overrideResponse,
+});
+
+export const getConfirmScheduleResponseMock = (
+  overrideResponse: Partial<Extract<MeetingConfirmationResponse, object>> = {}
+): MeetingConfirmationResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  status: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['PLANNING', 'CONFIRMED'] as const),
+    undefined,
+  ]),
+  confirmedAt: faker.helpers.arrayElement([
+    faker.date.past().toISOString().slice(0, 19) + 'Z',
+    undefined,
+  ]),
+  scheduleDate: faker.helpers.arrayElement([
+    faker.date.past().toISOString().slice(0, 10),
+    undefined,
+  ]),
+  startTime: faker.helpers.arrayElement([
     faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  endTime: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  placeName: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getConfirmPlaceResponseMock = (
+  overrideResponse: Partial<Extract<MeetingConfirmationResponse, object>> = {}
+): MeetingConfirmationResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  status: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['PLANNING', 'CONFIRMED'] as const),
+    undefined,
+  ]),
+  confirmedAt: faker.helpers.arrayElement([
+    faker.date.past().toISOString().slice(0, 19) + 'Z',
+    undefined,
+  ]),
+  scheduleDate: faker.helpers.arrayElement([
+    faker.date.past().toISOString().slice(0, 10),
+    undefined,
+  ]),
+  startTime: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  endTime: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  placeName: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getCalculateActualRouteRecommendationResponseMock = (
+  overrideResponse: Partial<Extract<ActualRouteRecommendationResponse, object>> = {}
+): ActualRouteRecommendationResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  recommendations: faker.helpers.arrayElement([
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      ...getRecommendationMock(),
+    })),
     undefined,
   ]),
   ...overrideResponse,
@@ -81,6 +161,81 @@ export const getJoinGuestResponseMock = (
   ]),
   participantType: faker.helpers.arrayElement([
     faker.helpers.arrayElement(['HOST', 'MEMBER', 'GUEST'] as const),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getUpdateMeetingParticipantNicknameResponseMock = (
+  overrideResponse: Partial<Extract<MeetingParticipantNicknameResponse, object>> = {}
+): MeetingParticipantNicknameResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  participantId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  nickname: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getGetMyMeetingDetailResponseMock = (
+  overrideResponse: Partial<Extract<MyMeetingDetailResponse, object>> = {}
+): MyMeetingDetailResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  name: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  description: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  coverImageUrl: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  hostNickname: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  confirmedScheduleDate: faker.helpers.arrayElement([
+    faker.date.past().toISOString().slice(0, 10),
+    undefined,
+  ]),
+  confirmedStartTime: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  confirmedEndTime: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  confirmedPlaceName: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  participants: faker.helpers.arrayElement([
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      ...getParticipantMock(),
+    })),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getGetMyMeetingsResponseMock = (
+  overrideResponse: Partial<Extract<MyMeetingListResponse, object>> = {}
+): MyMeetingListResponse => ({
+  planningMeetings: faker.helpers.arrayElement([
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      ...getItemMock(),
+    })),
+    undefined,
+  ]),
+  confirmedMeetings: faker.helpers.arrayElement([
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      ...getItemMock(),
+    })),
     undefined,
   ]),
   ...overrideResponse,
@@ -224,6 +379,12 @@ export const getGetScheduleViewResponseMock = (
     })),
     undefined,
   ]),
+  availabilityStatuses: faker.helpers.arrayElement([
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      ...getAvailabilityStatusResponseMock(),
+    })),
+    undefined,
+  ]),
   ...overrideResponse,
 });
 
@@ -329,6 +490,78 @@ export const getCreateMeetingWithCoverMockHandler = (
   );
 };
 
+export const getConfirmScheduleMockHandler = (
+  overrideResponse?:
+    | MeetingConfirmationResponse
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0]
+      ) => Promise<MeetingConfirmationResponse> | MeetingConfirmationResponse),
+  options?: RequestHandlerOptions
+) => {
+  return http.post(
+    '*/api/meetings/:meetingId/schedule-confirmation',
+    async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+      return HttpResponse.json(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getConfirmScheduleResponseMock(),
+        { status: 200 }
+      );
+    },
+    options
+  );
+};
+
+export const getConfirmPlaceMockHandler = (
+  overrideResponse?:
+    | MeetingConfirmationResponse
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0]
+      ) => Promise<MeetingConfirmationResponse> | MeetingConfirmationResponse),
+  options?: RequestHandlerOptions
+) => {
+  return http.post(
+    '*/api/meetings/:meetingId/place-confirmation',
+    async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+      return HttpResponse.json(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getConfirmPlaceResponseMock(),
+        { status: 200 }
+      );
+    },
+    options
+  );
+};
+
+export const getCalculateActualRouteRecommendationMockHandler = (
+  overrideResponse?:
+    | ActualRouteRecommendationResponse
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0]
+      ) => Promise<ActualRouteRecommendationResponse> | ActualRouteRecommendationResponse),
+  options?: RequestHandlerOptions
+) => {
+  return http.post(
+    '*/api/meetings/invitations/:inviteCode/view/places/actual-time',
+    async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+      return HttpResponse.json(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getCalculateActualRouteRecommendationResponseMock(),
+        { status: 200 }
+      );
+    },
+    options
+  );
+};
+
 export const getJoinMemberMockHandler = (
   overrideResponse?:
     | ParticipantJoinResponse
@@ -371,6 +604,97 @@ export const getJoinGuestMockHandler = (
             : overrideResponse
           : getJoinGuestResponseMock(),
         { status: 201 }
+      );
+    },
+    options
+  );
+};
+
+export const getUpdateMeetingParticipantNicknameMockHandler = (
+  overrideResponse?:
+    | MeetingParticipantNicknameResponse
+    | ((
+        info: Parameters<Parameters<typeof http.patch>[1]>[0]
+      ) => Promise<MeetingParticipantNicknameResponse> | MeetingParticipantNicknameResponse),
+  options?: RequestHandlerOptions
+) => {
+  return http.patch(
+    '*/api/meetings/:meetingId/participants/me/nickname',
+    async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+      return HttpResponse.json(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getUpdateMeetingParticipantNicknameResponseMock(),
+        { status: 200 }
+      );
+    },
+    options
+  );
+};
+
+export const getGetMyMeetingDetailMockHandler = (
+  overrideResponse?:
+    | MyMeetingDetailResponse
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0]
+      ) => Promise<MyMeetingDetailResponse> | MyMeetingDetailResponse),
+  options?: RequestHandlerOptions
+) => {
+  return http.get(
+    '*/api/meetings/:meetingId',
+    async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+      return HttpResponse.json(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getGetMyMeetingDetailResponseMock(),
+        { status: 200 }
+      );
+    },
+    options
+  );
+};
+
+export const getDeleteMeetingMockHandler = (
+  overrideResponse?:
+    | void
+    | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
+  options?: RequestHandlerOptions
+) => {
+  return http.delete(
+    '*/api/meetings/:meetingId',
+    async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
+      if (typeof overrideResponse === 'function') {
+        await overrideResponse(info);
+      }
+
+      return new HttpResponse(null, { status: 204 });
+    },
+    options
+  );
+};
+
+export const getGetMyMeetingsMockHandler = (
+  overrideResponse?:
+    | MyMeetingListResponse
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0]
+      ) => Promise<MyMeetingListResponse> | MyMeetingListResponse),
+  options?: RequestHandlerOptions
+) => {
+  return http.get(
+    '*/api/meetings/me',
+    async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+      return HttpResponse.json(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getGetMyMeetingsResponseMock(),
+        { status: 200 }
       );
     },
     options
@@ -494,15 +818,42 @@ export const getGetCoverImageMockHandler = (
     options
   );
 };
+
+export const getLeaveMeetingMockHandler = (
+  overrideResponse?:
+    | void
+    | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
+  options?: RequestHandlerOptions
+) => {
+  return http.delete(
+    '*/api/meetings/:meetingId/participation',
+    async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
+      if (typeof overrideResponse === 'function') {
+        await overrideResponse(info);
+      }
+
+      return new HttpResponse(null, { status: 204 });
+    },
+    options
+  );
+};
 export const getMeetingMock = () => [
   getReplaceCoverImageMockHandler(),
   getDeleteCoverImageMockHandler(),
   getCreateMeetingWithCoverMockHandler(),
+  getConfirmScheduleMockHandler(),
+  getConfirmPlaceMockHandler(),
+  getCalculateActualRouteRecommendationMockHandler(),
   getJoinMemberMockHandler(),
   getJoinGuestMockHandler(),
+  getUpdateMeetingParticipantNicknameMockHandler(),
+  getGetMyMeetingDetailMockHandler(),
+  getDeleteMeetingMockHandler(),
+  getGetMyMeetingsMockHandler(),
   getGetInvitationMockHandler(),
   getGetMeetingViewMockHandler(),
   getGetScheduleViewMockHandler(),
   getGetPlaceViewMockHandler(),
   getGetCoverImageMockHandler(),
+  getLeaveMeetingMockHandler(),
 ];

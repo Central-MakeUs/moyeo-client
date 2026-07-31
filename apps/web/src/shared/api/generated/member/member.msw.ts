@@ -24,6 +24,18 @@ export const getCompleteOnboardingResponseMock = (
   ...overrideResponse,
 });
 
+export const getUpdateNicknameResponseMock = (
+  overrideResponse: Partial<Extract<AuthUserResponse, object>> = {}
+): AuthUserResponse => ({
+  id: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  nickname: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  onboardingCompleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  ...overrideResponse,
+});
+
 export const getCompleteOnboardingMockHandler = (
   overrideResponse?:
     | AuthUserResponse
@@ -41,6 +53,30 @@ export const getCompleteOnboardingMockHandler = (
             ? await overrideResponse(info)
             : overrideResponse
           : getCompleteOnboardingResponseMock(),
+        { status: 200 }
+      );
+    },
+    options
+  );
+};
+
+export const getUpdateNicknameMockHandler = (
+  overrideResponse?:
+    | AuthUserResponse
+    | ((
+        info: Parameters<Parameters<typeof http.patch>[1]>[0]
+      ) => Promise<AuthUserResponse> | AuthUserResponse),
+  options?: RequestHandlerOptions
+) => {
+  return http.patch(
+    '*/api/users/me/nickname',
+    async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+      return HttpResponse.json(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getUpdateNicknameResponseMock(),
         { status: 200 }
       );
     },
@@ -66,4 +102,8 @@ export const getWithdrawMockHandler = (
     options
   );
 };
-export const getMemberMock = () => [getCompleteOnboardingMockHandler(), getWithdrawMockHandler()];
+export const getMemberMock = () => [
+  getCompleteOnboardingMockHandler(),
+  getUpdateNicknameMockHandler(),
+  getWithdrawMockHandler(),
+];

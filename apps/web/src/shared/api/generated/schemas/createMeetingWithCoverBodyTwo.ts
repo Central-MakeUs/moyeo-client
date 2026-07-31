@@ -9,6 +9,6 @@ import type { CreateMeetingRequest } from './createMeetingRequest';
 
 export type CreateMeetingWithCoverBodyTwo = {
   request: CreateMeetingRequest;
-  /** 선택 JPEG 또는 PNG 파일. 사진이 없으면 이 파트를 생략합니다. */
+  /** 선택 JPEG 또는 PNG 파일. 최대 10MB, 13MP이고 한 변은 8,000px 이하여야 합니다. 사진이 없으면 이 파트를 생략합니다. */
   coverImage?: Blob;
 };
