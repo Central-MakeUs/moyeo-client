@@ -4,7 +4,7 @@ import { useCallback, useEffect } from 'react';
 
 import type { NativeToWebMessage } from '@repo/types';
 
-import { isNativeContext, useNativeMessage, usePostMessage } from '@/shared/model';
+import { isNativeContext, postMessageToNative, useNativeMessageListener } from '@/shared/model';
 
 import { NATIVE_HANDSHAKE_TIMEOUT_MS } from '../model/native-bridge';
 import { setSessionToken } from '../model/session-contract';
@@ -19,8 +19,6 @@ import { useSessionStore } from '../model/session-store';
  * 3. 타임아웃이 지나거나 웹 브라우저면 비로그인으로 확정한다.
  */
 export function SessionProvider({ children }: { children: React.ReactNode }) {
-  const postMessage = usePostMessage();
-
   /** RN -> WEB message 핸들러 */
   const handleNativeMessage = useCallback((message: NativeToWebMessage) => {
     // RN에 저장된 auth token이 있는 경우
@@ -37,7 +35,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  useNativeMessage(handleNativeMessage); // handleNativeMessage 핸들러로 message event 핸들러 등록
+  useNativeMessageListener(handleNativeMessage);
 
   useEffect(() => {
     const storedToken = readStoredToken();
@@ -54,14 +52,14 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    postMessage({ type: 'READY' }); // WEB -> RN : 네이티브 메시지 수신 준비가 완료되었음을 RN에 알림
+    postMessageToNative({ type: 'READY' }); // WEB -> RN : 네이티브 메시지 수신 준비가 완료되었음을 RN에 알림
 
     const timer = setTimeout(() => {
       useSessionStore.getState().finishRestore();
     }, NATIVE_HANDSHAKE_TIMEOUT_MS);
 
     return () => clearTimeout(timer);
-  }, [postMessage]);
+  }, []);
 
   return <>{children}</>;
 }

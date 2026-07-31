@@ -1,2 +1,3 @@
 export { isNativeContext } from './native-context';
-export { useNativeMessage, usePostMessage } from './use-bridge';
+export { requestNative, type RequestNativeOptions } from './request-native';
+export { postMessageToNative, useNativeMessageListener } from './use-bridge';

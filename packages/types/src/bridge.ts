@@ -1,26 +1,36 @@
-// RN → WebView: 네이티브가 웹에 데이터 전달
+/**
+ * 네이티브 앱에서 웹으로 전달하는 메시지
+ *
+ * 요청에 대한 응답은 요청과 동일한 `requestId`를 사용한다.
+ */
 export type NativeToWebMessage =
   | { type: 'AUTH_TOKEN'; payload: { token: string } }
-  // 네이티브에 저장된 토큰이 없음을 알린다.
-  // 이 응답이 없으면 웹은 비로그인 여부를 타임아웃으로만 판단할 수 있다.
+  // 저장된 토큰이 없음을 명시적으로 알린다.
+  // 이 메시지가 없으면 웹은 타임아웃 전까지 토큰 부재를 확정할 수 없다.
   | { type: 'AUTH_NONE' }
-  | { type: 'COPY_RESULT'; payload: { state: 'success' | 'error' } }
+  // COPY_TO_CLIPBOARD 요청의 처리 결과다.
+  | { type: 'COPY_RESULT'; requestId: string; payload: { state: 'success' | 'error' } }
   | { type: 'DEVICE_INFO'; payload: { os: 'ios' | 'android' } }
   | { type: 'APP_STATE'; payload: { state: 'active' | 'background' } };
 
-// WebView → RN: 웹이 네이티브 기능 요청
+/**
+ * 웹에서 네이티브 앱으로 전달하는 메시지
+ *
+ * 개별 응답을 기다리는 요청은 `requestId`를 전송 메타데이터로 사용한다.
+ */
 export type WebToNativeMessage =
+  // 웹의 메시지 수신 준비가 완료되었음을 알린다.
+  // 네이티브는 AUTH_TOKEN 또는 AUTH_NONE으로 응답한다.
   | { type: 'READY' }
-  // 웹에서 로그인했으니 네이티브 저장소(SecureStore)에도 토큰을 보관하라는 통지.
-  // 이 메시지가 없으면 네이티브는 보관할 토큰을 얻지 못해 다음 실행에서 AUTH_TOKEN을 보낼 수 없다.
+  // 로그인 토큰을 네이티브 저장소에도 보관하도록 요청한다.
   | { type: 'AUTH_SIGNED_IN'; payload: { token: string } }
-  // 웹에서 로그아웃했으니 네이티브 저장소(SecureStore)도 비우라는 통지
+  // 네이티브 저장소의 로그인 토큰을 삭제하도록 요청한다.
   | { type: 'AUTH_SIGNED_OUT' }
   | { type: 'OPEN_CAMERA' }
   | { type: 'HAPTIC_FEEDBACK'; payload: { style: 'light' | 'medium' | 'heavy' } }
   | { type: 'NAVIGATE_NATIVE'; payload: { screen: string } }
-  | { type: 'COPY_TO_CLIPBOARD'; payload: { text: string } }
-  // 초대 링크를 문자로 공유한다. WebView에서 sms: 스킴을 직접 열면 동작이 OS마다 갈려
-  // 네이티브가 메시지 앱을 연다.
+  // COPY_RESULT와 연결할 수 있도록 requestId를 함께 전달한다.
+  | { type: 'COPY_TO_CLIPBOARD'; requestId: string; payload: { text: string } }
+  // WebView 대신 네이티브에서 메시지 앱을 실행한다.
   | { type: 'SHARE_SMS'; payload: { message: string } }
   | { type: 'REQUEST_PERMISSION'; payload: { type: 'camera' | 'location' } };

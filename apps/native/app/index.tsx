@@ -55,7 +55,7 @@ function parseIntentUrl(url: string): { schemeUrl: string; fallbackUrl: string |
 export default function HomeScreen() {
   const webViewRef = useRef<WebView>(null);
 
-  const postToWeb = useCallback((message: NativeToWebMessage) => {
+  const postMessageToWeb = useCallback((message: NativeToWebMessage) => {
     webViewRef.current?.postMessage(JSON.stringify(message));
   }, []);
 
@@ -66,11 +66,11 @@ export default function HomeScreen() {
   const sendStoredToken = useCallback(async () => {
     try {
       const token = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
-      postToWeb(token ? { type: 'AUTH_TOKEN', payload: { token } } : { type: 'AUTH_NONE' });
+      postMessageToWeb(token ? { type: 'AUTH_TOKEN', payload: { token } } : { type: 'AUTH_NONE' });
     } catch {
-      postToWeb({ type: 'AUTH_NONE' });
+      postMessageToWeb({ type: 'AUTH_NONE' });
     }
-  }, [postToWeb]);
+  }, [postMessageToWeb]);
 
   const handleMessage = useCallback(
     async (event: WebViewMessageEvent) => {
@@ -115,18 +115,26 @@ export default function HomeScreen() {
           return;
         }
         case 'COPY_TO_CLIPBOARD': {
+          // requestId는 요청에 실려 온 값을 그대로 돌려준다 (웹이 자기 요청의 결과만 받도록)
+          const { requestId } = message;
+
           try {
             const copied = await Clipboard.setStringAsync(message.payload.text);
 
-            postToWeb({
+            postMessageToWeb({
               type: 'COPY_RESULT',
+              requestId,
               payload: {
                 state: copied ? 'success' : 'error',
               },
             });
-          } catch {
-            postToWeb({
+          } catch (error) {
+            // 웹에는 성공/실패만 알린다. 원인은 dev 빌드 로그로 남긴다.
+            console.warn('Failed to copy to clipboard', error);
+
+            postMessageToWeb({
               type: 'COPY_RESULT',
+              requestId,
               payload: {
                 state: 'error',
               },
@@ -140,7 +148,7 @@ export default function HomeScreen() {
           return;
       }
     },
-    [postToWeb, sendStoredToken]
+    [postMessageToWeb, sendStoredToken]
   );
 
   /**

@@ -3,7 +3,7 @@ import { renderHook } from '@testing-library/react';
 
 import type { NativeToWebMessage } from '@repo/types';
 
-import { useNativeMessage } from './use-bridge';
+import { useNativeMessageListener } from './use-bridge';
 
 /**
  * 이 테스트는 **전송 계층**만 본다 — 어느 타겟에 dispatch되든 정확히 한 번 전달되는가,
@@ -29,7 +29,7 @@ function dispatchFromAndroid(data: unknown) {
   document.dispatchEvent(new MessageEvent('message', { data }));
 }
 
-describe('useNativeMessage', () => {
+describe('useNativeMessageListener', () => {
   let handler: Mock<(message: NativeToWebMessage) => void>;
 
   beforeEach(() => {
@@ -37,7 +37,7 @@ describe('useNativeMessage', () => {
   });
 
   it('iOS처럼 window에 dispatch된 메시지를 전달한다', () => {
-    renderHook(() => useNativeMessage(handler));
+    renderHook(() => useNativeMessageListener(handler));
 
     dispatchFromIos(JSON.stringify(SAMPLE_MESSAGE));
 
@@ -45,7 +45,7 @@ describe('useNativeMessage', () => {
   });
 
   it('Android처럼 document에 dispatch된 메시지를 전달한다', () => {
-    renderHook(() => useNativeMessage(handler));
+    renderHook(() => useNativeMessageListener(handler));
 
     dispatchFromAndroid(JSON.stringify(SAMPLE_MESSAGE));
 
@@ -53,7 +53,7 @@ describe('useNativeMessage', () => {
   });
 
   it('document에 dispatch된 메시지를 두 번 전달하지 않는다', () => {
-    renderHook(() => useNativeMessage(handler));
+    renderHook(() => useNativeMessageListener(handler));
 
     dispatchFromAndroid(JSON.stringify(SAMPLE_MESSAGE));
 
@@ -61,7 +61,7 @@ describe('useNativeMessage', () => {
   });
 
   it('버블링되는 메시지도 두 번 전달하지 않는다', () => {
-    renderHook(() => useNativeMessage(handler));
+    renderHook(() => useNativeMessageListener(handler));
 
     // react-native-webview의 레거시 폴백 경로는 bubbles를 켠 채 document에 dispatch한다.
     document.dispatchEvent(
@@ -72,7 +72,7 @@ describe('useNativeMessage', () => {
   });
 
   it('JSON이 아닌 데이터는 무시한다', () => {
-    renderHook(() => useNativeMessage(handler));
+    renderHook(() => useNativeMessageListener(handler));
 
     dispatchFromIos('not json');
 
@@ -80,7 +80,7 @@ describe('useNativeMessage', () => {
   });
 
   it('문자열이 아닌 데이터는 무시한다', () => {
-    renderHook(() => useNativeMessage(handler));
+    renderHook(() => useNativeMessageListener(handler));
 
     // 카카오 SDK 팝업처럼 객체를 그대로 실어 보내는 message 이벤트가 있다.
     dispatchFromIos({ type: 'AUTH_NONE' });
@@ -89,7 +89,7 @@ describe('useNativeMessage', () => {
   });
 
   it('type이 없는 JSON은 무시한다', () => {
-    renderHook(() => useNativeMessage(handler));
+    renderHook(() => useNativeMessageListener(handler));
 
     dispatchFromIos(JSON.stringify({ payload: { token: 'abc' } }));
 
@@ -97,7 +97,7 @@ describe('useNativeMessage', () => {
   });
 
   it('언마운트 후에는 메시지를 전달하지 않는다', () => {
-    const { unmount } = renderHook(() => useNativeMessage(handler));
+    const { unmount } = renderHook(() => useNativeMessageListener(handler));
 
     unmount();
     dispatchFromIos(JSON.stringify(SAMPLE_MESSAGE));

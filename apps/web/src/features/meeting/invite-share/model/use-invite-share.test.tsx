@@ -3,17 +3,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useInviteShare } from './use-invite-share';
 
-const { isNativeContext, postMessage, shareInviteKakao, useNativeMessage } = vi.hoisted(() => ({
+const { isNativeContext, postMessage, requestNative, shareInviteKakao } = vi.hoisted(() => ({
   isNativeContext: vi.fn(),
   postMessage: vi.fn(),
+  requestNative: vi.fn(),
   shareInviteKakao: vi.fn(),
-  useNativeMessage: vi.fn(),
 }));
 
 vi.mock('@/shared/model', () => ({
   isNativeContext,
-  useNativeMessage,
-  usePostMessage: () => postMessage,
+  postMessageToNative: postMessage,
+  requestNative,
 }));
 
 vi.mock('./share-invite-kakao', () => ({
@@ -28,7 +28,57 @@ beforeEach(() => {
   shareInviteKakao.mockReturnValue(true);
 });
 
+/** 상태만 다른 COPY_RESULT 응답을 만든다. requestId는 requestNative가 내부에서 다룬다. */
+const copyResult = (state: 'success' | 'error') => ({
+  type: 'COPY_RESULT' as const,
+  requestId: 'stub',
+  payload: { state },
+});
+
 describe('useInviteShare', () => {
+  it('WebView 복사는 네이티브 응답을 기다렸다가 결과를 알린다', async () => {
+    const onNotify = vi.fn();
+    requestNative.mockResolvedValue(copyResult('success'));
+
+    const { result } = renderHook(() =>
+      useInviteShare({ shareUrl: SHARE_URL, senderNickname: '모리', onNotify })
+    );
+
+    await act(() => result.current.copyLink());
+
+    expect(requestNative).toHaveBeenCalledWith(
+      { type: 'COPY_TO_CLIPBOARD', payload: { text: SHARE_URL } },
+      'COPY_RESULT'
+    );
+    expect(onNotify).toHaveBeenCalledWith('링크가 복사되었어요');
+  });
+
+  it('네이티브가 복사 실패를 알리면 실패 문구를 보여준다', async () => {
+    const onNotify = vi.fn();
+    requestNative.mockResolvedValue(copyResult('error'));
+
+    const { result } = renderHook(() =>
+      useInviteShare({ shareUrl: SHARE_URL, senderNickname: '모리', onNotify })
+    );
+
+    await act(() => result.current.copyLink());
+
+    expect(onNotify).toHaveBeenCalledWith('링크를 복사하지 못했어요');
+  });
+
+  it('네이티브 응답이 오지 않으면 실패 문구를 보여준다', async () => {
+    const onNotify = vi.fn();
+    requestNative.mockRejectedValue(new Error('Native request timed out'));
+
+    const { result } = renderHook(() =>
+      useInviteShare({ shareUrl: SHARE_URL, senderNickname: '모리', onNotify })
+    );
+
+    await act(() => result.current.copyLink());
+
+    expect(onNotify).toHaveBeenCalledWith('링크를 복사하지 못했어요');
+  });
+
   it('WebView SMS 공유는 공유자 문구와 링크를 네이티브 브리지로 보낸다', () => {
     const { result } = renderHook(() =>
       useInviteShare({

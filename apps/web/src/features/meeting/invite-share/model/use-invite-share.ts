@@ -2,9 +2,7 @@
 
 import * as React from 'react';
 
-import type { NativeToWebMessage } from '@repo/types';
-
-import { isNativeContext, useNativeMessage, usePostMessage } from '@/shared/model';
+import { isNativeContext, postMessageToNative, requestNative } from '@/shared/model';
 
 import { createInviteSmsMessage } from './create-invite-share-message';
 import { shareInviteKakao } from './share-invite-kakao';
@@ -29,15 +27,19 @@ export interface UseInviteShareParams {
  * `shareUrl`이 없으면 공유 동작을 수행하지 않는다.
  */
 export function useInviteShare({ shareUrl, senderNickname, onNotify }: UseInviteShareParams) {
-  const postMessage = usePostMessage();
-
   const copyLink = React.useCallback(async () => {
     if (shareUrl === null) return;
 
     try {
-      // 앱인 경우 브릿지를 사용해서 react-native-clipboard 호출
+      // 앱인 경우 브릿지를 사용해서 react-native-clipboard 호출.
+      // 응답을 기다렸다 알리므로, 다른 화면의 복사 결과를 잘못 가져오지 않는다.
       if (isNativeContext()) {
-        postMessage({ type: 'COPY_TO_CLIPBOARD', payload: { text: shareUrl } });
+        const { payload } = await requestNative(
+          { type: 'COPY_TO_CLIPBOARD', payload: { text: shareUrl } },
+          'COPY_RESULT'
+        );
+
+        onNotify(payload.state === 'success' ? '링크가 복사되었어요' : '링크를 복사하지 못했어요');
         return;
       }
 
@@ -49,23 +51,10 @@ export function useInviteShare({ shareUrl, senderNickname, onNotify }: UseInvite
       await navigator.clipboard.writeText(shareUrl);
       onNotify('링크가 복사되었어요');
     } catch {
+      // 브릿지 부재·응답 시간 초과도 여기로 온다.
       onNotify('링크를 복사하지 못했어요');
     }
-  }, [shareUrl, onNotify, postMessage]);
-
-  const handleNativeMessage = React.useCallback(
-    (message: NativeToWebMessage) => {
-      if (message.type === 'COPY_RESULT') {
-        onNotify(
-          message.payload.state === 'success' ? '링크가 복사되었어요' : '링크를 복사하지 못했어요'
-        );
-        return;
-      }
-    },
-    [onNotify]
-  );
-
-  useNativeMessage(handleNativeMessage);
+  }, [shareUrl, onNotify]);
 
   const shareSms = React.useCallback(() => {
     if (shareUrl === null) return;
@@ -78,7 +67,7 @@ export function useInviteShare({ shareUrl, senderNickname, onNotify }: UseInvite
 
     // WebView에서는 sms: 스킴 처리를 네이티브에 맡긴다.
     if (isNativeContext()) {
-      postMessage({ type: 'SHARE_SMS', payload: { message } });
+      postMessageToNative({ type: 'SHARE_SMS', payload: { message } });
       return;
     }
 
@@ -88,7 +77,7 @@ export function useInviteShare({ shareUrl, senderNickname, onNotify }: UseInvite
     }
 
     window.location.href = `sms:?body=${encodeURIComponent(message)}`;
-  }, [shareUrl, senderNickname, onNotify, postMessage]);
+  }, [shareUrl, senderNickname, onNotify]);
 
   const shareKakao = React.useCallback(() => {
     if (shareUrl === null) return;
