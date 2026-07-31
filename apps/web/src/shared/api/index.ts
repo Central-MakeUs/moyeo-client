@@ -11,6 +11,7 @@
 export * from './generated/auth/auth';
 export * from './generated/development-auth/development-auth';
 export * from './generated/member/member';
+export * from './generated/time/time';
 export * from './generated/schemas';
 
 export { AXIOS_INSTANCE, customInstance } from './axios-instance';
