@@ -1,3 +1,4 @@
+'use client';
 import { useReducer, useRef } from 'react';
 import { eachDayOfInterval, isSameDay } from 'date-fns';
 
