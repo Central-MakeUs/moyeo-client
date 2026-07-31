@@ -22,4 +22,3 @@ export * from './drawer';
 export * from './select';
 export * from './top-app-bar';
 export * from './carousel';
-export * from './page-control';

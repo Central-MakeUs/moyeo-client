@@ -26,6 +26,10 @@ type CarouselContextProps = {
   scrollNext: () => void;
   canScrollPrev: boolean;
   canScrollNext: boolean;
+  /** 현재 활성 슬라이드 인덱스 (0-based, embla의 selectedScrollSnap()과 동일 기준) */
+  selectedIndex: number;
+  /** 전체 슬라이드 개수 */
+  slideCount: number;
 } & CarouselProps;
 
 const CarouselContext = React.createContext<CarouselContextProps | null>(null);
@@ -40,6 +44,9 @@ function useCarousel() {
   return context;
 }
 
+/** 슬라이드를 순환시키기 위한 기본값이다. 필요하면 opts={{ loop: false }}로 끈다. */
+const DEFAULT_OPTIONS = { loop: true } satisfies CarouselOptions;
+
 function Carousel({
   orientation = 'horizontal',
   opts,
@@ -51,6 +58,7 @@ function Carousel({
 }: React.ComponentProps<'div'> & CarouselProps) {
   const [carouselRef, api] = useEmblaCarousel(
     {
+      ...DEFAULT_OPTIONS,
       ...opts,
       axis: orientation === 'horizontal' ? 'x' : 'y',
     },
@@ -58,11 +66,15 @@ function Carousel({
   );
   const [canScrollPrev, setCanScrollPrev] = React.useState(false);
   const [canScrollNext, setCanScrollNext] = React.useState(false);
+  const [selectedIndex, setSelectedIndex] = React.useState(0);
+  const [slideCount, setSlideCount] = React.useState(0);
 
   const onSelect = React.useCallback((api: CarouselApi) => {
     if (!api) return;
     setCanScrollPrev(api.canScrollPrev());
     setCanScrollNext(api.canScrollNext());
+    setSelectedIndex(api.selectedScrollSnap());
+    setSlideCount(api.scrollSnapList().length);
   }, []);
 
   const scrollPrev = React.useCallback(() => {
@@ -113,6 +125,8 @@ function Carousel({
         scrollNext,
         canScrollPrev,
         canScrollNext,
+        selectedIndex,
+        slideCount,
       }}
     >
       <div
@@ -157,6 +171,30 @@ function CarouselItem({ className, ...props }: React.ComponentProps<'div'>) {
       )}
       {...props}
     />
+  );
+}
+
+/** 캐러셀 하단 페이지 인디케이터. 슬라이드 개수와 현재 위치는 embla에서 직접 읽는다. */
+function CarouselPageControl({ className, ...props }: React.ComponentProps<'div'>) {
+  const { selectedIndex, slideCount } = useCarousel();
+
+  return (
+    <div
+      data-slot="page-control"
+      className={cn('mt-3 flex items-center justify-center gap-2', className)}
+      {...props}
+    >
+      {Array.from({ length: slideCount }, (_, index) => (
+        <span
+          key={index}
+          data-slot="page-control-dot"
+          className={cn(
+            'h-1.5 rounded-full',
+            index === selectedIndex ? 'w-5 bg-accessible-400' : 'w-1.5 bg-neutral-300/30'
+          )}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -225,6 +263,7 @@ export {
   Carousel,
   CarouselContent,
   CarouselItem,
+  CarouselPageControl,
   CarouselPrevious,
   CarouselNext,
   useCarousel,

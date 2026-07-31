@@ -3,6 +3,7 @@ export {
   Carousel,
   CarouselContent,
   CarouselItem,
+  CarouselPageControl,
   CarouselPrevious,
   CarouselNext,
   useCarousel,
