@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { renderWithQuery } from '@/shared/lib/render-with-query';
 import userEvent from '@testing-library/user-event';
 
 import { useCreateMeetingDraft } from '@/features/meeting/create-meeting';
@@ -38,14 +39,14 @@ describe('CreateMeetingScheduleTimesPage', () => {
   });
 
   it('should render the grid when preceding steps are complete', () => {
-    const { container } = render(<CreateMeetingScheduleTimesPage />);
+    const { container } = renderWithQuery(<CreateMeetingScheduleTimesPage />);
 
     expect(container.querySelectorAll('[data-cell-key]')).toHaveLength(3);
   });
 
   it('앞 스텝이 미완성이면 첫 미완성 스텝으로 replace하고 아무것도 렌더하지 않는다', () => {
     useCreateMeetingDraft.setState({ ...completedDraft, scheduleCandidateDates: [] });
-    render(<CreateMeetingScheduleTimesPage />);
+    renderWithQuery(<CreateMeetingScheduleTimesPage />);
 
     // resolveEntryPath는 첫 미완성 스텝으로 보낸다. 여기선 후보 날짜가 비어 schedule-dates가 미완성이다.
     expect(replace).toHaveBeenCalledWith('/meetings/new/schedule/dates');
@@ -62,7 +63,7 @@ describe('CreateMeetingScheduleTimesPage', () => {
         ],
       },
     });
-    render(<CreateMeetingScheduleTimesPage />);
+    renderWithQuery(<CreateMeetingScheduleTimesPage />);
 
     await userEvent.click(screen.getByRole('button', { name: '다음' }));
 
