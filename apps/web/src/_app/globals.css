@@ -89,9 +89,11 @@
 
   /* bold */
   --text-bold-18: 1.125rem; /* 18px */
-  --text-bold-18--line-height: 1.25; /* 125% */
+
+  --text-bold-18--line-height: 1.2; /* 120% */
   --text-bold-18--font-weight: 700;
 
+  /* bold */
   --text-bold-16: 1rem; /* 16px */
   --text-bold-16--line-height: 1.25; /* 125% */
   --text-bold-16--font-weight: 700;

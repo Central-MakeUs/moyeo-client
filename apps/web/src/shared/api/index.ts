@@ -10,6 +10,7 @@
 
 export * from './generated/auth/auth';
 export * from './generated/development-auth/development-auth';
+export * from './generated/meeting/meeting';
 export * from './generated/member/member';
 export * from './generated/time/time';
 export * from './generated/departure-place/departure-place';
