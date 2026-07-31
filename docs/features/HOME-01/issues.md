@@ -216,40 +216,12 @@ Then 아바타 4개(전부 회색)와 `"+16"` 배지가 렌더된다
 
 ---
 
-## Issue 5: [feat] 마감 배지 포맷 계산 (get-deadline-label)
+## Issue 5: ~~마감 배지 포맷 계산~~ — ❌ 범위 제외
 
-### 설명
-
-마감까지 남은 시간에 따라 `"마감 D-N"` / `"마감 N시간 전"` / `"마감 0시간 전"`을 만드는 순수 함수.
-계산은 호출 시점(`now`)을 인자로 받아 고정한다(§3-5, 실시간 갱신 없음). 24시간 경계는 **버림(floor)** 기준으로,
-남은 시간이 24시간 이상이면 `D-floor(남은시간/24)`, 1~24시간 미만이면 `N시간 전`, 1시간 미만이면 `0시간 전`이다.
-마감이 이미 지난 경우의 표시는 이번 이슈 범위 밖이다(§6 남은 확인 사항).
-
-### 구현 범위
-
-- `entities/meeting/model/get-deadline-label.ts`(+test) — `getDeadlineLabel(deadline: Date, now: Date): string`
-
-### 완료 조건 (Acceptance Criteria)
-
-☐ AC-1 (범위: 단위):
-Given `now = 2026-07-15T00:00:00`, `deadline = 2026-07-18T00:00:00`(정확히 72시간 후)
-When `getDeadlineLabel(deadline, now)`를 호출한다
-Then `"마감 D-3"`을 반환한다
-
-☐ AC-2 (범위: 단위):
-Given `now = 2026-07-14T10:00:00`, `deadline = 2026-07-15T10:00:00`(정확히 24시간 후)
-When 호출한다
-Then `"마감 D-1"`을 반환한다 (24시간 경계는 일 단위로 표시)
-
-☐ AC-3 (범위: 단위):
-Given `now = 2026-07-14T13:00:00`, `deadline = 2026-07-15T10:00:00`(21시간 후)
-When 호출한다
-Then `"마감 21시간 전"`을 반환한다
-
-☐ AC-4 (범위: 단위):
-Given `now = 2026-07-15T09:30:00`, `deadline = 2026-07-15T10:00:00`(30분 후)
-When 호출한다
-Then `"마감 0시간 전"`을 반환한다
+> **2026-07-31 결정**: 마감(deadline) 기능 자체를 이번 범위에서 뺀다. 진행 카드에 마감 배지 UI를
+> 만들지 않고, `get-deadline-label` 순수 함수도 만들지 않는다. `MeetingSummary`에서도 deadline
+> 관련 필드를 제외한다(Issue 6 갱신 참고). 진행 카드는 제목 + 커버 이미지 + avatar-group +
+> "N/N명 참여중"만 남는다.
 
 ---
 
@@ -257,24 +229,32 @@ Then `"마감 0시간 전"`을 반환한다
 
 ### 설명
 
-#1에서 재생성된 Orval 훅을 감싸, 화면이 바로 쓸 수 있는 `MeetingSummary[]`로 정규화하고 진행 중/확정으로
-분리해 반환하는 `entities/meeting` 훅. TanStack Query 기반, MSW로 테스트한다.
+#1에서 재생성된 `useGetMyMeetings()`(`GET /api/meetings/me`)를 감싸, 화면이 바로 쓸 수 있는
+`MeetingSummary[]`로 정규화하는 `entities/meeting` 훅. TanStack Query 기반, MSW로 테스트한다.
+
+> **2026-07-31 API 확인 결과 반영**: 서버 응답(`MyMeetingListResponse`)이 이미
+> `planningMeetings`(진행 중) / `confirmedMeetings`(확정)로 분리해서 내려준다. 클라이언트에서
+> 진행중/확정을 나누는 필터링 로직은 필요 없고, 각 배열을 `MeetingSummary`로 매핑만 하면 된다.
+> 또한 마감(deadline) 관련 필드는 제외한다(Issue 5 참고). `Item`의 모든 필드가 optional이라
+> 매핑 시 기본값 처리가 필요하다(`participantCount`/`maxParticipants` 없으면 0으로 처리 등).
 
 ### 구현 범위
 
-- `entities/meeting/model/meeting-summary.ts` — `MeetingSummary` 타입(`capacity`, `joinedCount`, `deadline`, `coverImageUrl`, 확정 일시/장소 등)
+- `entities/meeting/model/meeting-summary.ts` — `MeetingSummary` 타입(`meetingId`, `name`, `coverImageUrl`,
+  `capacity`, `joinedCount`, 확정 일시/장소 등. **deadline 필드 없음**)
 - `entities/meeting/model/use-meetings-query.ts`(+test) — `useMeetingsQuery(): { data: { inProgress: MeetingSummary[]; confirmed: MeetingSummary[] }, isLoading, isError }`
+  — `useGetMyMeetings()`의 `planningMeetings`/`confirmedMeetings`를 각각 매핑만 한다(필터링 없음)
 - `entities/meeting/index.ts`(public API)
 
 ### 완료 조건 (Acceptance Criteria)
 
 ☐ AC-1 (범위: 단위):
-Given MSW가 진행 중 모임 2개, 확정 모임 1개를 반환하도록 설정됨
+Given MSW가 `planningMeetings` 2개, `confirmedMeetings` 1개를 반환하도록 설정됨
 When `useMeetingsQuery()`를 렌더한다
 Then `data.inProgress.length === 2`, `data.confirmed.length === 1`이다
 
 ☐ AC-2 (범위: 단위):
-Given MSW가 빈 배열을 반환
+Given MSW가 `planningMeetings: []`, `confirmedMeetings: []`를 반환
 When `useMeetingsQuery()`를 렌더한다
 Then `data.inProgress`, `data.confirmed` 모두 빈 배열이다
 
@@ -284,9 +264,14 @@ When `useMeetingsQuery()`를 렌더한다
 Then `isError === true`이다
 
 ☐ AC-4 (범위: 단위):
-Given MSW 응답의 원본 필드(#1에서 재생성된 실제 필드명)
+Given MSW 응답의 `Item`에 `participantCount`/`maxParticipants`가 없음(optional 필드 누락)
 When 정규화한다
-Then 결과가 `MeetingSummary.capacity`/`joinedCount`/`deadline`/`coverImageUrl`로 매핑되어 있다
+Then `MeetingSummary.joinedCount`/`capacity`가 `0`으로 매핑된다(방어적 기본값)
+
+☐ AC-5 (범위: 단위):
+Given MSW 응답의 `Item.meetingId`, `name`, `coverImageUrl`이 정상값
+When 정규화한다
+Then 결과가 `MeetingSummary.meetingId`/`name`/`coverImageUrl`로 그대로 매핑되어 있다
 
 ---
 
@@ -331,9 +316,10 @@ Then 라우터가 `/mypage`로 이동(push)한다
 ### 완료 조건 (Acceptance Criteria)
 
 ☐ AC-1 (범위: 통합):
-Given `<MeetingCard title="데모데이에 모여" deadlineLabel="마감 D-3" capacity={5} joinedCount={3} coverImageUrl={undefined} />`
+Given `<MeetingCard title="데모데이에 모여" capacity={5} joinedCount={3} coverImageUrl={undefined} />`
+(마감 배지는 이번 범위에서 제외 — Issue 5 참고)
 When 렌더한다
-Then 제목 "데모데이에 모여", 배지 "마감 D-3", "3/5명 참여중" 텍스트, 기본 플레이스홀더 커버가 표시된다
+Then 제목 "데모데이에 모여", "3/5명 참여중" 텍스트, 기본 플레이스홀더 커버가 표시된다
 
 ☐ AC-2 (범위: 통합):
 Given `meetingId="42"`로 렌더된 `<MeetingCard />`
@@ -362,10 +348,13 @@ Then 해당 이미지가 커버 영역에 표시된다(플레이스홀더 아님
 ### 구현 범위
 
 - `widgets/home/ui/in-progress-meeting-section.tsx`(+test)
-- **캐러셀 ↔ PageControl 인덱스 동기화** — `PageControl`은 `total`/`current`만 받는 순수 컴포넌트이고
-  `Carousel`도 인디케이터를 모르므로, `setApi` + `select` 이벤트 구독은 **이 섹션이 책임진다**(PR #142 설계).
-  jsdom에서 embla가 동작하지 않으므로, 구독 로직은 embla api를 주입받는 얇은 훅으로 분리해
-  fake api(`selectedScrollSnap`/`on`/`off` 스텁)로 단위 검증한다.
+
+> **2026-07-31 정정**: 초안에서는 "캐러셀 ↔ PageControl 인덱스 동기화를 이 섹션이 책임진다"고
+> 적었으나, PR #142에서 `PageControl`을 `Carousel` 내부로 흡수한 `CarouselPageControl`로
+> 설계가 바뀌었다. `selectedIndex`/`slideCount`를 `Carousel`이 자체 context로 들고 있어,
+> 이 섹션은 `<Carousel><CarouselContent>...<CarouselPageControl /></Carousel>`로 조립만 하면
+> 되고 별도의 `setApi`/`select` 구독 배선이나 fake embla api 단위 테스트가 필요 없다.
+> (관련 AC 2개 삭제됨 — 아래 남은 AC만 유효)
 
 ### 완료 조건 (Acceptance Criteria)
 
@@ -373,16 +362,6 @@ Then 해당 이미지가 커버 영역에 표시된다(플레이스홀더 아님
 Given `inProgress`에 모임 3개
 When 섹션을 렌더한다
 Then 섹션 타이틀이 "진행 중 모임 3"이고 카드 3장, 점 3개가 렌더된다
-
-☐ AC-4 (범위: 단위):
-Given fake embla api(`selectedScrollSnap: () => 1`, `on`/`off` 스텁)를 주입한 인덱스 동기화 훅
-When fake api가 `select` 이벤트를 발생시킨다
-Then 훅이 반환하는 현재 인덱스가 `1`로 갱신된다 (embla 없이 jsdom에서 검증)
-
-☐ AC-5 (범위: 단위):
-Given 위 훅이 마운트된 상태
-When 언마운트한다
-Then 등록했던 리스너가 `off`로 **빠짐없이** 해제된다 (PR #142에서 발견된 `reInit` 해제 누락 재발 방지)
 
 ☐ AC-2 (범위: 통합):
 Given `inProgress`가 빈 배열
@@ -408,12 +387,23 @@ Then 타이틀이 "진행 중 모임 1"이고 카드 1장, 활성 점 1개가 �
 - `entities/meeting/ui/confirmed-meeting-list-item.tsx`(+test+stories)
 - `widgets/home/ui/confirmed-meeting-section.tsx`(+test)
 
+> **2026-07-31 API 확인 결과 반영**: 서버는 확정 일시를 `confirmedScheduleDate`(날짜) +
+> `confirmedStartTime`/`confirmedEndTime`(시각, DATE_ONLY 모임이면 `null`)로 나눠서 준다.
+> `title="2026년 7월 18일 14시"` 처럼 시간까지 있는 예시는 시각이 있는 경우고, 시각이
+> `null`이면 **날짜만** 표시한다("2026년 7월 18일").
+
 ### 완료 조건 (Acceptance Criteria)
 
 ☐ AC-1 (범위: 통합):
-Given `<ConfirmedMeetingListItem title="CMC UT데이 (모여조)" confirmedAt={2026-07-18T14:00:00} place="공덕역" thumbnailUrl={undefined} />`
+Given `<ConfirmedMeetingListItem title="CMC UT데이 (모여조)" confirmedDate="2026-07-18" confirmedStartTime="14:00" place="공덕역" thumbnailUrl={undefined} />`
 When 렌더한다
 Then 제목, "2026년 7월 18일 14시", "공덕역", 기본 플레이스홀더 썸네일이 표시된다
+
+☐ AC-1b (범위: 통합):
+Given `<ConfirmedMeetingListItem title="CMC UT데이 (모여조)" confirmedDate="2026-07-18" confirmedStartTime={undefined} place="공덕역" />`
+(DATE_ONLY 모임 — 시각 없음)
+When 렌더한다
+Then "2026년 7월 18일"만 표시되고 시각은 표시되지 않는다
 
 ☐ AC-2 (범위: 통합):
 Given 렌더된 `<ConfirmedMeetingListItem />`
