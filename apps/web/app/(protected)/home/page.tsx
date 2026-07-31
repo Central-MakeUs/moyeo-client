@@ -2,7 +2,7 @@ import Image from 'next/image';
 
 import { PlanningTypeDrawer } from '@/features/meeting/create-meeting';
 import Logo from '@/shared/assets/images/logo.png';
-import { Icon } from '@/shared/ui/icon';
+import { Avatar } from '@/shared/ui/avatar';
 import { IconButton } from '@/shared/ui/icon-button';
 
 export default function HomePage() {
@@ -12,7 +12,7 @@ export default function HomePage() {
         <Image src={Logo} alt="MOYEO" className="h-auto w-[78px]" priority />
 
         <button type="button" aria-label="프로필 열기">
-          <Icon name="avatar" size={28} />
+          <Avatar size={28} />
         </button>
       </header>
       <main className="flex w-full flex-1 flex-col"></main>
