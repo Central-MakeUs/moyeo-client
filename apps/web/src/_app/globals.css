@@ -68,7 +68,27 @@
   --text-extrabold-22--line-height: 1.4; /* 140% */
   --text-extrabold-22--font-weight: 800;
 
+  --text-extrabold-18: 1.125rem; /* 18px */
+  --text-extrabold-18--line-height: 1.5; /* 150% */
+  --text-extrabold-18--font-weight: 800;
+
+  --text-extrabold-16: 1rem; /* 16px */
+  --text-extrabold-16--line-height: normal; /* auto */
+  --text-extrabold-16--font-weight: 800;
+
+  --text-extrabold-14: 0.875rem; /* 14px */
+  --text-extrabold-14--line-height: normal; /* auto */
+  --text-extrabold-14--font-weight: 800;
+
+  --text-extrabold-8: 0.5rem; /* 8px */
+  --text-extrabold-8--line-height: normal; /* auto */
+  --text-extrabold-8--font-weight: 800;
+
   /* bold */
+  --text-bold-18: 1.125rem; /* 18px */
+  --text-bold-18--line-height: 1.25; /* 125% */
+  --text-bold-18--font-weight: 700;
+
   --text-bold-16: 1rem; /* 16px */
   --text-bold-16--line-height: 1.25; /* 125% */
   --text-bold-16--font-weight: 700;
@@ -76,6 +96,10 @@
   --text-bold-14: 0.875rem; /* 14px */
   --text-bold-14--line-height: 1.4; /* 140% */
   --text-bold-14--font-weight: 700;
+
+  --text-bold-12: 0.75rem; /* 12px */
+  --text-bold-12--line-height: 1.4; /* 140% */
+  --text-bold-12--font-weight: 700;
 
   /* semibold */
   --text-semibold-16: 1rem; /* 16px */
@@ -85,6 +109,10 @@
   --text-semibold-14: 0.875rem; /* 14px */
   --text-semibold-14--line-height: 1.5; /* 150% */
   --text-semibold-14--font-weight: 600;
+
+  --text-semibold-12: 0.75rem; /* 12px */
+  --text-semibold-12--line-height: 1.5; /* 150% */
+  --text-semibold-12--font-weight: 600;
 
   /* medium */
   --text-medium-16: 1rem; /* 16px */
