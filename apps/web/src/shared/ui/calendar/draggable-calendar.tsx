@@ -3,6 +3,8 @@
 import * as React from 'react';
 import { isSameDay } from 'date-fns';
 
+import { cn } from '@/shared/lib/cn';
+
 import { Calendar } from './calendar';
 import { CalendarDayButton } from './calendar-button';
 import { computeRuns } from './compute-runs';
@@ -156,7 +158,11 @@ export function DraggableCalendar({
   // 단독 선택 스타일은 기본 Calendar 경로까지 지원하도록 selected && !range*로 유도하므로 RDP에는 전달하지 않는다.
 
   return (
+    // 취소 판정의 기준이 되는 요소라 캘린더와 같은 크기여야 한다.
+    // Calendar 루트가 w-fit이므로 래퍼도 w-fit으로 맞춘다 —
+    // 래퍼가 더 넓으면 캘린더 좌우 여백이 여전히 '안'이라 pointerleave가 뜨지 않는다.
     <div
+      className={cn('w-fit', className)}
       onPointerLeave={() => {
         if (anchorRef.current) cancelDrag();
       }}
@@ -187,7 +193,6 @@ export function DraggableCalendar({
         disabled={isDateDisabled}
         month={month}
         onMonthChange={onMonthChange}
-        className={className}
         components={components}
       />
     </div>

@@ -110,7 +110,7 @@ function DrawerBody({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="drawer-body"
-      className={cn('min-h-0 flex-1 overflow-y-auto', className)}
+      className={cn('min-h-0 flex-auto overflow-y-auto', className)}
       {...props}
     />
   );
