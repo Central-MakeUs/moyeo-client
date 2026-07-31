@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 
-import MoyeoLogo from '@/shared/assets/illustrations/moyeo-logo.svg';
 import { SocialLoginButtons } from '@/features/social-login';
+import { Icon } from '@/shared/ui/icon';
 import { TopAppBar } from '@/shared/ui/top-app-bar';
 
 export function LoginPage() {
@@ -10,7 +10,7 @@ export function LoginPage() {
       <TopAppBar />
       <main className="flex flex-1 flex-col px-5 pt-[37px] pb-11">
         <div className="flex flex-col gap-4">
-          <MoyeoLogo width={70} height={70} />
+          <Icon name="moyeo-logo" size={70} />
           <div className="flex flex-col gap-1">
             <h1 className="text-extrabold-22 text-accessible-950">
               <span className="text-primary">모여</span>에 오신 것을

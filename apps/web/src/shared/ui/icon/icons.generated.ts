@@ -23,6 +23,7 @@ import Kakao from '@/shared/assets/icons/kakao.svg';
 import LinkSmall from '@/shared/assets/icons/link-small.svg';
 import Link from '@/shared/assets/icons/link.svg';
 import Minus from '@/shared/assets/icons/minus.svg';
+import MoyeoLogo from '@/shared/assets/icons/moyeo-logo.svg';
 import NotePrimary from '@/shared/assets/icons/note-primary.svg';
 import Note from '@/shared/assets/icons/note.svg';
 import Person from '@/shared/assets/icons/person.svg';
@@ -56,6 +57,7 @@ export const ICONS = {
   'link-small': LinkSmall,
   link: Link,
   minus: Minus,
+  'moyeo-logo': MoyeoLogo,
   'note-primary': NotePrimary,
   note: Note,
   person: Person,
