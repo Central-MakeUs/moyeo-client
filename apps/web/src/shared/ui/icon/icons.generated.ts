@@ -26,6 +26,7 @@ import Link from '@/shared/assets/icons/link.svg';
 import Minus from '@/shared/assets/icons/minus.svg';
 import NotePrimary from '@/shared/assets/icons/note-primary.svg';
 import Note from '@/shared/assets/icons/note.svg';
+import Person from '@/shared/assets/icons/person.svg';
 import PinnedPrimary from '@/shared/assets/icons/pinned-primary.svg';
 import Pinned from '@/shared/assets/icons/pinned.svg';
 import Plus from '@/shared/assets/icons/plus.svg';
@@ -59,6 +60,7 @@ export const ICONS = {
   minus: Minus,
   'note-primary': NotePrimary,
   note: Note,
+  person: Person,
   'pinned-primary': PinnedPrimary,
   pinned: Pinned,
   plus: Plus,
