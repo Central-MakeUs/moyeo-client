@@ -181,7 +181,7 @@ function CarouselPageControl({ className, ...props }: React.ComponentProps<'div'
   return (
     <div
       data-slot="page-control"
-      className={cn('mt-3 flex items-center justify-center gap-2', className)}
+      className={cn('mt-1.5 flex h-[22px] items-center justify-center gap-2', className)}
       {...props}
     >
       {Array.from({ length: slideCount }, (_, index) => (
