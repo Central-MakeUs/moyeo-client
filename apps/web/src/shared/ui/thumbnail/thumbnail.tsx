@@ -26,11 +26,7 @@ export function Thumbnail({
   const [hasError, setHasError] = React.useState(false);
 
   return (
-    <div
-      data-slot="thumbnail"
-      className={cn('relative overflow-hidden rounded-10', className)}
-      {...props}
-    >
+    <div data-slot="thumbnail" className={cn('relative overflow-hidden', className)} {...props}>
       {imageUrl && !hasError ? (
         <Image
           data-slot="thumbnail-img"
