@@ -19,6 +19,7 @@ import ChevronUp from '@/shared/assets/icons/chevron-up.svg';
 import Close from '@/shared/assets/icons/close.svg';
 import Confetti from '@/shared/assets/icons/confetti.svg';
 import Envelope from '@/shared/assets/icons/envelope.svg';
+import Invitation from '@/shared/assets/icons/invitation.svg';
 import KakaoLogo from '@/shared/assets/icons/kakao-logo.svg';
 import KakaoText from '@/shared/assets/icons/kakao-text.svg';
 import Kakao from '@/shared/assets/icons/kakao.svg';
@@ -58,6 +59,7 @@ export const ICONS = {
   close: Close,
   confetti: Confetti,
   envelope: Envelope,
+  invitation: Invitation,
   'kakao-logo': KakaoLogo,
   'kakao-text': KakaoText,
   kakao: Kakao,

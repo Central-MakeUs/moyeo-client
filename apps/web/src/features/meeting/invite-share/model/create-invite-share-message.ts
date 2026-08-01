@@ -1,4 +1,5 @@
-const INVITE_SHARE_IMAGE_PATH = '/invite-share.png';
+import { INVITE_SHARE_IMAGE_PATH } from '../config/invite-share';
+
 export const INVITE_SHARE_MESSAGE = '모임에 참여해서 일정과 위치를 정해보세요!';
 
 export function getInviteShareImageUrl(): string {

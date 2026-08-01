@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 
-import { CTASection, InputButton } from '@/shared/ui';
+import { Button, CTASection, InputButton } from '@/shared/ui';
 import { PageHeader } from '@/shared/ui/page-header';
 
 import { useCreateMeetingDraft } from '../model/create-meeting-draft';
@@ -31,9 +31,13 @@ export function DepartureStep({ onNext, onSearch }: DepartureStepProps): React.J
         />
       }
       footer={
-        <CTASection disabled={!isStepComplete('departure', draft)} onClick={onNext}>
-          다음
-        </CTASection>
+        <CTASection
+          primaryAction={
+            <Button fullWidth disabled={!isStepComplete('departure', draft)} onClick={onNext}>
+              다음
+            </Button>
+          }
+        />
       }
     >
       <div className="flex w-full flex-col gap-4">

@@ -18,6 +18,7 @@ export * from './toast';
 export * from './wheel-picker';
 export * from './cta-section';
 export * from './calendar';
+export * from './celebration';
 export * from './drawer';
 export * from './select';
 export * from './top-app-bar';

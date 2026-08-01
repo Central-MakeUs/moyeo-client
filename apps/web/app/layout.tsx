@@ -6,6 +6,7 @@ import { SessionProvider } from '@/entities/session';
 import { AppLayout } from '@/shared/ui/layouts/app-layout';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.WEB_BASE_URL ?? 'http://localhost:3000'),
   title: {
     default: '모여',
     template: '%s | 모여',

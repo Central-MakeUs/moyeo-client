@@ -73,7 +73,15 @@ export function BasicStep({ onNext }: BasicStepProps) {
         header={
           <PageHeader title="모임을 만들어볼까요?" description="모임의 기본 정보를 입력해주세요" />
         }
-        footer={<CTASection disabled={!canGoNext} onClick={onNext} />}
+        footer={
+          <CTASection
+            primaryAction={
+              <Button fullWidth disabled={!canGoNext} onClick={onNext}>
+                다음
+              </Button>
+            }
+          />
+        }
       >
         <div className="flex flex-col gap-4">
           <p className="text-bold-14 text-neutral-700">기본 정보</p>

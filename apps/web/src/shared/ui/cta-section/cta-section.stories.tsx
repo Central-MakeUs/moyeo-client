@@ -1,12 +1,15 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 
-import { CTASection } from './cta-section';
 import {
   mobileViewportGlobals,
   mobileShellParameters,
   withBottomLayout,
   withAppShell,
 } from '~storybook/presets/mobile-shell';
+
+import { Button } from '@/shared/ui/button';
+
+import { CTASection } from './cta-section';
 
 const meta = {
   title: 'Primitives/CTASection',
@@ -18,30 +21,18 @@ const meta = {
   decorators: [withBottomLayout, withAppShell],
   tags: ['autodocs'],
   argTypes: {
-    children: {
-      control: 'text',
-      description: 'CTA 버튼에 표시할 내용',
+    primaryAction: {
+      control: false,
+      description: '하단의 주요 행동. 일반적으로 fullWidth Primary Button을 전달합니다.',
     },
-    disabled: {
-      control: 'boolean',
-      description: 'button으로 렌더링할 때의 비활성 상태',
-    },
-    asChild: {
-      control: 'boolean',
-      description: 'Button의 asChild를 통해 a 또는 Link 같은 자식 요소로 렌더링',
+    secondaryAction: {
+      control: false,
+      description: '주요 행동 위에 표시하는 선택 행동입니다.',
     },
     className: {
       control: 'text',
-      description: 'CTA 영역(section)에 추가할 className',
+      description: 'CTA 영역에 추가할 className입니다.',
     },
-    buttonClassName: {
-      control: 'text',
-      description: '내부 Button에 추가할 className',
-    },
-  },
-  args: {
-    children: '다음',
-    disabled: false,
   },
 } satisfies Meta<typeof CTASection>;
 
@@ -49,31 +40,40 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-/** 기본 CTA입니다. button으로 렌더링되며 onClick 같은 button prop을 그대로 받습니다. */
-export const Default: Story = {};
-
-/** 폼 입력이 아직 유효하지 않을 때 쓰는 비활성 상태입니다. */
-export const Disabled: Story = {
+/** Primary 버튼 하나만 사용하는 기본 하단 행동 영역입니다. */
+export const SingleAction: Story = {
   args: {
-    disabled: true,
+    primaryAction: <Button fullWidth>다음</Button>,
   },
 };
 
-/** 문구가 달라지는 CTA입니다. 레이아웃은 유지하고 버튼 내용만 바꿉니다. */
-export const CustomLabel: Story = {
+/** 선택 행동과 Primary 행동을 함께 사용하는 하단 행동 영역입니다. */
+export const WithSecondaryAction: Story = {
   args: {
-    children: '모임 만들기',
+    secondaryAction: <Button variant="link">날짜만 정하고 싶어요</Button>,
+    primaryAction: <Button fullWidth>다음</Button>,
   },
 };
 
-/** 다음 화면으로 이동해야 할 때는 asChild로 링크 요소를 전달합니다. Next Link도 같은 방식으로 감쌀 수 있습니다. */
-export const AsLink: Story = {
+/** 입력이 아직 유효하지 않은 경우 Primary 행동만 비활성화합니다. */
+export const DisabledPrimaryAction: Story = {
   args: {
-    asChild: true,
+    secondaryAction: <Button variant="link">마감 기한 없이 답변받을래요</Button>,
+    primaryAction: (
+      <Button fullWidth disabled>
+        다음
+      </Button>
+    ),
   },
-  render: (args) => (
-    <CTASection {...args}>
-      <a href="/create-room">다음</a>
-    </CTASection>
-  ),
+};
+
+/** 페이지 이동도 Button의 asChild API를 통해 명시적으로 구성합니다. */
+export const PrimaryActionAsLink: Story = {
+  args: {
+    primaryAction: (
+      <Button fullWidth asChild>
+        <a href="/create-room">다음</a>
+      </Button>
+    ),
+  },
 };

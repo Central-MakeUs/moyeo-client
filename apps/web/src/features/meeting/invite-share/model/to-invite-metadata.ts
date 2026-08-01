@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 
 import type { MeetingInvitationResponse } from '@/shared/api';
 
+import { INVITE_SHARE_IMAGE_PATH } from '../config/invite-share';
+
 const SITE_NAME = '모여';
 const FALLBACK_TITLE = '모여 초대장';
 const FALLBACK_DESCRIPTION = '링크를 열어 모임에 참여해보세요';
@@ -14,12 +16,13 @@ export interface InviteMetadataOptions {
 /**
  * 초대 링크의 미리보기 카드(Open Graph) 메타데이터.
  *
- * 카카오톡·메신저가 링크를 붙일 때 읽는 태그다. 조회에 실패하면 `invitation`이 `null`로 들어오며,
- * 그때는 모임 정보 없는 기본 카드를 만든다 — 태그를 아예 내보내지 않으면 크롤러가 페이지 본문에서
- * 아무 텍스트나 긁어가 이상한 카드가 만들어진다.
+ * 카카오톡·메신저의 링크 크롤러가 읽을 제목, 설명과 공유 이미지를 구성합니다.
+ * 초대 정보 조회에 실패하면 기본 제목과 설명을 사용하고, 커버 이미지가 없거나
+ * 사용할 수 없으면 기본 공유 이미지를 사용합니다.
  *
- * `coverImageUrl`은 상대 API 경로라 그대로 쓰면 크롤러가 못 읽는다. 절대 URL로 바꿀 수 있을 때만
- * 넣는다(커버 사진은 1차 출시 제외라 보통 비어 있다).
+ * @param invitation API에서 조회한 모임 초대 정보, 또는 조회 실패 시 `null`
+ * @param options 공유 링크 메타데이터 생성에 필요한 옵션
+ * @returns 초대 링크의 제목, 설명과 Open Graph·Twitter 카드 메타데이터
  */
 export function toInviteMetadata(
   invitation: MeetingInvitationResponse | null,
@@ -38,37 +41,52 @@ export function toInviteMetadata(
       url,
       siteName: SITE_NAME,
       type: 'website',
-      ...(images === null ? {} : { images }),
+      images,
     },
     twitter: {
-      card: images === null ? 'summary' : 'summary_large_image',
+      card: 'summary_large_image',
       title,
       description,
     },
   };
 }
 
+/**
+ * 초대 정보에서 공유 카드에 사용할 설명을 만듭니다.
+ *
+ * 모임 설명, 방장 초대 문구, 기본 안내 문구 순서로 폴백합니다.
+ *
+ * @param invitation API에서 조회한 모임 초대 정보, 또는 조회 실패 시 `null`
+ * @returns 공유 카드에 표시할 설명
+ */
 function toDescription(invitation: MeetingInvitationResponse | null): string {
   if (invitation === null) return FALLBACK_DESCRIPTION;
 
-  // 모임 설명이 있으면 그게 가장 구체적이다. 없으면 누가 불렀는지를 보여준다.
   if (invitation.description) return invitation.description;
   if (invitation.hostNickname) return `${invitation.hostNickname}님이 모임에 초대했어요`;
 
   return FALLBACK_DESCRIPTION;
 }
 
-function toImages(invitation: MeetingInvitationResponse | null): string[] | null {
+/**
+ * 초대 정보에서 크롤러가 읽을 공유 이미지 URL을 만듭니다.
+ *
+ * 절대 URL은 그대로 사용하고, 상대 경로는 API 기준 URL과 결합합니다. 커버 이미지가 없거나
+ * 상대 경로를 절대 URL로 바꿀 수 없으면 기본 공유 이미지 경로를 반환합니다.
+ *
+ * @param invitation API에서 조회한 모임 초대 정보, 또는 조회 실패 시 `null`
+ * @returns 공유 카드에 사용할 이미지 URL 한 개를 담은 배열
+ */
+function toImages(invitation: MeetingInvitationResponse | null): string[] {
   const coverImageUrl = invitation?.coverImageUrl;
-  if (!coverImageUrl) return null;
+  if (!coverImageUrl) return [INVITE_SHARE_IMAGE_PATH];
 
-  // 크롤러가 인터넷에서 직접 받아야 하므로 절대 URL이어야 한다.
   if (coverImageUrl.startsWith('http://') || coverImageUrl.startsWith('https://')) {
     return [coverImageUrl];
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-  if (!baseUrl) return null;
+  if (!baseUrl) return [INVITE_SHARE_IMAGE_PATH];
 
   return [
     `${baseUrl.replace(/\/$/, '')}${coverImageUrl.startsWith('/') ? '' : '/'}${coverImageUrl}`,

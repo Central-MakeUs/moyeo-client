@@ -59,11 +59,11 @@ describe('toInviteMetadata', () => {
     expect(metadata.openGraph).toMatchObject({ url: 'https://moyeo.app/i/5UKSN9MC2M' });
   });
 
-  it('커버 이미지가 없으면 images를 넣지 않는다', () => {
+  it('커버 이미지가 없으면 기본 공유 이미지를 쓴다', () => {
     const metadata = toInviteMetadata(invitationOf(), URL_OPTIONS);
 
-    expect(metadata.openGraph).not.toHaveProperty('images');
-    expect(metadata.twitter).toMatchObject({ card: 'summary' });
+    expect(metadata.openGraph).toMatchObject({ images: ['/invite-share.png'] });
+    expect(metadata.twitter).toMatchObject({ card: 'summary_large_image' });
   });
 
   it('커버 이미지가 절대 URL이면 그대로 쓴다', () => {
