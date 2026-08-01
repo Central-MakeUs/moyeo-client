@@ -9,6 +9,8 @@ import { Icon } from '@/shared/ui/icon';
 import { IconButton } from '@/shared/ui/icon-button';
 import { Thumbnail } from '@/shared/ui/thumbnail';
 import { TopAppBar } from '@/shared/ui/top-app-bar';
+import { Progress, Tooltip } from '@/shared/ui';
+import { cn } from '@/shared/lib/cn';
 
 /**
  * create-meeting의 invitePath()와 같은 쿼리 키.
@@ -34,9 +36,11 @@ function MeetingOverviewContent(): React.JSX.Element {
   const progressPercent =
     data && data.capacity > 0 ? Math.min(100, (data.joinedCount / data.capacity) * 100) : 0;
 
+  const isComplete = data && data.joinedCount >= data.capacity;
+
   return (
     <main>
-      <div className="relative h-[210px] w-full">
+      <div className="relative h-[166px] w-full">
         <Thumbnail overlay showIcon={false} imageUrl={data?.coverImageUrl} className="size-full" />
         <TopAppBar
           className="absolute top-0"
@@ -46,40 +50,64 @@ function MeetingOverviewContent(): React.JSX.Element {
       </div>
 
       {isLoading && (
-        <p className="pt-8 text-center text-medium-14 text-neutral-400">불러오는 중...</p>
+        <div className="pt-8 text-center text-medium-14 text-neutral-400">불러오는 중...</div>
       )}
       {isError && (
         <p className="pt-8 text-center text-medium-14 text-neutral-400">
           모임 정보를 불러오지 못했어요
         </p>
       )}
-      {data && (
-        <div className="relative z-10 mx-5 -mt-10 rounded-12 border border-accessible-100 bg-accessible-10 px-5 py-6">
-          <p className="text-center text-extrabold-16 text-accessible-900">{data.name}</p>
-          {data.description && (
-            <p className="mt-2 text-center text-medium-14 text-neutral-600">{data.description}</p>
-          )}
 
-          <div className="mt-4 flex items-center justify-end gap-1">
-            <Icon name="group" size={16} />
-            <span className="text-bold-14 text-accessible-700">{data.joinedCount}</span>
-            <span className="text-bold-14 text-neutral-600">{`/${data.capacity}`}</span>
+      {data && (
+        <div className="relative z-10 -mt-[69px] flex flex-col gap-6 px-5">
+          {/* 추후 마감일 뱃지 추가 필요 */}
+          <div className="flex flex-col items-center gap-3 rounded-14 border border-accessible-100 bg-accessible-10 px-4 py-6">
+            <h1 className="text-extrabold-18 text-accessible-900">{data.name}</h1>
+            {data.description && (
+              <p className="text-semibold-14 text-neutral-600">{data.description}</p>
+            )}
           </div>
 
-          <div className="mt-2 flex items-center gap-2">
-            <div className="flex flex-col items-center gap-1">
-              <Icon name="invitation" size={32} />
-              <span className="text-medium-12 text-neutral-500">초대</span>
+          <div className="flex flex-1 items-center">
+            <div className="flex flex-col items-center gap-1.5 pt-8">
+              <div className="flex size-[42px] flex-col items-center justify-center rounded-8 border-2 border-accessible-50 bg-accessible-100">
+                <Icon name="invitation" size={24} />
+              </div>
+              <span className="text-bold-14 text-accessible-400">초대</span>
             </div>
-            <div className="relative h-1 flex-1 rounded-full bg-neutral-50">
-              <div
-                className="absolute inset-y-0 left-0 rounded-full bg-primary"
-                style={{ width: `${progressPercent}%` }}
+
+            <div className="relative flex flex-1 items-center justify-center pt-11.5 pb-11">
+              <Tooltip icon="group" className="top-0" style={{ left: `${progressPercent}%` }}>
+                <span className="text-accessible-500">{data.joinedCount}</span>
+                <span className="text-neutral-600">{`/${data.capacity}`}</span>
+              </Tooltip>
+
+              <Progress
+                value={progressPercent}
+                className="h-1.5"
+                indicatorClassName="bg-linear-to-r from-[#FFB6B4] to-accessible-400"
               />
             </div>
-            <div className="flex flex-col items-center gap-1">
-              <Icon name="note-primary" size={32} />
-              <span className="text-medium-12 text-neutral-500">완료</span>
+
+            <div className="flex flex-col items-center gap-1.5 pt-8">
+              <div
+                className={cn(
+                  'flex size-[42px] flex-col items-center justify-center rounded-8 border-2',
+                  isComplete
+                    ? 'border-accessible-50 bg-accessible-100'
+                    : 'border-neutral-50 bg-neutral-10'
+                )}
+              >
+                <Icon name="note" size={24} />
+              </div>
+              <span
+                className={cn(
+                  'text-bold-14',
+                  isComplete ? 'text-accessible-400' : 'text-neutral-300'
+                )}
+              >
+                완료
+              </span>
             </div>
           </div>
         </div>
