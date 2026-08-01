@@ -8,6 +8,10 @@ export default async function InvitePage({ params }: InvitePageProps) {
   const invitation = await fetchInvitationForPage(inviteToken);
 
   return (
-    <InviteLandingPage inviteCode={inviteToken} invitation={toMeetingInvitation(invitation)} />
+    <InviteLandingPage
+      inviteCode={inviteToken}
+      invitation={toMeetingInvitation(invitation)}
+      participationStatus={invitation?.participationStatus}
+    />
   );
 }
