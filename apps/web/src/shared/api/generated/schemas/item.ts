@@ -14,6 +14,8 @@ import type { ItemRole } from './itemRole';
 export interface Item {
   /** 모임 ID */
   meetingId?: number;
+  /** 모임 초대 코드. 모임 현황 조회 API 경로에 사용합니다. */
+  inviteCode?: string;
   /** 모임명 */
   name?: string;
   /** 커버 이미지 조회 API 경로. 없으면 null */
