@@ -103,8 +103,15 @@ stub은 시그니처(이름·파라미터·반환 타입)만 옮긴 껍데기이
 
 - **React Testing Library** (컴포넌트/훅 — jsdom 하네스 필요)
   - `import { render, screen } from '@testing-library/react'`
+  - 서버 상태 훅을 쓰는 화면은 `render` 대신
+    `import { renderWithQuery } from '@/shared/lib/render-with-query'`
   - 훅 테스트:
     - `import { renderHook, act } from '@testing-library/react'`
+    - 훅이 돌려준 콜백은 **반드시 `act()` 안에서** 호출한다.
+
+- **MSW** (네트워크 경계 — 요청 도달·중복·성공/실패 흐름만)
+  - `import { http, HttpResponse } from 'msw'` · `import { setupServer } from 'msw/node'`
+  - 응답 본문 자체보다 요청 도달·중복 호출·성공/실패 흐름을 검증한다.
 
 - **user-event** (사용자 입력)
   - `import userEvent from '@testing-library/user-event'`
