@@ -32,6 +32,13 @@ export interface UseJoinEntryReturn {
    * 호출부는 이 값이 있을 때만 오류 안내를 노출한다.
    */
   retrySession: (() => void) | null;
+  /**
+   * 로그인 왕복 후 돌아올 경로. 초대 화면 자신이다.
+   *
+   * `/i/{code}/nickname`이 아니다 — 로그인하는 사이 마감되거나 정원이 찰 수 있어
+   * 참여 가능 상태를 다시 통과해야 한다(prd.md ADR-4).
+   */
+  loginNextPath: string;
 }
 
 /**
@@ -71,5 +78,6 @@ export function useJoinEntry({ inviteCode, canJoin }: UseJoinEntryParams): UseJo
     // 세션 오류는 기다린다고 낫지 않는다. 사용자가 직접 다시 시도할 수단을 준다
     // (spec-fixed.md §4-3).
     retrySession: session.status === 'error' ? session.retry : null,
+    loginNextPath: `/i/${inviteCode}`,
   };
 }

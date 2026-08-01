@@ -1,6 +1,7 @@
+import { Suspense } from 'react';
+
 import { SocialLoginButtons } from '@/features/social-login';
 import { Drawer, DrawerContent, DrawerBody, Button } from '@/shared/ui';
-import React from 'react';
 
 export interface LoginDrawerProps {
   /** 열림 상태. 호출부가 소유한다. */
@@ -13,14 +14,21 @@ export interface LoginDrawerProps {
    * - `member` — 소셜 로그인만 (앱 WebView 안)
    */
   type: 'guest' | 'member';
+  /**
+   * 로그인 후 돌아갈 내부 경로. `SocialLoginButtons`로 그대로 넘긴다.
+   * Drawer를 여는 화면의 URL에 `?next=`가 없을 때 쓴다(prd.md ADR-4).
+   */
+  next?: string | null;
 }
 
-export function LoginDrawer({ isOpen, onOpenChange, type }: LoginDrawerProps) {
+export function LoginDrawer({ isOpen, onOpenChange, type, next }: LoginDrawerProps) {
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}>
       <DrawerContent>
         <DrawerBody className="flex w-full flex-col gap-3 pt-3 pb-11">
-          <SocialLoginButtons />
+          <Suspense>
+            <SocialLoginButtons next={next} />
+          </Suspense>
 
           {type === 'guest' && (
             <>

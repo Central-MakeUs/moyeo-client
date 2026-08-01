@@ -27,11 +27,18 @@ export function InviteLandingPage({
 }: InviteLandingPageProps) {
   const participationGuide = toParticipationGuide(participationStatus);
 
-  const { isBlocked, isDrawerOpen, drawerType, participate, setDrawerOpen, retrySession } =
-    useJoinEntry({
-      inviteCode,
-      canJoin: participationGuide.canJoin,
-    });
+  const {
+    isBlocked,
+    isDrawerOpen,
+    drawerType,
+    participate,
+    setDrawerOpen,
+    retrySession,
+    loginNextPath,
+  } = useJoinEntry({
+    inviteCode,
+    canJoin: participationGuide.canJoin,
+  });
 
   return (
     <div className="flex h-dvh flex-col bg-celebration">
@@ -94,7 +101,12 @@ export function InviteLandingPage({
           />
         )}
       </CompletionLayout>
-      <LoginDrawer type={drawerType} isOpen={isDrawerOpen} onOpenChange={setDrawerOpen} />
+      <LoginDrawer
+        type={drawerType}
+        isOpen={isDrawerOpen}
+        onOpenChange={setDrawerOpen}
+        next={loginNextPath}
+      />
     </div>
   );
 }

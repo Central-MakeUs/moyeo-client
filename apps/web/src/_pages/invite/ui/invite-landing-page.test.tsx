@@ -1,7 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { readOAuthTransaction } from '@/entities/auth';
 import type { MeetingInvitation } from '@/entities/meeting';
 import type { SessionState } from '@/entities/session';
 import type { ParticipationStatusResponse } from '@/shared/api';
@@ -38,6 +39,14 @@ beforeEach(() => {
   native.current = false;
   push.mockClear();
   replace.mockClear();
+  sessionStorage.clear();
+  // Apple 웹 로그인은 local 콜백을 지원하지 않아 stub하지 않으면 throw 한다.
+  vi.stubEnv('NEXT_PUBLIC_OAUTH_REDIRECT_TARGET', 'dev');
+  vi.stubEnv('NEXT_PUBLIC_KAKAO_CLIENT_ID', 'kakao-client-id');
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
 });
 
 const INVITATION: MeetingInvitation = {
@@ -249,6 +258,17 @@ describe('InviteLandingPage', () => {
 
       expect(screen.getByRole('button', { name: '모임 참여하기' })).toBeInTheDocument();
       expect(screen.queryByText('이번에만 게스트로 참여하기')).not.toBeInTheDocument();
+    });
+
+    it('Drawer에서 카카오로 로그인하면 초대 화면 경로가 복귀 목적지로 저장된다', async () => {
+      renderPage(INVITATION, AVAILABLE);
+      await userEvent.click(screen.getByRole('button', { name: '모임 참여하기' }));
+
+      await userEvent.click(screen.getByRole('button', { name: /카카오로 시작하기/ }));
+
+      // /i/ABC123/nickname이 아니다 — 로그인하는 사이 마감·정원이 바뀔 수 있어
+      // 참여 가능 상태를 다시 통과해야 한다(prd.md ADR-4).
+      expect(readOAuthTransaction()?.next).toBe('/i/ABC123');
     });
 
     it('세션이 error면 오류 안내와 다시 시도 버튼이 보이고 모임 참여하기는 disabled다', () => {
