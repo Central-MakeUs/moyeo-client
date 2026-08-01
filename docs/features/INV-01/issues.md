@@ -179,9 +179,9 @@ Then `서버가 준 다른 문구`가 아니라 `마감 기한이 지났어요`�
 
 ### 구현 범위
 
-- `apps/web/src/features/meeting/join-invite/` (신규 슬라이스, `prd.md` ADR-1)
+- `apps/web/src/features/meeting/invite-join-entry/` (신규 슬라이스, `prd.md` ADR-1)
   - `model/resolve-join-destination.ts` — 순수 함수
-  - `model/use-join-invite.ts` — Drawer 상태 + 라우팅
+  - `model/use-invite-join-entry.ts` — Drawer 상태 + 라우팅
   - `index.ts`
 - `apps/web/src/_pages/invite/ui/invite-landing-page.tsx` — 훅 연결, 인라인 분기 제거
 
@@ -239,7 +239,7 @@ Drawer에서 로그인하거나 신규 가입으로 온보딩을 거쳐도 원�
 - `apps/web/src/features/social-login/ui/social-login-buttons.tsx` — `next` prop 추가
 - `apps/web/src/features/social-login/model/resolve-post-login-path.ts` — 온보딩 경로에 `next` 유지
 - `apps/web/src/_pages/nickname/` — 온보딩 완료 후 `next`로 복귀
-- `apps/web/src/_pages/invite/` 또는 `join-invite` — Drawer에 `next=/i/{code}` 주입
+- `apps/web/src/_pages/invite/` 또는 `invite-join-entry` — Drawer에 `next=/i/{code}` 주입
 
 `spec-fixed.md §7`의 결함 6·7번을 여기서 고친다. 복귀 지점은 `/i/{code}`다
 (`/i/{code}/nickname`이 아니다 — 참여 가능 상태를 다시 통과해야 한다).
