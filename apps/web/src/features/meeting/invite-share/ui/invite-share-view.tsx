@@ -3,7 +3,8 @@
 import * as React from 'react';
 
 import { cn } from '@/shared/lib/cn';
-import { Button, CTASection } from '@/shared/ui';
+
+import { Button, Celebration, CTASection } from '@/shared/ui';
 import { Icon } from '@/shared/ui/icon';
 import { IconButton } from '@/shared/ui/icon-button';
 import { CompletionLayout } from '@/shared/ui/layouts';
@@ -59,7 +60,7 @@ export function InviteShareView({
             description="함께하고 싶은 친구들에게 초대장을 보내주세요"
           />
         }
-        visual={<Icon name="plane" className="size-[75px]" />}
+        visual={<Celebration icon="plane" />}
         footer={
           <CTASection
             primaryAction={

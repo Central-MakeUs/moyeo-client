@@ -6,8 +6,7 @@ import { useRouter } from 'next/navigation';
 
 import { MeetingInvitationCard, type MeetingInvitation } from '@/entities/meeting';
 import { useSession } from '@/entities/session';
-import { Button, CTASection, TopAppBar } from '@/shared/ui';
-import { Icon } from '@/shared/ui/icon';
+import { Button, Celebration, CTASection, TopAppBar } from '@/shared/ui';
 import { IconButton } from '@/shared/ui/icon-button';
 import { CompletionLayout } from '@/shared/ui/layouts';
 import { PageHeader } from '@/shared/ui/page-header';
@@ -70,7 +69,7 @@ export function InviteLandingPage({ inviteCode, invitation }: InviteLandingPageP
             description="모임에 참여해서 일정과 장소를 정해보세요"
           />
         }
-        visual={<Icon name="invitation" className="size-[75px]" />}
+        visual={<Celebration icon="invitation" />}
         footer={
           <CTASection
             secondaryAction={
