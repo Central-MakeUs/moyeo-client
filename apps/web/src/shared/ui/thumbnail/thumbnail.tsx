@@ -1,6 +1,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 
+import { cn } from '@/shared/lib/cn';
 import { Icon } from '@/shared/ui/icon';
 
 export interface ThumbnailProps extends Omit<React.ComponentProps<'div'>, 'children'> {
@@ -8,12 +9,6 @@ export interface ThumbnailProps extends Omit<React.ComponentProps<'div'>, 'child
   imageUrl?: string;
   /** 이미지 대체 텍스트. imageUrl이 있을 때만 의미를 갖는다 */
   alt?: string;
-  /** 너비(px). 기본 280 */
-  width?: number;
-  /** 높이(px). 기본 168 */
-  height?: number;
-  /** 모서리 반경(px). 기본 10 */
-  radius?: number;
   /** 플레이스홀더 아이콘 크기(px). 기본 80 */
   iconSize?: number;
   /** 플레이스홀더 아이콘 표시 여부. 기본 true */
@@ -23,12 +18,9 @@ export interface ThumbnailProps extends Omit<React.ComponentProps<'div'>, 'child
 export function Thumbnail({
   imageUrl,
   alt,
-  width = 280,
-  height = 168,
-  radius = 10,
   iconSize = 80,
   showIcon = true,
-  style,
+  className,
   ...props
 }: ThumbnailProps): React.JSX.Element {
   const [hasError, setHasError] = React.useState(false);
@@ -36,8 +28,7 @@ export function Thumbnail({
   return (
     <div
       data-slot="thumbnail"
-      className="relative overflow-hidden"
-      style={{ width, height, borderRadius: radius, ...style }}
+      className={cn('relative overflow-hidden rounded-10', className)}
       {...props}
     >
       {imageUrl && !hasError ? (

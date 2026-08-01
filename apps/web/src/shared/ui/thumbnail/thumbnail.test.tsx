@@ -11,30 +11,18 @@ describe('Thumbnail', () => {
     expect(img).toHaveAttribute('src', 'https://example.com/cover.png');
   });
 
-  it('width/height/radius를 지정하면 인라인 style에 그대로 반영된다', () => {
-    render(
-      <Thumbnail
-        imageUrl="https://example.com/cover.png"
-        width={120}
-        height={80}
-        radius={4}
-        data-testid="placeholder"
-      />
-    );
+  it('className을 지정하면 그대로 반영된다', () => {
+    render(<Thumbnail className="h-16 w-16 rounded-8" data-testid="placeholder" />);
 
     const root = screen.getByTestId('placeholder');
-    expect(root.style.width).toBe('120px');
-    expect(root.style.height).toBe('80px');
-    expect(root.style.borderRadius).toBe('4px');
+    expect(root).toHaveClass('h-16', 'w-16', 'rounded-8');
   });
 
-  it('width/height/radius를 생략하면 기본값 280/168/10이 적용된다', () => {
-    render(<Thumbnail data-testid="placeholder" />);
+  it('className을 지정해도 relative overflow-hidden은 유지된다', () => {
+    render(<Thumbnail className="h-16 w-16" data-testid="placeholder" />);
 
     const root = screen.getByTestId('placeholder');
-    expect(root.style.width).toBe('280px');
-    expect(root.style.height).toBe('168px');
-    expect(root.style.borderRadius).toBe('10px');
+    expect(root).toHaveClass('relative', 'overflow-hidden');
   });
 
   it('imageUrl이 없으면 플레이스홀더(accessible-50 배경 + moyeo-logo 아이콘)를 렌더하고 img는 렌더하지 않는다', () => {

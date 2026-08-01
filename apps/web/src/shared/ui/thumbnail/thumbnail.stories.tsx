@@ -18,20 +18,9 @@ const meta = {
       control: 'text',
       description: '이미지 대체 텍스트. imageUrl이 있을 때만 의미를 갖습니다.',
     },
-    width: {
-      control: { type: 'number', min: 1, step: 1 },
-      description: '너비(px).',
-      table: { defaultValue: { summary: '280' } },
-    },
-    height: {
-      control: { type: 'number', min: 1, step: 1 },
-      description: '높이(px).',
-      table: { defaultValue: { summary: '168' } },
-    },
-    radius: {
-      control: { type: 'number', min: 0, step: 1 },
-      description: '모서리 반경(px).',
-      table: { defaultValue: { summary: '10' } },
+    className: {
+      control: 'text',
+      description: '크기·모서리 등은 className(Tailwind)으로 지정합니다.',
     },
     iconSize: {
       control: { type: 'number', min: 1, step: 1 },
@@ -45,9 +34,7 @@ const meta = {
     },
   },
   args: {
-    width: 280,
-    height: 168,
-    radius: 10,
+    className: 'h-42 w-70 rounded-10',
     iconSize: 80,
     showIcon: true,
   },
@@ -66,5 +53,12 @@ export const WithImage: Story = {
     imageUrl:
       'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="280" height="168"><rect width="280" height="168" fill="%23FD716C"/></svg>',
     alt: '모임 커버',
+  },
+};
+
+/** className으로 크기를 자유롭게 지정할 수 있습니다(예: 리스트 썸네일 60×60). */
+export const CustomSize: Story = {
+  args: {
+    className: 'h-15 w-15 rounded-8',
   },
 };
