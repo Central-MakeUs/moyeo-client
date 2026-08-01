@@ -1,6 +1,8 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
+@source '../shared/ui/dialog';
+@source '../shared/ui/alert-dialog';
 @custom-variant dark (&:is(.dark *));
 
 /* 터치 sticky hover 방지 + 터치스크린 노트북 hover 유지 (hover: none)은 노트북 신호로, 제거 금지 */
