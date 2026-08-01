@@ -15,7 +15,7 @@ export function ConfirmedMeetingSection({
         <span className="text-bold-16 text-neutral-900">확정된 모임</span>
         <span className="text-extrabold-16 text-neutral-600">{confirmed.length}</span>
       </h2>
-      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto *:shrink-0">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto *:shrink-0">
         {confirmed.length === 0 ? (
           // 확정된 모임이 없는 경우 (시안이 나오지 않아 임시)
           <div className="flex flex-1 items-center justify-center">

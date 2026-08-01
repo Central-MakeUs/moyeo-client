@@ -42,7 +42,7 @@ export function ConfirmedMeetingListItem({
           </div>
         </div>
       </div>
-      <Thumbnail imageUrl={thumbnailUrl} iconSize={32} className="h-15 w-15 shrink-0" />
+      <Thumbnail imageUrl={thumbnailUrl} iconSize={28} className="h-15 w-15 shrink-0 rounded-10" />
     </div>
   );
 }

@@ -34,7 +34,7 @@ export function MeetingCard({
         <p className="w-full truncate text-center text-extrabold-16 text-accessible-900">{title}</p>
       </div>
       <hr className="border-accessible-100" />
-      <Thumbnail imageUrl={coverImageUrl} className="h-[150px] w-full" />
+      <Thumbnail imageUrl={coverImageUrl} className="h-[150px] w-full rounded-8" />
       <div className="flex items-center justify-end gap-1.5">
         <AvatarGroup capacity={capacity} joinedCount={joinedCount} />
         <div>
