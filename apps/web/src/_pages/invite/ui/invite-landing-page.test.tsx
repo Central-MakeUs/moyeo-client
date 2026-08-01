@@ -9,12 +9,19 @@ import type { ParticipationStatusResponse } from '@/shared/api';
 
 import { InviteLandingPage } from './invite-landing-page';
 
-const { push, replace, session, native } = vi.hoisted(() => ({
+const { push, replace, session, native, getInvitation } = vi.hoisted(() => ({
   push: vi.fn(),
   replace: vi.fn(),
   // 세션 상태와 실행 환경은 테스트마다 바꾼다(#147). 기본값은 모바일 웹 비로그인.
   session: { current: { status: 'anonymous' } as SessionState },
   native: { current: false },
+  // 참여하기 탭 시점의 토큰 실은 재조회(#161).
+  getInvitation: vi.fn(),
+}));
+
+vi.mock('@/shared/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/shared/api')>()),
+  getInvitation,
 }));
 
 vi.mock('next/navigation', () => ({
@@ -39,6 +46,7 @@ beforeEach(() => {
   native.current = false;
   push.mockClear();
   replace.mockClear();
+  getInvitation.mockReset();
   sessionStorage.clear();
   // Apple 웹 로그인은 local 콜백을 지원하지 않아 stub하지 않으면 throw 한다.
   vi.stubEnv('NEXT_PUBLIC_OAUTH_REDIRECT_TARGET', 'dev');
@@ -258,6 +266,108 @@ describe('InviteLandingPage', () => {
 
       expect(screen.getByRole('button', { name: '모임 참여하기' })).toBeInTheDocument();
       expect(screen.queryByText('이번에만 게스트로 참여하기')).not.toBeInTheDocument();
+    });
+
+    const authenticate = () => {
+      session.current = {
+        status: 'authenticated',
+        accessToken: 'token',
+        viewer: { id: 1, nickname: '소미', onboardingCompleted: true },
+      };
+    };
+
+    it('authenticated가 탭했을 때 토큰 조회가 ALREADY_JOINED를 주면 모임 현황으로 이동한다', async () => {
+      authenticate();
+      getInvitation.mockResolvedValue({
+        participationStatus: { canJoin: false, reason: 'ALREADY_JOINED' },
+      });
+      renderPage(INVITATION, AVAILABLE);
+
+      await userEvent.click(screen.getByRole('button', { name: '모임 참여하기' }));
+
+      expect(push).toHaveBeenCalledWith('/meetings?code=ABC123');
+    });
+
+    it('authenticated가 탭했을 때 토큰 조회가 AVAILABLE을 주면 닉네임 경로로 이동한다', async () => {
+      authenticate();
+      getInvitation.mockResolvedValue({
+        participationStatus: { canJoin: true, reason: 'AVAILABLE' },
+      });
+      renderPage(INVITATION, AVAILABLE);
+
+      await userEvent.click(screen.getByRole('button', { name: '모임 참여하기' }));
+
+      expect(push).toHaveBeenCalledWith('/i/ABC123/nickname');
+    });
+
+    it('authenticated의 참여 여부를 확인하는 동안 버튼을 비활성화하고 중복 조회를 막는다', async () => {
+      authenticate();
+      let resolveInvitation!: (value: { participationStatus: ParticipationStatusResponse }) => void;
+      getInvitation.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveInvitation = resolve;
+          })
+      );
+      renderPage(INVITATION, AVAILABLE);
+      const participateButton = screen.getByRole('button', { name: '모임 참여하기' });
+
+      await userEvent.click(participateButton);
+      await userEvent.click(participateButton);
+
+      expect(participateButton).toBeDisabled();
+      expect(getInvitation).toHaveBeenCalledTimes(1);
+
+      resolveInvitation({
+        participationStatus: { canJoin: true, reason: 'AVAILABLE' },
+      });
+
+      await vi.waitFor(() => {
+        expect(push).toHaveBeenCalledWith('/i/ABC123/nickname');
+        expect(participateButton).toBeEnabled();
+      });
+    });
+
+    it('토큰 조회가 실패해도 닉네임 경로로 보낸다', async () => {
+      authenticate();
+      getInvitation.mockRejectedValue(new Error('network'));
+      renderPage(INVITATION, AVAILABLE);
+
+      await userEvent.click(screen.getByRole('button', { name: '모임 참여하기' }));
+
+      // 확인은 편의일 뿐이고 최종 방어선은 서버의 참여 제출 거절이다.
+      expect(push).toHaveBeenCalledWith('/i/ABC123/nickname');
+    });
+
+    it('토큰 조회 응답에 참여 상태가 없어도 닉네임 경로로 보낸다', async () => {
+      authenticate();
+      getInvitation.mockResolvedValue({});
+      renderPage(INVITATION, AVAILABLE);
+
+      await userEvent.click(screen.getByRole('button', { name: '모임 참여하기' }));
+
+      expect(push).toHaveBeenCalledWith('/i/ABC123/nickname');
+    });
+
+    it('토큰 조회 결과가 참여 불가로 바뀌었으면 이동하지 않는다', async () => {
+      authenticate();
+      getInvitation.mockResolvedValue({
+        participationStatus: { canJoin: false, reason: 'PARTICIPANT_LIMIT_EXCEEDED' },
+      });
+      renderPage(INVITATION, AVAILABLE);
+
+      await userEvent.click(screen.getByRole('button', { name: '모임 참여하기' }));
+
+      expect(push).not.toHaveBeenCalled();
+    });
+
+    it('anonymous가 탭하면 토큰 조회 없이 Drawer만 열린다', async () => {
+      renderPage(INVITATION, AVAILABLE);
+
+      await userEvent.click(screen.getByRole('button', { name: '모임 참여하기' }));
+
+      expect(getInvitation).not.toHaveBeenCalled();
+      expect(screen.getByText('이번에만 게스트로 참여하기')).toBeInTheDocument();
     });
 
     it('Drawer에서 카카오로 로그인하면 초대 화면 경로가 복귀 목적지로 저장된다', async () => {
