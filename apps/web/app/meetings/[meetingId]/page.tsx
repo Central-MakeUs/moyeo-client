@@ -1,3 +1,9 @@
+'use client';
+
+import { useParams } from 'next/navigation';
+
 export default function MeetingOverviewPage() {
-  return <main>VIEW-01 placeholder</main>;
+  const { meetingId } = useParams<{ meetingId: string }>();
+
+  return <main>{meetingId}</main>;
 }
