@@ -10,16 +10,19 @@
  * 참여 가능/불가 사유 코드입니다.
  * <ul>
  *   <li>AVAILABLE: 참여 가능</li>
+ *   <li>ALREADY_JOINED: 로그인한 사용자가 이미 참여함</li>
  *   <li>DEADLINE_PASSED: 참여 기한 지남</li>
  *   <li>PARTICIPANT_LIMIT_EXCEEDED: 정원 초과</li>
  * </ul>
- * 기한과 정원이 모두 막힌 경우 기한 초과를 우선 반환합니다.
+ * 로그인한 사용자가 이미 참여한 경우 `ALREADY_JOINED`를 우선 반환합니다.
+ * 그렇지 않고 기한과 정원이 모두 막힌 경우 기한 초과를 우선 반환합니다.
  */
 export type ParticipationStatusResponseReason =
   (typeof ParticipationStatusResponseReason)[keyof typeof ParticipationStatusResponseReason];
 
 export const ParticipationStatusResponseReason = {
   AVAILABLE: 'AVAILABLE',
+  ALREADY_JOINED: 'ALREADY_JOINED',
   DEADLINE_PASSED: 'DEADLINE_PASSED',
   PARTICIPANT_LIMIT_EXCEEDED: 'PARTICIPANT_LIMIT_EXCEEDED',
 } as const;

@@ -1,11 +1,7 @@
 'use client';
 
-import { useCallback, useState } from 'react';
-
-import { useRouter } from 'next/navigation';
-
 import { MeetingInvitationCard, type MeetingInvitation } from '@/entities/meeting';
-import { useSession } from '@/entities/session';
+import { useJoinEntry } from '@/features/meeting/invite-join-entry';
 import type { ParticipationStatusResponse } from '@/shared/api';
 import { Button, Celebration, CTASection, TopAppBar } from '@/shared/ui';
 import { IconButton } from '@/shared/ui/icon-button';
@@ -24,47 +20,18 @@ export interface InviteLandingPageProps {
   participationStatus?: ParticipationStatusResponse | null;
 }
 
-interface LoginDrawerState {
-  isOpen: boolean;
-  type: 'guest' | 'member';
-}
-
-const INITIAL_LOGIN_DRAWER_STATE: LoginDrawerState = { isOpen: false, type: 'guest' };
-
 export function InviteLandingPage({
   inviteCode,
   invitation,
   participationStatus,
 }: InviteLandingPageProps) {
-  const [loginDrawerState, setLoginDrawerState] = useState<LoginDrawerState>(
-    INITIAL_LOGIN_DRAWER_STATE
-  );
-
   const participationGuide = toParticipationGuide(participationStatus);
 
-  const session = useSession();
-  const router = useRouter();
-
-  const isLoading = session.status === 'loading';
-
-  const handleParticipate = () => {
-    if (isLoading) return;
-
-    if (session.status === 'anonymous') {
-      setLoginDrawerState({ isOpen: true, type: 'guest' });
-      return;
-    }
-    if (session.status === 'authenticated') {
-      setLoginDrawerState({ isOpen: false, type: 'member' });
-      router.push(`/i/${inviteCode}/nickname`);
-    }
-  };
-
-  const handleOpenChange = useCallback(() => {
-    if (session.status === 'error' || session.status === 'loading') return;
-
-    setLoginDrawerState((prev) => ({ ...prev, isOpen: !prev.isOpen }));
-  }, [session.status]);
+  const { isBlocked, isDrawerOpen, drawerType, participate, setDrawerOpen, retrySession } =
+    useJoinEntry({
+      inviteCode,
+      canJoin: participationGuide.canJoin,
+    });
 
   return (
     <div className="flex h-dvh flex-col bg-celebration">
@@ -87,19 +54,32 @@ export function InviteLandingPage({
         footer={
           <CTASection
             secondaryAction={
-              <Button
-                fullWidth
-                variant="ghost"
-                className="text-neutral-500 hover:text-neutral-400"
-                // VIEW-01(/meetings/[meetingId])이 아직 없어 갈 곳이 없다.
-                // 화면이 생기면 #146 이후 이슈에서 활성 조건을 붙인다(prd.md §4).
-                disabled
-              >
-                <span className="text-bold-14 underline underline-offset-3">진행상황 확인하기</span>
-              </Button>
+              // 세션 오류일 때는 이 자리를 오류 안내가 쓴다. 진행상황 확인하기는 어차피
+              // 비활성이고, 새 영역을 만들면 시안에 없는 레이아웃을 발명하게 된다.
+              retrySession !== null ? (
+                <div className="flex w-full flex-col items-center gap-0.5">
+                  <p className="text-medium-14 text-neutral-600">모임 정보를 불러오지 못했어요</p>
+                  <Button variant="link" onClick={retrySession}>
+                    다시 시도
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  fullWidth
+                  variant="ghost"
+                  className="text-neutral-500 hover:text-neutral-400"
+                  // VIEW-01(/meetings/[meetingId])이 아직 없어 갈 곳이 없다.
+                  // 화면이 생기면 #146 이후 이슈에서 활성 조건을 붙인다(prd.md §4).
+                  disabled
+                >
+                  <span className="text-bold-14 underline underline-offset-3">
+                    진행상황 확인하기
+                  </span>
+                </Button>
+              )
             }
             primaryAction={
-              <Button fullWidth onClick={handleParticipate} disabled={!participationGuide.canJoin}>
+              <Button fullWidth onClick={participate} disabled={isBlocked}>
                 모임 참여하기
               </Button>
             }
@@ -114,11 +94,7 @@ export function InviteLandingPage({
           />
         )}
       </CompletionLayout>
-      <LoginDrawer
-        type={loginDrawerState.type}
-        isOpen={loginDrawerState.isOpen}
-        onOpenChange={handleOpenChange}
-      />
+      <LoginDrawer type={drawerType} isOpen={isDrawerOpen} onOpenChange={setDrawerOpen} />
     </div>
   );
 }

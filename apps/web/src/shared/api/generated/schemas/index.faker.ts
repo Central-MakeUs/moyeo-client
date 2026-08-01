@@ -625,6 +625,7 @@ export const getParticipationStatusResponseMock = (
   reason: faker.helpers.arrayElement([
     faker.helpers.arrayElement([
       'AVAILABLE',
+      'ALREADY_JOINED',
       'DEADLINE_PASSED',
       'PARTICIPANT_LIMIT_EXCEEDED',
     ] as const),
