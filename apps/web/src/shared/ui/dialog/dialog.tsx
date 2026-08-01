@@ -63,7 +63,7 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          'pointer-events-auto fixed inset-x-5 top-1/2 z-50 mx-auto flex w-auto max-w-80 -translate-y-1/2 flex-col rounded-12 bg-white px-5 pt-[18px] pb-7 text-neutral-900 outline-none',
+          'pointer-events-auto fixed inset-x-5 top-1/2 z-50 mx-auto flex w-auto max-w-80 -translate-y-1/2 flex-col rounded-12 border border-accessible-100 bg-accessible-10 px-5 pt-[18px] pb-7 text-neutral-900 outline-none',
           className
         )}
         {...props}
@@ -88,7 +88,10 @@ function DialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn('flex flex-col items-center gap-2', className)}
+      className={cn(
+        'mb-5 flex flex-col items-center gap-2 border-b border-accessible-100 pb-[22px]',
+        className
+      )}
       {...props}
     />
   );
@@ -96,14 +99,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
 
 function DialogBody({ className, ...props }: React.ComponentProps<'div'>) {
   return (
-    <div
-      data-slot="dialog-body"
-      className={cn(
-        'mt-[22px] max-h-69 overflow-y-auto border-t border-accessible-100 pt-5',
-        className
-      )}
-      {...props}
-    />
+    <div data-slot="dialog-body" className={cn('max-h-69 overflow-y-auto', className)} {...props} />
   );
 }
 
