@@ -1,5 +1,7 @@
 import * as React from 'react';
 
+import { Icon } from '@/shared/ui/icon';
+
 export interface MeetingInvitationCardProps {
   /** 모임 이름. */
   name: string;
@@ -36,11 +38,10 @@ export function MeetingInvitationCard({
 
       {hostNickname !== null && hostNickname !== undefined && (
         <div className="flex w-full items-center justify-end gap-1.5">
-          {/*
-            TODO: 방장 프로필 이미지는 아직 조회 응답에 없고 기본 아바타 아이콘도 없다
-            정책이 확정되면 이 자리에 이미지를 넣는다.
-          */}
-          <div className="size-5 rounded-full bg-accessible-200" aria-hidden="true" />
+          <Icon
+            name="person"
+            className="size-5 rounded-full bg-accessible-100 text-accessible-400"
+          />
           <span className="text-semibold-14 text-neutral-500">{hostNickname}</span>
         </div>
       )}

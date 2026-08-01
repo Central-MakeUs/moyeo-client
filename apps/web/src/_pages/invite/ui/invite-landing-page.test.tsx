@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
 import type { MeetingInvitation } from '@/entities/meeting';
+import type { ParticipationStatusResponse } from '@/shared/api';
 
 import { InviteLandingPage } from './invite-landing-page';
 
@@ -21,8 +22,17 @@ const INVITATION: MeetingInvitation = {
   hostNickname: '소미',
 };
 
-const renderPage = (invitation: MeetingInvitation | null = INVITATION) =>
-  render(<InviteLandingPage inviteCode="ABC123" invitation={invitation} />);
+const renderPage = (
+  invitation: MeetingInvitation | null = INVITATION,
+  participationStatus?: ParticipationStatusResponse | null
+) =>
+  render(
+    <InviteLandingPage
+      inviteCode="ABC123"
+      invitation={invitation}
+      participationStatus={participationStatus}
+    />
+  );
 
 describe('InviteLandingPage', () => {
   it('name·description·hostNickname이 모두 있는 초대를 렌더하면 세 값이 화면에 있다', () => {
@@ -83,6 +93,79 @@ describe('InviteLandingPage', () => {
       screen.queryByText('부산 BEXCO에서 열리는 데모데이에 초대합니다')
     ).not.toBeInTheDocument();
     expect(screen.queryByText('소미')).not.toBeInTheDocument();
+  });
+
+  it('{ canJoin: true, reason: AVAILABLE }을 넘기면 기본 헤더가 보이고 모임 참여하기 버튼이 활성이다', () => {
+    renderPage(INVITATION, { canJoin: true, reason: 'AVAILABLE' });
+
+    expect(screen.getByText('모임 초대장이 왔어요!')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '모임 참여하기' })).toBeEnabled();
+  });
+
+  it('{ canJoin: false, reason: DEADLINE_PASSED }를 넘기면 마감 기한이 지났어요 안내가 보인다', () => {
+    renderPage(INVITATION, { canJoin: false, reason: 'DEADLINE_PASSED' });
+
+    expect(screen.getByText('마감 기한이 지났어요')).toBeInTheDocument();
+    expect(screen.getByText('아쉽지만 현재는 더 이상 참여할 수 없어요')).toBeInTheDocument();
+  });
+
+  it('{ canJoin: false, reason: PARTICIPANT_LIMIT_EXCEEDED }를 넘기면 모임 인원이 모두 찼어요 안내가 보인다', () => {
+    renderPage(INVITATION, { canJoin: false, reason: 'PARTICIPANT_LIMIT_EXCEEDED' });
+
+    expect(screen.getByText('모임 인원이 모두 찼어요')).toBeInTheDocument();
+    expect(screen.getByText('아쉽지만 현재는 더 이상 참여할 수 없어요')).toBeInTheDocument();
+  });
+
+  // 버튼 활성은 canJoin에만 의존하고 reason과 무관하다. 차단 사유별로 같은 배선을
+  // 반복 검증하는 게 아니라, "무관하다"는 것 자체를 검증한다.
+  it.each(['DEADLINE_PASSED', 'PARTICIPANT_LIMIT_EXCEEDED'] as const)(
+    'canJoin이 false면 reason이 %s여도 모임 참여하기 버튼이 disabled다',
+    (reason) => {
+      renderPage(INVITATION, { canJoin: false, reason });
+
+      expect(screen.getByRole('button', { name: '모임 참여하기' })).toBeDisabled();
+    }
+  );
+
+  it('participationStatus를 넘기지 않으면 모임 참여하기 버튼이 disabled고 헤더는 기본 문구다', () => {
+    renderPage();
+
+    // 필드가 없다고 참여 가능으로 추측하지 않는다.
+    expect(screen.getByRole('button', { name: '모임 참여하기' })).toBeDisabled();
+    expect(screen.getByText('모임 초대장이 왔어요!')).toBeInTheDocument();
+  });
+
+  // Celebration은 컨페티를 <canvas>로 그린다. 둘 다 aria-hidden이라 역할·텍스트로는
+  // 구분할 수 없어서, canvas 유무로 축하 연출 여부를 판정한다.
+  it('canJoin이 true면 축하 컨페티가 렌더된다', () => {
+    const { container } = renderPage(INVITATION, { canJoin: true, reason: 'AVAILABLE' });
+
+    expect(container.querySelector('canvas')).toBeInTheDocument();
+  });
+
+  it('canJoin이 false면 축하 컨페티를 렌더하지 않는다', () => {
+    const { container } = renderPage(INVITATION, { canJoin: false, reason: 'DEADLINE_PASSED' });
+
+    expect(container.querySelector('canvas')).not.toBeInTheDocument();
+  });
+
+  it('참여 불가 상태여도 초대 카드의 모임명·설명·모임장은 그대로 렌더된다', () => {
+    renderPage(INVITATION, { canJoin: false, reason: 'DEADLINE_PASSED' });
+
+    expect(screen.getByText('데모데이에 모여')).toBeInTheDocument();
+    expect(screen.getByText('부산 BEXCO에서 열리는 데모데이에 초대합니다')).toBeInTheDocument();
+    expect(screen.getByText('소미')).toBeInTheDocument();
+  });
+
+  it('message가 함께 오면 그 문구는 화면에 없고 reason 대응 문구가 보인다', () => {
+    renderPage(INVITATION, {
+      canJoin: false,
+      reason: 'DEADLINE_PASSED',
+      message: '서버가 준 다른 문구',
+    });
+
+    expect(screen.queryByText('서버가 준 다른 문구')).not.toBeInTheDocument();
+    expect(screen.getByText('마감 기한이 지났어요')).toBeInTheDocument();
   });
 
   it('invitation이 null이면 초대 카드는 없고 헤더와 모임 참여하기 버튼은 남는다', () => {
