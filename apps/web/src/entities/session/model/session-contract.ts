@@ -1,6 +1,7 @@
 import { configureAuth } from '@/shared/api';
+import { isNativeContext } from '@/shared/model';
 
-import { isNativeContext, postToNative } from './native-bridge';
+import { postToNative } from './native-bridge';
 import { clearStoredToken, readStoredToken, writeStoredToken } from './session-storage';
 import { useSessionStore } from './session-store';
 

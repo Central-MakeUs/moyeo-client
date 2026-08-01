@@ -1,10 +1,5 @@
 import type { WebToNativeMessage } from '@repo/types';
 
-/** 네이티브 WebView 안에서 실행 중인지. */
-export function isNativeContext(): boolean {
-  return typeof window !== 'undefined' && Boolean(window.ReactNativeWebView);
-}
-
 export function postToNative(message: WebToNativeMessage): void {
   if (typeof window === 'undefined') return;
   window.ReactNativeWebView?.postMessage(JSON.stringify(message));

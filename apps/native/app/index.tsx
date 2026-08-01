@@ -1,10 +1,11 @@
 import { useCallback, useRef } from 'react';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
 import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import * as SecureStore from 'expo-secure-store';
+import * as Clipboard from 'expo-clipboard';
 
 import type { NativeToWebMessage, WebToNativeMessage } from '@repo/types';
 
@@ -25,10 +26,36 @@ function getScheme(url: string): string {
   return `${scheme?.toLowerCase() ?? ''}:`;
 }
 
+/**
+ * Android가 쓰는 `intent://호스트/경로#Intent;scheme=...;S.browser_fallback_url=...;end` 포맷을 분해한다.
+ * 브라우저는 이 포맷을 자체 해석해 앱을 실행하지만, `Linking.openURL`은 그대로 못 열기 때문에
+ * scheme 파라미터로 원래 딥링크를 복원하고, 앱 미설치 시 열 fallback(주로 스토어) URL을 따로 뽑는다.
+ */
+function parseIntentUrl(url: string): { schemeUrl: string; fallbackUrl: string | null } | null {
+  const match = url.match(/^intent:\/\/([^#]*)#Intent;(.+);end;?$/);
+  if (!match) return null;
+
+  const [, pathAndQuery, paramsString] = match;
+  const params = new Map<string, string>();
+  for (const pair of paramsString.split(';')) {
+    const eqIndex = pair.indexOf('=');
+    if (eqIndex === -1) continue;
+    params.set(pair.slice(0, eqIndex), pair.slice(eqIndex + 1));
+  }
+
+  const scheme = params.get('scheme');
+  if (!scheme) return null;
+
+  const fallbackParam = params.get('S.browser_fallback_url');
+  const fallbackUrl = fallbackParam ? decodeURIComponent(fallbackParam) : null;
+
+  return { schemeUrl: `${scheme}://${pathAndQuery}`, fallbackUrl };
+}
+
 export default function HomeScreen() {
   const webViewRef = useRef<WebView>(null);
 
-  const postToWeb = useCallback((message: NativeToWebMessage) => {
+  const postMessageToWeb = useCallback((message: NativeToWebMessage) => {
     webViewRef.current?.postMessage(JSON.stringify(message));
   }, []);
 
@@ -39,11 +66,11 @@ export default function HomeScreen() {
   const sendStoredToken = useCallback(async () => {
     try {
       const token = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
-      postToWeb(token ? { type: 'AUTH_TOKEN', payload: { token } } : { type: 'AUTH_NONE' });
+      postMessageToWeb(token ? { type: 'AUTH_TOKEN', payload: { token } } : { type: 'AUTH_NONE' });
     } catch {
-      postToWeb({ type: 'AUTH_NONE' });
+      postMessageToWeb({ type: 'AUTH_NONE' });
     }
-  }, [postToWeb]);
+  }, [postMessageToWeb]);
 
   const handleMessage = useCallback(
     async (event: WebViewMessageEvent) => {
@@ -76,22 +103,77 @@ export default function HomeScreen() {
           }
           return;
 
+        case 'SHARE_SMS': {
+          // body 구분자가 플랫폼마다 다르다 — iOS는 `&`, Android는 `?`.
+          const separator = Platform.OS === 'ios' ? '&' : '?';
+          const url = `sms:${separator}body=${encodeURIComponent(message.payload.message)}`;
+
+          // 메시지 앱이 없거나(시뮬레이터) 사용자가 취소해도 앱이 죽지 않게 삼킨다. - TODO 알림이 필요하면 이 부분은 수정 필요
+          Linking.openURL(url).catch((error) => {
+            console.warn('Failed to open SMS app', error);
+          });
+          return;
+        }
+        case 'COPY_TO_CLIPBOARD': {
+          // requestId는 요청에 실려 온 값을 그대로 돌려준다 (웹이 자기 요청의 결과만 받도록)
+          const { requestId } = message;
+
+          try {
+            const copied = await Clipboard.setStringAsync(message.payload.text);
+
+            postMessageToWeb({
+              type: 'COPY_RESULT',
+              requestId,
+              payload: {
+                state: copied ? 'success' : 'error',
+              },
+            });
+          } catch (error) {
+            // 웹에는 성공/실패만 알린다. 원인은 dev 빌드 로그로 남긴다.
+            console.warn('Failed to copy to clipboard', error);
+
+            postMessageToWeb({
+              type: 'COPY_RESULT',
+              requestId,
+              payload: {
+                state: 'error',
+              },
+            });
+          }
+
+          return;
+        }
+
         default:
           return;
       }
     },
-    [sendStoredToken]
+    [postMessageToWeb, sendStoredToken]
   );
 
   /**
-   * 소셜 로그인은 WebView 안에서 공급자 페이지로 이동했다가 우리 origin으로 돌아온다.
-   * 그 사이 카카오 페이지는 `kakaotalk://`·`intent://` 같은 앱 전환 스킴을 시도하는데,
+   * 소셜 로그인/카카오 공유는 WebView 안에서 `kakaotalk://`·`intent://` 같은 앱 전환 스킴을 시도하는데,
    * WebView는 이런 스킴을 열지 못해 아무 일도 일어나지 않는다. OS에 넘겨야 앱 전환이 된다.
    *
-   * 열 수 있는 앱이 없으면(카카오톡 미설치 등) 무시한다. 공급자 페이지에 웹 로그인 경로가 남아 있다.
+   * Android는 이 앱 전환을 `intent://...#Intent;...;end` 포맷으로 시도한다. 브라우저는 이 포맷을
+   * 스스로 해석해 앱을 실행하지만, `Linking.openURL`은 이 포맷 자체를 URL로 열 수 없어 그냥 실패한다
+   * (iOS의 단순 커스텀 스킴은 문제없이 열림 — 그래서 iOS만 되고 Android만 안 되는 비대칭이 생긴다).
+   * 그래서 intent:// 는 먼저 분해해 원래 딥링크로 열고, 실패하면(앱 미설치) fallback URL로 보낸다.
+   *
+   * 그마저도 열 수 있는 앱/폴백이 없으면 무시한다. 로그인의 경우 공급자 페이지에 웹 로그인 경로가 남아 있다.
    */
   const handleShouldStartLoad = useCallback((request: ShouldStartLoadRequest) => {
     if (IN_APP_SCHEMES.includes(getScheme(request.url))) return true;
+
+    if (getScheme(request.url) === 'intent:') {
+      const parsed = parseIntentUrl(request.url);
+      if (parsed) {
+        Linking.openURL(parsed.schemeUrl).catch(() => {
+          if (parsed.fallbackUrl) Linking.openURL(parsed.fallbackUrl).catch(() => {});
+        });
+        return false;
+      }
+    }
 
     Linking.openURL(request.url).catch(() => {});
     return false;

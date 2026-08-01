@@ -19,6 +19,7 @@ import Close from '@/shared/assets/icons/close.svg';
 import Confetti from '@/shared/assets/icons/confetti.svg';
 import Envelope from '@/shared/assets/icons/envelope.svg';
 import KakaoLogo from '@/shared/assets/icons/kakao-logo.svg';
+import KakaoText from '@/shared/assets/icons/kakao-text.svg';
 import Kakao from '@/shared/assets/icons/kakao.svg';
 import LinkSmall from '@/shared/assets/icons/link-small.svg';
 import Link from '@/shared/assets/icons/link.svg';
@@ -29,40 +30,43 @@ import Note from '@/shared/assets/icons/note.svg';
 import Person from '@/shared/assets/icons/person.svg';
 import PinnedPrimary from '@/shared/assets/icons/pinned-primary.svg';
 import Pinned from '@/shared/assets/icons/pinned.svg';
+import Plane from '@/shared/assets/icons/plane.svg';
 import Plus from '@/shared/assets/icons/plus.svg';
 import Search from '@/shared/assets/icons/search.svg';
 
 export const ICONS = {
   apple: Apple,
-  'bus-selected': BusSelected,
+  "bus-selected": BusSelected,
   bus: Bus,
-  'calendar-primary': CalendarPrimary,
+  "calendar-primary": CalendarPrimary,
   calendar: Calendar,
-  'car-selected': CarSelected,
+  "car-selected": CarSelected,
   car: Car,
-  'caret-down': CaretDown,
-  'caret-up': CaretUp,
+  "caret-down": CaretDown,
+  "caret-up": CaretUp,
   check: Check,
-  'chevron-down': ChevronDown,
-  'chevron-left': ChevronLeft,
-  'chevron-right': ChevronRight,
-  'chevron-small-left': ChevronSmallLeft,
-  'chevron-small-right': ChevronSmallRight,
-  'chevron-up': ChevronUp,
+  "chevron-down": ChevronDown,
+  "chevron-left": ChevronLeft,
+  "chevron-right": ChevronRight,
+  "chevron-small-left": ChevronSmallLeft,
+  "chevron-small-right": ChevronSmallRight,
+  "chevron-up": ChevronUp,
   close: Close,
   confetti: Confetti,
   envelope: Envelope,
-  'kakao-logo': KakaoLogo,
+  "kakao-logo": KakaoLogo,
+  "kakao-text": KakaoText,
   kakao: Kakao,
-  'link-small': LinkSmall,
+  "link-small": LinkSmall,
   link: Link,
   minus: Minus,
-  'moyeo-logo': MoyeoLogo,
-  'note-primary': NotePrimary,
+  "moyeo-logo": MoyeoLogo,
+  "note-primary": NotePrimary,
   note: Note,
   person: Person,
-  'pinned-primary': PinnedPrimary,
+  "pinned-primary": PinnedPrimary,
   pinned: Pinned,
+  plane: Plane,
   plus: Plus,
   search: Search,
 } as const;
