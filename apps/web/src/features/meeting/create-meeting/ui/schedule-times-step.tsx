@@ -95,7 +95,7 @@ export function ScheduleTimesStep({ onNext }: ScheduleTimesStepProps): React.JSX
           // 오른쪽·아래는 레이아웃 패딩(px-5 py-10)을 상쇄해 화면 끝과 CTA에 붙인다.
           // 잘린 열이 보여야 더 스크롤할 게 있다는 게 드러나고(시안 inv-02-B-1),
           // 자동 스크롤 임계 구간(48px)이 실제 화면 가장자리와 정렬돼 드래그와 충돌하지 않는다.
-          className="-mr-5 -mb-10 min-h-0 flex-1"
+          className="min-h-0 flex-1"
         />
       )}
     </WizardStepLayout>

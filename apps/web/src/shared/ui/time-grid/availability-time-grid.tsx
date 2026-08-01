@@ -12,6 +12,7 @@ import { toCellKey } from './cell-key';
 import { cellKeyFromPoint } from './cell-key-from-point';
 import { getCellState, type CellState } from './get-cell-state';
 import { getPaintMode } from './get-paint-mode';
+import { useAxisLockedTouchScroll } from './use-axis-locked-touch-scroll';
 import { useCellDragSelect } from './use-cell-drag-select';
 import { useEdgeAutoScroll } from './use-edge-auto-scroll';
 
@@ -23,6 +24,7 @@ const CELL_STATE_CLASS: Record<CellState, string> = {
   selected: 'bg-accessible-100',
 };
 
+/** 셀 너비 */
 const TIME_LABEL_WIDTH = 'w-[52px] shrink-0';
 const CELL_WIDTH = 'w-[60px] shrink-0';
 
@@ -30,9 +32,7 @@ const CELL_WIDTH = 'w-[60px] shrink-0';
 const EMPTY_KEYS: ReadonlySet<string> = new Set<string>();
 
 /** 터치를 이만큼 유지하면 선택 모드로 본다. 그 전에 움직이면 스크롤이다. */
-export const LONG_PRESS_MS = 300;
-/** 손가락은 미세하게 흔들린다. 이 거리까지는 '멈춰 있다'로 본다. */
-const MOVE_TOLERANCE_PX = 8;
+export const LONG_PRESS_MS = 200;
 
 /** 셀의 접근성 이름. 빈 버튼이라 라벨이 없으면 스크린리더가 읽을 게 없다. */
 function formatCellLabel(date: string, time: string): string {
@@ -82,8 +82,13 @@ export function AvailabilityTimeGrid({
   const drag = useCellDragSelect({ value, disabledKeys: disabled, onChange });
   const autoScroll = useEdgeAutoScroll(gridElement);
 
+  // 드래그 시작 위치
   const anchorRef = React.useRef<string | null>(null);
+
+  // 드래그가 시작했는지 저장
   const isDragStartedRef = React.useRef(false);
+
+  // 드래그 뒤의 click 이벤트를 무시하기 위해, 드래그가 끝나면 true로 바꾸고 setTimeout으로 0ms 뒤 초기화
   const suppressClickRef = React.useRef(false);
 
   /**
@@ -94,11 +99,10 @@ export function AvailabilityTimeGrid({
    */
   const touchRef = React.useRef<{
     phase: 'pending' | 'scrolling' | 'selecting';
-    startX: number;
-    startY: number;
     timerId: number;
   } | null>(null);
 
+  // 드래그 중이면 true. 롱프레스 후 선택 모드에 들어가면 true. 아니면 false.
   const isSelectingRef = React.useRef(false);
 
   const clearTouchTimer = () => {
@@ -110,6 +114,18 @@ export function AvailabilityTimeGrid({
     touchRef.current = null;
     isSelectingRef.current = false;
   };
+
+  const handleTouchScrollStart = React.useCallback(() => {
+    const touch = touchRef.current;
+    if (!touch || touch.phase !== 'pending') return;
+
+    window.clearTimeout(touch.timerId);
+    touch.phase = 'scrolling';
+  }, []);
+
+  const axisLockedScroll = useAxisLockedTouchScroll(gridElement, {
+    onScrollStart: handleTouchScrollStart,
+  });
 
   // 드래그 중에는 미리보기를 그린다. 커밋 전에도 화면이 바로 반응한다.
   const selectedKeys = React.useMemo(() => new Set(drag.previewValue), [drag.previewValue]);
@@ -159,14 +175,13 @@ export function AvailabilityTimeGrid({
 
     touchRef.current = {
       phase: 'pending',
-      startX: e.clientX,
-      startY: e.clientY,
       timerId: window.setTimeout(() => {
         const touch = touchRef.current;
         if (!touch || touch.phase !== 'pending') return;
 
         touch.phase = 'selecting';
         isSelectingRef.current = true;
+        axisLockedScroll.cancel();
 
         // 롱프레스 시점엔 손가락이 멈춰 있어 브라우저 스크롤이 아직 시작되지 않았다.
         // 그래서 이제부터 touchmove를 preventDefault 하면 스크롤을 막을 수 있다.
@@ -179,23 +194,14 @@ export function AvailabilityTimeGrid({
     };
   };
 
-  const handlePointerMove = (e: React.PointerEvent) => {
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (axisLockedScroll.onPointerMove(e)) return;
     if (!anchorRef.current) return;
 
     const touch = touchRef.current;
 
     if (touch) {
-      // 롱프레스 전에 움직였다면 스크롤 의도로 본다 — 선택에 개입하지 않는다.
-      if (touch.phase === 'pending') {
-        const distance = Math.hypot(e.clientX - touch.startX, e.clientY - touch.startY);
-        if (distance > MOVE_TOLERANCE_PX) {
-          clearTouchTimer();
-          touch.phase = 'scrolling';
-        }
-        return;
-      }
-
-      if (touch.phase === 'scrolling') return;
+      if (touch.phase !== 'selecting') return;
     }
 
     // 가장자리에 닿으면 스크롤을 굴린다(가로=그리드, 세로=바깥 스크롤 조상).
@@ -205,9 +211,14 @@ export function AvailabilityTimeGrid({
     if (key) enterCell(key);
   };
 
-  const handlePointerUp = () => {
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const didScroll = axisLockedScroll.onPointerUp(e);
+
     if (isDragStartedRef.current) {
       drag.commit();
+    }
+
+    if (didScroll || isDragStartedRef.current) {
       suppressClickRef.current = true; // 드래그 뒤 같은 흐름의 click 무시
       window.setTimeout(() => {
         suppressClickRef.current = false;
@@ -221,7 +232,8 @@ export function AvailabilityTimeGrid({
   };
 
   // 드래그 취소 — 커밋 없이 되돌린다(그리드 밖으로 나가거나 OS가 제스처를 가져갈 때).
-  const handlePointerCancel = () => {
+  const handlePointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    axisLockedScroll.onPointerCancel(e);
     if (!anchorRef.current) return;
 
     drag.cancel();
@@ -240,77 +252,83 @@ export function AvailabilityTimeGrid({
   };
 
   return (
-    // 기본은 브라우저 스크롤에 맡긴다 — 손가락 하나로 21일치를 훑어야 하기 때문이다.
-    // 선택은 롱프레스로 진입하고, 그때부터만 touchmove를 막는다(위 useEffect).
-    <div
-      ref={setGridElement}
-      className={cn('relative overflow-auto overscroll-none', className)}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      // pointercancel은 OS/브라우저가 제스처를 가져간 상황이라 부분 선택을 커밋하면 안 된다.
-      onPointerCancel={handlePointerCancel}
-      // onPointerLeave로 취소하지 않는다 — 이 그리드는 스크롤 컨테이너라
-      // 가장자리에 다가가는 것이 useEdgeAutoScroll의 트리거다. 경계에서 취소하면 둘이 충돌한다.
-    >
-      <div className="min-w-max">
-        <div data-time-grid-column-header-row className="sticky top-0 z-20 flex gap-1 bg-white">
-          <div
-            data-time-grid-corner
-            className={cn(TIME_LABEL_WIDTH, 'sticky left-0 z-30 bg-white')}
-          />
-          {columns.map((date) => {
-            const day = parseISO(date);
-
-            // 가로 header cell
-            return (
-              <div
-                key={date}
-                data-time-grid-column-header={date}
-                className={cn(CELL_WIDTH, 'flex flex-col items-center gap-0.5 bg-white pb-3')}
-              >
-                <span className="text-bold-14 text-neutral-500">
-                  {format(day, 'EEE', { locale: ko })}
-                </span>
-                <span className="text-semibold-14 text-neutral-850">{format(day, 'M/d')}</span>
-              </div>
-            );
-          })}
-        </div>
-
-        {rows.map((time) => (
-          <div key={time} className="flex gap-1.5 pb-1.5">
-            {/** 세로 header cell */}
+    // 한 손가락 팬은 최초 우세 축으로 잠그고 직접 관성을 적용한다.
+    // 셀 롱프레스가 먼저 성립하면 스크롤을 취소하고 2D 선택으로 전환한다.
+    <div className={cn('flex min-h-0 flex-col', className)}>
+      <div
+        ref={setGridElement}
+        data-time-grid-scroll
+        className={'relative -mr-5 -mb-10 min-h-0 flex-1 overflow-auto overscroll-none select-none'}
+        style={{ touchAction: 'pinch-zoom' }}
+        onPointerDown={axisLockedScroll.onPointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        // pointercancel은 OS/브라우저가 제스처를 가져간 상황이라 부분 선택을 커밋하면 안 된다.
+        onPointerCancel={handlePointerCancel}
+        // onPointerLeave로 취소하지 않는다 — 이 그리드는 스크롤 컨테이너라
+        // 가장자리에 다가가는 것이 useEdgeAutoScroll의 트리거다. 경계에서 취소하면 둘이 충돌한다.
+      >
+        <div className="min-w-max">
+          {/** 가로 헤더 */}
+          <div data-time-grid-column-header-row className="sticky top-0 z-20 flex gap-1.5 bg-white">
             <div
-              data-time-grid-row-header={time}
-              className={cn(
-                TIME_LABEL_WIDTH,
-                'sticky left-0 z-10 flex items-center justify-center bg-white text-semibold-14 text-neutral-850'
-              )}
-            >
-              {time}
-            </div>
-
+              data-time-grid-corner
+              className={cn(TIME_LABEL_WIDTH, 'sticky left-0 z-30 bg-white')}
+            />
             {columns.map((date) => {
-              const key = toCellKey(date, time);
-              const state = getCellState(key, selectedKeys, disabled);
+              const day = parseISO(date);
 
+              // 가로 header cell
               return (
-                <button
-                  key={key}
-                  type="button"
-                  data-cell-key={key}
-                  aria-label={formatCellLabel(date, time)}
-                  aria-pressed={state === 'selected'}
-                  disabled={state === 'disabled'}
-                  onPointerDown={(e) => handlePointerDown(e, key)}
-                  onPointerEnter={() => enterCell(key)}
-                  onClick={() => handleCellClick(key)}
-                  className={cn(CELL_WIDTH, 'h-10 rounded-4', CELL_STATE_CLASS[state])}
-                />
+                <div
+                  key={date}
+                  data-time-grid-column-header={date}
+                  className={cn(CELL_WIDTH, 'flex flex-col items-center gap-1.5 bg-white pb-3')}
+                >
+                  <span className="text-bold-14 text-neutral-500">
+                    {format(day, 'EEE', { locale: ko })}
+                  </span>
+                  <span className="text-semibold-14 text-neutral-850">{format(day, 'M/d')}</span>
+                </div>
               );
             })}
           </div>
-        ))}
+
+          {rows.map((time) => (
+            <div key={time} className="flex gap-1.5 pr-5 pb-1.5">
+              {/** 세로 header cell */}
+              <div
+                data-time-grid-row-header={time}
+                className={cn(
+                  TIME_LABEL_WIDTH,
+                  'sticky left-0 z-10 flex items-center justify-center bg-white text-semibold-14 text-neutral-850'
+                )}
+              >
+                {time}
+              </div>
+
+              {columns.map((date) => {
+                const key = toCellKey(date, time);
+                const state = getCellState(key, selectedKeys, disabled);
+
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    data-cell-key={key}
+                    aria-label={formatCellLabel(date, time)}
+                    aria-pressed={state === 'selected'}
+                    disabled={state === 'disabled'}
+                    onPointerDown={(e) => handlePointerDown(e, key)}
+                    onPointerEnter={() => enterCell(key)}
+                    onClick={() => handleCellClick(key)}
+                    className={cn(CELL_WIDTH, 'h-10 rounded-4', CELL_STATE_CLASS[state])}
+                  />
+                );
+              })}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
