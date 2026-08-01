@@ -1,10 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import { MeetingOverviewPage } from './meeting-overview-page';
 
-const { useMeetingDetailQueryMock } = vi.hoisted(() => ({
+const { useMeetingDetailQueryMock, routerBackMock } = vi.hoisted(() => ({
   useMeetingDetailQueryMock: vi.fn(),
+  routerBackMock: vi.fn(),
 }));
 
 vi.mock('@/entities/meeting', async (importOriginal) => {
@@ -13,6 +15,7 @@ vi.mock('@/entities/meeting', async (importOriginal) => {
 });
 
 vi.mock('next/navigation', () => ({
+  useRouter: () => ({ back: routerBackMock }),
   useSearchParams: () => new URLSearchParams('code=29NRVBGXGP'),
 }));
 
@@ -63,5 +66,19 @@ describe('MeetingOverviewPage', () => {
     render(<MeetingOverviewPage />);
 
     expect(screen.getByText('모임 정보를 불러오지 못했어요')).toBeInTheDocument();
+  });
+
+  it('뒤로가기 버튼을 누르면 router.back()이 호출된다', async () => {
+    const user = userEvent.setup();
+    useMeetingDetailQueryMock.mockReturnValue({
+      data: { name: '데모데이에 모여', description: undefined, capacity: 5, joinedCount: 3 },
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<MeetingOverviewPage />);
+    await user.click(screen.getByRole('button', { name: '뒤로가기' }));
+
+    expect(routerBackMock).toHaveBeenCalledOnce();
   });
 });

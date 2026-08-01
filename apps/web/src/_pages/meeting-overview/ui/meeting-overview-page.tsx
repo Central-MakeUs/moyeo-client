@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { useMeetingDetailQuery } from '@/entities/meeting';
 import { Icon } from '@/shared/ui/icon';
@@ -29,6 +29,7 @@ export function MeetingOverviewPage(): React.JSX.Element {
 }
 
 function MeetingOverviewContent(): React.JSX.Element {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const inviteCode = searchParams.get(INVITE_CODE_PARAM) ?? '';
   const { data, isLoading, isError } = useMeetingDetailQuery(inviteCode);
@@ -44,7 +45,14 @@ function MeetingOverviewContent(): React.JSX.Element {
         <Thumbnail overlay showIcon={false} imageUrl={data?.coverImageUrl} className="size-full" />
         <TopAppBar
           className="absolute top-0"
-          leading={<IconButton icon="chevron-left" aria-label="뒤로가기" className="text-white" />}
+          leading={
+            <IconButton
+              icon="chevron-left"
+              aria-label="뒤로가기"
+              className="text-white"
+              onClick={() => router.back()}
+            />
+          }
           trailing={<IconButton icon="kebab" aria-label="더보기" className="text-white" />}
         />
       </div>
