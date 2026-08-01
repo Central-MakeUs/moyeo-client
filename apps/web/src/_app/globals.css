@@ -62,6 +62,14 @@
   --color-accessible-900: #821e1a;
   --color-accessible-950: #470a08;
 
+  /* purple */
+  --color-purple-100: #ede8ff;
+  --color-purple-400: #8565ff;
+
+  /* yellow */
+  --color-yellow-100: #fff2d9;
+  --color-yellow-400: #feaa02;
+
   /* opacity */
   --color-opacity-40: #00000066;
 
