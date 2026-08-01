@@ -7,12 +7,14 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { useMeetingDetailQuery } from './use-meeting-detail-query';
 
 const server = setupServer(
-  http.get('*/api/meetings/:meetingId', () =>
+  http.get('*/api/meetings/invitations/:inviteCode/view', () =>
     HttpResponse.json({
       meetingId: 7,
       name: '데모데이에 모여',
       description: '부산 BEXCO에서 열리는 데모데이',
       coverImageUrl: '/api/meetings/7/cover-image',
+      maxParticipants: 5,
+      participantCount: 3,
     })
   )
 );
@@ -21,10 +23,10 @@ beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-function renderMeetingDetailQuery(meetingId: number) {
+function renderMeetingDetailQuery(inviteCode: string) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
-  return renderHook(() => useMeetingDetailQuery(meetingId), {
+  return renderHook(() => useMeetingDetailQuery(inviteCode), {
     wrapper: ({ children }) => (
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     ),
@@ -32,8 +34,8 @@ function renderMeetingDetailQuery(meetingId: number) {
 }
 
 describe('useMeetingDetailQuery', () => {
-  it('name/description/coverImageUrl이 정상값이면 그대로 매핑된다', async () => {
-    const { result } = renderMeetingDetailQuery(7);
+  it('name/description/coverImageUrl/capacity/joinedCount이 정상값이면 그대로 매핑된다', async () => {
+    const { result } = renderMeetingDetailQuery('29NRVBGXGP');
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -41,29 +43,44 @@ describe('useMeetingDetailQuery', () => {
       name: '데모데이에 모여',
       description: '부산 BEXCO에서 열리는 데모데이',
       coverImageUrl: '/api/meetings/7/cover-image',
+      capacity: 5,
+      joinedCount: 3,
     });
   });
 
   it('description이 없으면 data.description은 undefined이다', async () => {
     server.use(
-      http.get('*/api/meetings/:meetingId', () =>
+      http.get('*/api/meetings/invitations/:inviteCode/view', () =>
         HttpResponse.json({ meetingId: 8, name: '설명 없는 모임', description: null })
       )
     );
-    const { result } = renderMeetingDetailQuery(8);
+    const { result } = renderMeetingDetailQuery('OTHERCODE');
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     expect(result.current.data?.description).toBeUndefined();
   });
 
+  it('maxParticipants/participantCount가 없으면 capacity/joinedCount가 0으로 매핑된다', async () => {
+    server.use(
+      http.get('*/api/meetings/invitations/:inviteCode/view', () =>
+        HttpResponse.json({ meetingId: 10, name: '정원 미정 모임' })
+      )
+    );
+    const { result } = renderMeetingDetailQuery('NOCOUNTCODE');
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.data).toMatchObject({ capacity: 0, joinedCount: 0 });
+  });
+
   it('500 에러를 반환하면 isError === true이다', async () => {
     server.use(
-      http.get('*/api/meetings/:meetingId', () =>
+      http.get('*/api/meetings/invitations/:inviteCode/view', () =>
         HttpResponse.json({ message: 'boom' }, { status: 500 })
       )
     );
-    const { result } = renderMeetingDetailQuery(9);
+    const { result } = renderMeetingDetailQuery('ERRORCODE');
 
     await waitFor(() => expect(result.current.isError).toBe(true));
   });

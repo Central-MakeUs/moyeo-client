@@ -16,6 +16,7 @@ export interface UseMeetingsQueryResult {
 function toMeetingSummary(item: Item): MeetingSummary {
   return {
     meetingId: item.meetingId ?? 0,
+    inviteCode: item.inviteCode ?? '',
     name: item.name ?? '',
     coverImageUrl: item.coverImageUrl,
     capacity: item.maxParticipants ?? 0,

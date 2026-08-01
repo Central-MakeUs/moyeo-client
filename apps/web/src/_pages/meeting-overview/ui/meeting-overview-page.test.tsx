@@ -13,13 +13,18 @@ vi.mock('@/entities/meeting', async (importOriginal) => {
 });
 
 vi.mock('next/navigation', () => ({
-  useParams: () => ({ meetingId: '42' }),
+  useSearchParams: () => new URLSearchParams('code=29NRVBGXGP'),
 }));
 
 describe('MeetingOverviewPage', () => {
-  it('설명이 있는 모임을 반환하면 모임명과 설명이 모두 표시된다', () => {
+  it('설명이 있는 모임을 반환하면 모임명·설명·참여 정원이 모두 표시된다', () => {
     useMeetingDetailQueryMock.mockReturnValue({
-      data: { name: '데모데이에 모여', description: '부산 BEXCO에서 열리는 데모데이' },
+      data: {
+        name: '데모데이에 모여',
+        description: '부산 BEXCO에서 열리는 데모데이',
+        capacity: 5,
+        joinedCount: 3,
+      },
       isLoading: false,
       isError: false,
     });
@@ -28,11 +33,12 @@ describe('MeetingOverviewPage', () => {
 
     expect(screen.getByText('데모데이에 모여')).toBeInTheDocument();
     expect(screen.getByText('부산 BEXCO에서 열리는 데모데이')).toBeInTheDocument();
+    expect(document.body).toHaveTextContent('3/5');
   });
 
   it('description이 undefined이면 설명 문단을 렌더하지 않는다', () => {
     useMeetingDetailQueryMock.mockReturnValue({
-      data: { name: '설명 없는 모임', description: undefined },
+      data: { name: '설명 없는 모임', description: undefined, capacity: 5, joinedCount: 0 },
       isLoading: false,
       isError: false,
     });

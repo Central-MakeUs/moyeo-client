@@ -12,6 +12,7 @@ vi.mock('next/navigation', () => ({
 function buildMeeting(overrides: Partial<MeetingSummary> = {}): MeetingSummary {
   return {
     meetingId: 1,
+    inviteCode: '29NRVBGXGP',
     name: '데모데이에 모여',
     capacity: 5,
     joinedCount: 3,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useGetMyMeetingDetail } from '@/shared/api';
+import { useGetMeetingView } from '@/shared/api';
 
 import type { MeetingDetail } from './meeting-detail';
 
@@ -10,8 +10,13 @@ export interface UseMeetingDetailQueryResult {
   isError: boolean;
 }
 
-export function useMeetingDetailQuery(meetingId: number): UseMeetingDetailQueryResult {
-  const { data, isLoading, isError } = useGetMyMeetingDetail(meetingId);
+/**
+ * inviteCode가 아직 없으면(쿼리 파싱 전) 빈 문자열을 받는다 — useInvitation과 같은 관례.
+ */
+export function useMeetingDetailQuery(inviteCode: string): UseMeetingDetailQueryResult {
+  const { data, isLoading, isError } = useGetMeetingView(inviteCode, {
+    query: { enabled: inviteCode.length > 0 },
+  });
 
   return {
     data: data
@@ -19,6 +24,8 @@ export function useMeetingDetailQuery(meetingId: number): UseMeetingDetailQueryR
           name: data.name ?? '',
           description: data.description ?? undefined,
           coverImageUrl: data.coverImageUrl,
+          capacity: data.maxParticipants ?? 0,
+          joinedCount: data.participantCount ?? 0,
         }
       : undefined,
     isLoading,

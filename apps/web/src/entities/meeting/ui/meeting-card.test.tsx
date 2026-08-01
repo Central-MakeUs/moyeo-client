@@ -12,7 +12,15 @@ vi.mock('next/navigation', () => ({
 
 describe('MeetingCard', () => {
   it('title="데모데이에 모여" capacity={5} joinedCount={3} coverImageUrl 없이 렌더하면 제목, "3/5명 참여중" 텍스트, 기본 플레이스홀더 커버가 표시된다', () => {
-    render(<MeetingCard meetingId={1} title="데모데이에 모여" capacity={5} joinedCount={3} />);
+    render(
+      <MeetingCard
+        meetingId={1}
+        inviteCode="29NRVBGXGP"
+        title="데모데이에 모여"
+        capacity={5}
+        joinedCount={3}
+      />
+    );
 
     expect(screen.getByText('데모데이에 모여')).toBeInTheDocument();
     // 참여 인원과 "/N명 참여중"이 별도 span으로 나뉘어 있어 getByText로는 못 잡는다.
@@ -24,6 +32,7 @@ describe('MeetingCard', () => {
     render(
       <MeetingCard
         meetingId={1}
+        inviteCode="29NRVBGXGP"
         title="데모데이에 모여"
         capacity={5}
         joinedCount={3}
@@ -36,12 +45,20 @@ describe('MeetingCard', () => {
     expect(document.querySelector('[data-slot="thumbnail-fallback"]')).not.toBeInTheDocument();
   });
 
-  it("meetingId={42}로 렌더된 카드를 탭하면 router.push가 '/meetings/42'로 호출된다", async () => {
+  it('inviteCode="ABCDE12345"로 렌더된 카드를 탭하면 router.push가 /meetings?code=ABCDE12345로 호출된다', async () => {
     push.mockClear();
-    render(<MeetingCard meetingId={42} title="데모데이에 모여" capacity={5} joinedCount={3} />);
+    render(
+      <MeetingCard
+        meetingId={42}
+        inviteCode="ABCDE12345"
+        title="데모데이에 모여"
+        capacity={5}
+        joinedCount={3}
+      />
+    );
 
     await userEvent.click(screen.getByRole('button'));
 
-    expect(push).toHaveBeenCalledWith('/meetings/42');
+    expect(push).toHaveBeenCalledWith('/meetings?code=ABCDE12345');
   });
 });
