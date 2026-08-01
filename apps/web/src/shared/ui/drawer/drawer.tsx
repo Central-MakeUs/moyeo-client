@@ -11,12 +11,14 @@ type DrawerProps = React.ComponentProps<typeof DrawerPrimitive.Root> & {
   direction?: 'bottom';
 };
 
-function Drawer({ container, ...props }: DrawerProps) {
+function Drawer({ container, handleOnly = true, ...props }: DrawerProps) {
   const overlayContainer = useOverlayContainer();
 
   return (
     <DrawerPrimitive.Root
       data-slot="drawer"
+      handleOnly={handleOnly}
+      direction="bottom"
       container={container ?? overlayContainer ?? undefined}
       {...props}
     />
@@ -78,13 +80,16 @@ function DrawerContent({
   );
 }
 
-function DrawerHandle({ className, ...props }: React.ComponentProps<'div'>) {
+function DrawerHandle({
+  className,
+  ...props
+}: React.ComponentProps<typeof DrawerPrimitive.Handle>) {
   return (
-    <div className="relative h-[22px] w-full shrink-0">
-      <div
+    <div className="relative h-[34px] w-full shrink-0">
+      <DrawerPrimitive.Handle
         data-slot="drawer-handle"
         className={cn(
-          'absolute top-1.5 left-1/2 h-1 w-9 -translate-x-1/2 cursor-grab rounded-full bg-neutral-50',
+          'absolute inset-x-0 top-1.5 h-1! w-9! cursor-grab rounded-full bg-neutral-50',
           className
         )}
         {...props}

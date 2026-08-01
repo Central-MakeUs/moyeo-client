@@ -11,15 +11,20 @@ let mutationOptions:
   | { mutation?: { onSuccess?: (user: { id: number; nickname: string }) => void } }
   | undefined;
 
+const searchParams = new URLSearchParams();
+
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: replaceMock }),
+  useSearchParams: () => searchParams,
 }));
 
 vi.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({ setQueryData: setQueryDataMock }),
 }));
 
-vi.mock('@/shared/api', () => ({
+// `@/entities/session`(next 경로 유틸)이 같은 모듈의 다른 export를 쓰므로 부분 모킹한다.
+vi.mock('@/shared/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/shared/api')>()),
   getMeQueryKey: () => ['/api/auth/me'],
   useCompleteOnboarding: (options: {
     mutation?: { onSuccess?: (user: { id: number; nickname: string }) => void };
@@ -35,6 +40,7 @@ describe('NicknameOnboardingForm', () => {
     mutateMock.mockReset();
     setQueryDataMock.mockReset();
     mutationOptions = undefined;
+    searchParams.forEach((_, key) => searchParams.delete(key));
   });
 
   afterEach(() => {
@@ -52,6 +58,28 @@ describe('NicknameOnboardingForm', () => {
 
     mutationOptions?.mutation?.onSuccess?.(user);
     expect(setQueryDataMock).toHaveBeenCalledWith(['/api/auth/me'], user);
+    expect(replaceMock).toHaveBeenCalledWith('/home');
+  });
+
+  it('URL에 next가 있으면 온보딩을 마친 뒤 그 경로로 이동한다', async () => {
+    searchParams.set('next', '/i/ABC123');
+    render(<NicknameOnboardingForm />);
+
+    await userEvent.type(screen.getByRole('textbox'), '모여');
+    await userEvent.click(screen.getByRole('button', { name: '다음' }));
+    mutationOptions?.mutation?.onSuccess?.({ id: 1, nickname: '모여' });
+
+    expect(replaceMock).toHaveBeenCalledWith('/i/ABC123');
+  });
+
+  it('URL의 next가 //evil.com이면 외부로 나가지 않고 홈으로 이동한다', async () => {
+    searchParams.set('next', '//evil.com');
+    render(<NicknameOnboardingForm />);
+
+    await userEvent.type(screen.getByRole('textbox'), '모여');
+    await userEvent.click(screen.getByRole('button', { name: '다음' }));
+    mutationOptions?.mutation?.onSuccess?.({ id: 1, nickname: '모여' });
+
     expect(replaceMock).toHaveBeenCalledWith('/home');
   });
 

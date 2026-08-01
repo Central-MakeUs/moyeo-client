@@ -1,3 +1,5 @@
+import { Suspense } from 'react';
+
 import { NicknameOnboardingForm } from '@/features/onboarding';
 import { TopAppBar } from '@/shared/ui/top-app-bar';
 
@@ -12,7 +14,9 @@ export function NicknamePage() {
           <h1 className="text-extrabold-22 text-neutral-900">기본 닉네임을 정해주세요</h1>
           <p className="text-bold-14 text-neutral-600">닉네임은 나중에 변경할 수 있어요</p>
         </div>
-        <NicknameOnboardingForm />
+        <Suspense>
+          <NicknameOnboardingForm />
+        </Suspense>
       </main>
     </div>
   );

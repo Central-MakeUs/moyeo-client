@@ -36,7 +36,7 @@
 
 ## 3. 기술 결정 (ADR)
 
-### ADR-1. 참여 행동을 `features/meeting/join-invite` 슬라이스로 분리한다
+### ADR-1. 참여 행동을 `features/meeting/invite-join-entry` 슬라이스로 분리한다
 
 **Context**
 "참여하기를 탭했을 때 어디로 가는가"는 세션 4상태(`loading`·`error`·`anonymous`·
@@ -45,10 +45,10 @@
 `spec-fixed.md §7`의 결함 4·5번(초기 렌더 공백, `isOpen` 무시)이 생겼다.
 
 **Decision**
-`features/meeting/join-invite/` 슬라이스를 신설한다.
+`features/meeting/invite-join-entry/` 슬라이스를 신설한다.
 
 - `model/resolve-join-destination.ts` — 세션·참여 가능 여부를 받아 목적지를 돌려주는 **순수 함수**
-- `model/use-join-invite.ts` — 위 함수 + Drawer 열림 상태 + 라우팅을 묶은 훅
+- `model/use-join-entry.ts` — 위 함수 + Drawer 열림 상태 + 라우팅을 묶은 훅
 - `_pages/invite`는 조립만 하고 판단하지 않는다
 - 모임 정보 **표시**는 `entities/meeting`이 계속 담당한다
 
@@ -67,8 +67,10 @@
   소유 위치가 레포 전체에서 일관된다.
 - (+) 목적지 결정이 순수 함수라 세션 4상태 × `canJoin` 조합을 단위 테스트로 전부 덮을 수 있다.
 - (−) 파일이 3개 늘어난다. 현재 소비처가 INV-01 하나뿐이라 당장은 과해 보일 수 있다.
-- (−) `join-invite`라는 이름이 이후 실제 참여 제출(`joinMember`/`joinGuest`)과 겹칠 여지가 있다.
-  이번 슬라이스는 **참여 입구까지의 분기**만 담당한다는 것을 슬라이스 주석에 명시한다.
+- (−) 이름을 `join-invite`로 두면 이후 실제 참여 제출(`joinMember`/`joinGuest`)과 겹쳐 읽힌다.
+  주석으로 막으려 했으나 import하는 쪽에서는 주석이 보이지 않는다. 2026-08-02 리뷰에서
+  `invite-join-entry`로 바꿔 **경계를 이름에 담았다**. `invite-share`와 어순(`invite-{행동}`)도
+  맞는다.
 
 ---
 

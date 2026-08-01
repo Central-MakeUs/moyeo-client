@@ -1,20 +1,53 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
+import { readOAuthTransaction } from '@/entities/auth';
 import type { MeetingInvitation } from '@/entities/meeting';
+import type { SessionState } from '@/entities/session';
 import type { ParticipationStatusResponse } from '@/shared/api';
 
 import { InviteLandingPage } from './invite-landing-page';
 
-const { push, replace } = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn() }));
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push, replace }),
+const { push, replace, session, native } = vi.hoisted(() => ({
+  push: vi.fn(),
+  replace: vi.fn(),
+  // 세션 상태와 실행 환경은 테스트마다 바꾼다(#147). 기본값은 모바일 웹 비로그인.
+  session: { current: { status: 'anonymous' } as SessionState },
+  native: { current: false },
 }));
 
-// 세션 상태별 분기 검증은 #147 몫이라 여기서는 anonymous로 고정한다.
-vi.mock('@/entities/session', () => ({
-  useSession: () => ({ status: 'anonymous' }),
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push, replace }),
+  // Drawer가 열리면 SocialLoginButtons가 복귀 경로(next)를 읽는다.
+  useSearchParams: () => new URLSearchParams(),
 }));
+
+// Drawer 안의 SocialLoginButtons가 같은 모듈의 NEXT_PARAM 등을 함께 쓰므로 부분 모킹한다.
+vi.mock('@/entities/session', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/entities/session')>()),
+  useSession: () => session.current,
+}));
+
+vi.mock('@/shared/model', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/shared/model')>()),
+  isNativeContext: () => native.current,
+}));
+
+beforeEach(() => {
+  session.current = { status: 'anonymous' };
+  native.current = false;
+  push.mockClear();
+  replace.mockClear();
+  sessionStorage.clear();
+  // Apple 웹 로그인은 local 콜백을 지원하지 않아 stub하지 않으면 throw 한다.
+  vi.stubEnv('NEXT_PUBLIC_OAUTH_REDIRECT_TARGET', 'dev');
+  vi.stubEnv('NEXT_PUBLIC_KAKAO_CLIENT_ID', 'kakao-client-id');
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 const INVITATION: MeetingInvitation = {
   name: '데모데이에 모여',
@@ -175,5 +208,103 @@ describe('InviteLandingPage', () => {
     // 404 전용 화면은 #145 몫이라, 여기서는 카드만 생략하고 골격은 유지한다.
     expect(screen.getByText('모임 초대장이 왔어요!')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '모임 참여하기' })).toBeInTheDocument();
+  });
+
+  describe('참여하기 분기 (#147)', () => {
+    const AVAILABLE: ParticipationStatusResponse = { canJoin: true, reason: 'AVAILABLE' };
+
+    it('anonymous이고 모바일 웹이면 모임 참여하기 탭 시 게스트 선택지가 있는 Drawer가 열린다', async () => {
+      renderPage(INVITATION, AVAILABLE);
+
+      await userEvent.click(screen.getByRole('button', { name: '모임 참여하기' }));
+
+      expect(screen.getByText('이번에만 게스트로 참여하기')).toBeInTheDocument();
+    });
+
+    it('anonymous이고 WebView 안이면 모임 참여하기 탭 시 게스트 선택지가 없는 Drawer가 열린다', async () => {
+      native.current = true;
+      renderPage(INVITATION, AVAILABLE);
+
+      await userEvent.click(screen.getByRole('button', { name: '모임 참여하기' }));
+
+      // Drawer 자체는 열려야 한다. 소셜 로그인 수단으로 열림을 확인한다.
+      expect(screen.getByRole('button', { name: /카카오/ })).toBeInTheDocument();
+      expect(screen.queryByText('이번에만 게스트로 참여하기')).not.toBeInTheDocument();
+    });
+
+    it('authenticated면 모임 참여하기 탭 시 Drawer가 열리지 않고 닉네임 경로로 이동한다', async () => {
+      session.current = {
+        status: 'authenticated',
+        accessToken: 'token',
+        viewer: { id: 1, nickname: '소미', onboardingCompleted: true },
+      };
+      renderPage(INVITATION, AVAILABLE);
+
+      await userEvent.click(screen.getByRole('button', { name: '모임 참여하기' }));
+
+      expect(push).toHaveBeenCalledWith('/i/ABC123/nickname');
+      expect(screen.queryByText('이번에만 게스트로 참여하기')).not.toBeInTheDocument();
+    });
+
+    it('세션이 loading이면 모임 참여하기 버튼이 disabled다', () => {
+      session.current = { status: 'loading' };
+      renderPage(INVITATION, AVAILABLE);
+
+      expect(screen.getByRole('button', { name: '모임 참여하기' })).toBeDisabled();
+    });
+
+    it('최초 렌더에는 Drawer가 닫혀 있고 본문이 그려진다', () => {
+      renderPage(INVITATION, AVAILABLE);
+
+      expect(screen.getByRole('button', { name: '모임 참여하기' })).toBeInTheDocument();
+      expect(screen.queryByText('이번에만 게스트로 참여하기')).not.toBeInTheDocument();
+    });
+
+    it('Drawer에서 카카오로 로그인하면 초대 화면 경로가 복귀 목적지로 저장된다', async () => {
+      renderPage(INVITATION, AVAILABLE);
+      await userEvent.click(screen.getByRole('button', { name: '모임 참여하기' }));
+
+      await userEvent.click(screen.getByRole('button', { name: /카카오로 시작하기/ }));
+
+      // /i/ABC123/nickname이 아니다 — 로그인하는 사이 마감·정원이 바뀔 수 있어
+      // 참여 가능 상태를 다시 통과해야 한다(prd.md ADR-4).
+      expect(readOAuthTransaction()?.next).toBe('/i/ABC123');
+    });
+
+    it('세션이 error면 오류 안내와 다시 시도 버튼이 보이고 모임 참여하기는 disabled다', () => {
+      session.current = { status: 'error', retry: vi.fn() };
+      renderPage(INVITATION, AVAILABLE);
+
+      expect(screen.getByText('모임 정보를 불러오지 못했어요')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '다시 시도' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '모임 참여하기' })).toBeDisabled();
+    });
+
+    it('세션이 error일 때 다시 시도를 탭하면 세션 retry가 호출된다', async () => {
+      const retry = vi.fn();
+      session.current = { status: 'error', retry };
+      renderPage(INVITATION, AVAILABLE);
+
+      await userEvent.click(screen.getByRole('button', { name: '다시 시도' }));
+
+      expect(retry).toHaveBeenCalledTimes(1);
+    });
+
+    it('세션이 정상이면 오류 안내가 보이지 않는다', () => {
+      renderPage(INVITATION, AVAILABLE);
+
+      expect(screen.queryByText('모임 정보를 불러오지 못했어요')).not.toBeInTheDocument();
+    });
+
+    it('Drawer가 열린 상태에서 오버레이를 탭하면 Drawer가 닫히고 초대 화면이 남는다', async () => {
+      renderPage(INVITATION, AVAILABLE);
+      await userEvent.click(screen.getByRole('button', { name: '모임 참여하기' }));
+      expect(screen.getByText('이번에만 게스트로 참여하기')).toBeInTheDocument();
+
+      await userEvent.click(document.querySelector('[data-vaul-overlay]') as Element);
+
+      expect(screen.queryByText('이번에만 게스트로 참여하기')).not.toBeInTheDocument();
+      expect(screen.getByText('데모데이에 모여')).toBeInTheDocument();
+    });
   });
 });
