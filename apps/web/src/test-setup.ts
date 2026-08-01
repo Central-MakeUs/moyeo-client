@@ -47,6 +47,36 @@ if (typeof window !== 'undefined' && typeof window.ResizeObserver !== 'function'
   window.ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver;
 }
 
+// jsdom에는 canvas 2D 컨텍스트 구현이 없어 getContext()가 null을 돌려준다(선택 의존성인
+// `canvas` 패키지를 깔아야 동작한다). canvas-confetti는 Celebration 언마운트 시 reset()에서
+// context.clearRect를 부르므로 null을 만나면 TypeError로 죽고, Celebration을 렌더하는 테스트가
+// 전부 실패한다. 실제로 호출하는 API만 no-op으로 채운다.
+// (`canvas` 패키지를 도입하게 되면 이 블록을 지워야 진짜 컨텍스트가 쓰인다.)
+if (typeof HTMLCanvasElement !== 'undefined') {
+  const createNoopContext2D = () => ({
+    arc: () => {},
+    beginPath: () => {},
+    clearRect: () => {},
+    closePath: () => {},
+    createPattern: () => null,
+    ellipse: () => {},
+    fill: () => {},
+    fillRect: () => {},
+    lineTo: () => {},
+    moveTo: () => {},
+    restore: () => {},
+    rotate: () => {},
+    save: () => {},
+    scale: () => {},
+    translate: () => {},
+    fillStyle: '',
+    globalAlpha: 1,
+  });
+
+  HTMLCanvasElement.prototype.getContext = (() =>
+    createNoopContext2D()) as unknown as HTMLCanvasElement['getContext'];
+}
+
 // 각 테스트 후 렌더 결과를 언마운트해 DOM 누적을 막는다.
 afterEach(() => {
   cleanup();
