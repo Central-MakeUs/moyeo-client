@@ -3,6 +3,7 @@ import Apple from '@/shared/assets/icons/apple.svg';
 import BusSelected from '@/shared/assets/icons/bus-selected.svg';
 import Bus from '@/shared/assets/icons/bus.svg';
 import CalendarIcon from '@/shared/assets/icons/calendar-icon.svg';
+import CalendarNeutral from '@/shared/assets/icons/calendar-neutral.svg';
 import CalendarPrimary from '@/shared/assets/icons/calendar-primary.svg';
 import Calendar from '@/shared/assets/icons/calendar.svg';
 import CarSelected from '@/shared/assets/icons/car-selected.svg';
@@ -16,13 +17,16 @@ import ChevronRight from '@/shared/assets/icons/chevron-right.svg';
 import ChevronSmallLeft from '@/shared/assets/icons/chevron-small-left.svg';
 import ChevronSmallRight from '@/shared/assets/icons/chevron-small-right.svg';
 import ChevronUp from '@/shared/assets/icons/chevron-up.svg';
+import Clock from '@/shared/assets/icons/clock.svg';
 import Close from '@/shared/assets/icons/close.svg';
 import Confetti from '@/shared/assets/icons/confetti.svg';
 import Envelope from '@/shared/assets/icons/envelope.svg';
+import Group from '@/shared/assets/icons/group.svg';
 import Invitation from '@/shared/assets/icons/invitation.svg';
 import KakaoLogo from '@/shared/assets/icons/kakao-logo.svg';
 import KakaoText from '@/shared/assets/icons/kakao-text.svg';
 import Kakao from '@/shared/assets/icons/kakao.svg';
+import Kebab from '@/shared/assets/icons/kebab.svg';
 import LinkSmall from '@/shared/assets/icons/link-small.svg';
 import Link from '@/shared/assets/icons/link.svg';
 import Location from '@/shared/assets/icons/location.svg';
@@ -43,6 +47,7 @@ export const ICONS = {
   'bus-selected': BusSelected,
   bus: Bus,
   'calendar-icon': CalendarIcon,
+  'calendar-neutral': CalendarNeutral,
   'calendar-primary': CalendarPrimary,
   calendar: Calendar,
   'car-selected': CarSelected,
@@ -56,13 +61,16 @@ export const ICONS = {
   'chevron-small-left': ChevronSmallLeft,
   'chevron-small-right': ChevronSmallRight,
   'chevron-up': ChevronUp,
+  clock: Clock,
   close: Close,
   confetti: Confetti,
   envelope: Envelope,
+  group: Group,
   invitation: Invitation,
   'kakao-logo': KakaoLogo,
   'kakao-text': KakaoText,
   kakao: Kakao,
+  kebab: Kebab,
   'link-small': LinkSmall,
   link: Link,
   location: Location,
