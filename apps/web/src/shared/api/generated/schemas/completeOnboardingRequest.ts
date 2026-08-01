@@ -11,9 +11,10 @@
  */
 export interface CompleteOnboardingRequest {
   /**
-   * 사용자 기본 닉네임. 전역 고유값이 아닙니다.
-   * @minLength 0
-   * @maxLength 30
+   * 사용자 기본 닉네임. 한글 또는 영문 2~10자이며 전역 고유값이 아닙니다.
+   * @minLength 2
+   * @maxLength 10
+   * @pattern ^[가-힣A-Za-z]{2,10}$
    */
   nickname: string;
 }

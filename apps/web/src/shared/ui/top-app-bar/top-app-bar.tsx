@@ -13,23 +13,25 @@ export function TopAppBar({ leading, title, trailing, className, ...props }: Top
     <header
       data-slot="top-app-bar"
       className={cn(
-        'grid h-[54px] w-full grid-cols-[64px_minmax(0,1fr)_64px] items-center bg-transparent px-5 text-neutral-950',
+        'flex h-[54px] w-full items-center justify-between gap-4 bg-transparent px-5 text-neutral-950',
         className
       )}
       {...props}
     >
-      <div data-slot="top-app-bar-leading" className="flex min-w-0 items-center justify-self-start">
-        {leading}
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        <div data-slot="top-app-bar-leading" className="flex shrink-0 items-center">
+          {leading}
+        </div>
+
+        <div
+          data-slot="top-app-bar-title"
+          className="min-w-0 truncate text-bold-16 text-neutral-700"
+        >
+          {title}
+        </div>
       </div>
 
-      <div
-        data-slot="top-app-bar-title"
-        className="w-full min-w-0 truncate text-center text-bold-16 text-neutral-1000"
-      >
-        {title}
-      </div>
-
-      <div data-slot="top-app-bar-trailing" className="flex min-w-0 items-center justify-self-end">
+      <div data-slot="top-app-bar-trailing" className="flex shrink-0 items-center">
         {trailing}
       </div>
     </header>

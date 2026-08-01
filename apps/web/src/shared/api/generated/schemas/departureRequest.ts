@@ -19,7 +19,7 @@ export interface DepartureRequest {
    */
   name?: string | null;
   /**
-   * 출발지 주소입니다.
+   * 출발지 주소입니다. 현재 MVP에서는 서울특별시 또는 경기도 주소만 허용합니다.
    * @minLength 0
    * @maxLength 255
    */

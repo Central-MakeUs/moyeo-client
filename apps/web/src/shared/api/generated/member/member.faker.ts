@@ -20,3 +20,15 @@ export const getCompleteOnboardingResponseMock = (
   onboardingCompleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
   ...overrideResponse,
 });
+
+export const getUpdateNicknameResponseMock = (
+  overrideResponse: Partial<Extract<AuthUserResponse, object>> = {}
+): AuthUserResponse => ({
+  id: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  nickname: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  onboardingCompleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  ...overrideResponse,
+});

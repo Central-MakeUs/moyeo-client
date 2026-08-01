@@ -7,7 +7,7 @@
  */
 
 /**
- * 일정 참여 입력 유형입니다. 장소만 정하는 모임은 NONE입니다.
+ * 일정 참여 입력 유형
  */
 export type ScheduleViewResponseScheduleInputType =
   (typeof ScheduleViewResponseScheduleInputType)[keyof typeof ScheduleViewResponseScheduleInputType];

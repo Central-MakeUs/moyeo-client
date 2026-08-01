@@ -2,6 +2,7 @@
 import Apple from '@/shared/assets/icons/apple.svg';
 import BusSelected from '@/shared/assets/icons/bus-selected.svg';
 import Bus from '@/shared/assets/icons/bus.svg';
+import CalendarIcon from '@/shared/assets/icons/calendar-icon.svg';
 import CalendarPrimary from '@/shared/assets/icons/calendar-primary.svg';
 import Calendar from '@/shared/assets/icons/calendar.svg';
 import CarSelected from '@/shared/assets/icons/car-selected.svg';
@@ -23,7 +24,9 @@ import KakaoText from '@/shared/assets/icons/kakao-text.svg';
 import Kakao from '@/shared/assets/icons/kakao.svg';
 import LinkSmall from '@/shared/assets/icons/link-small.svg';
 import Link from '@/shared/assets/icons/link.svg';
+import Location from '@/shared/assets/icons/location.svg';
 import Minus from '@/shared/assets/icons/minus.svg';
+import MoyeoLogoPlaceholder from '@/shared/assets/icons/moyeo-logo-placeholder.svg';
 import MoyeoLogo from '@/shared/assets/icons/moyeo-logo.svg';
 import NotePrimary from '@/shared/assets/icons/note-primary.svg';
 import Note from '@/shared/assets/icons/note.svg';
@@ -36,35 +39,38 @@ import Search from '@/shared/assets/icons/search.svg';
 
 export const ICONS = {
   apple: Apple,
-  "bus-selected": BusSelected,
+  'bus-selected': BusSelected,
   bus: Bus,
-  "calendar-primary": CalendarPrimary,
+  'calendar-icon': CalendarIcon,
+  'calendar-primary': CalendarPrimary,
   calendar: Calendar,
-  "car-selected": CarSelected,
+  'car-selected': CarSelected,
   car: Car,
-  "caret-down": CaretDown,
-  "caret-up": CaretUp,
+  'caret-down': CaretDown,
+  'caret-up': CaretUp,
   check: Check,
-  "chevron-down": ChevronDown,
-  "chevron-left": ChevronLeft,
-  "chevron-right": ChevronRight,
-  "chevron-small-left": ChevronSmallLeft,
-  "chevron-small-right": ChevronSmallRight,
-  "chevron-up": ChevronUp,
+  'chevron-down': ChevronDown,
+  'chevron-left': ChevronLeft,
+  'chevron-right': ChevronRight,
+  'chevron-small-left': ChevronSmallLeft,
+  'chevron-small-right': ChevronSmallRight,
+  'chevron-up': ChevronUp,
   close: Close,
   confetti: Confetti,
   envelope: Envelope,
-  "kakao-logo": KakaoLogo,
-  "kakao-text": KakaoText,
+  'kakao-logo': KakaoLogo,
+  'kakao-text': KakaoText,
   kakao: Kakao,
-  "link-small": LinkSmall,
+  'link-small': LinkSmall,
   link: Link,
+  location: Location,
   minus: Minus,
-  "moyeo-logo": MoyeoLogo,
-  "note-primary": NotePrimary,
+  'moyeo-logo-placeholder': MoyeoLogoPlaceholder,
+  'moyeo-logo': MoyeoLogo,
+  'note-primary': NotePrimary,
   note: Note,
   person: Person,
-  "pinned-primary": PinnedPrimary,
+  'pinned-primary': PinnedPrimary,
   pinned: Pinned,
   plane: Plane,
   plus: Plus,

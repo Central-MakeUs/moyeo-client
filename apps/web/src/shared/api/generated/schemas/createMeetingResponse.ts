@@ -14,6 +14,4 @@ export interface CreateMeetingResponse {
   meetingId?: number;
   /** 초대 코드입니다. */
   inviteCode?: string;
-  /** 공유 링크를 만들 때 사용하는 상대 경로입니다. */
-  invitePath?: string;
 }

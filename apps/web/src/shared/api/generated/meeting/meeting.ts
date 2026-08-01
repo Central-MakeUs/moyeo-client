@@ -22,19 +22,27 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ActualRouteRecommendationResponse,
+  ConfirmPlaceRequest,
+  ConfirmScheduleRequest,
   CreateMeetingResponse,
   CreateMeetingWithCoverBodyTwo,
   GetCoverImageParams,
   GetScheduleViewParams,
   GuestJoinRequest,
+  MeetingConfirmationResponse,
   MeetingCoverResponse,
   MeetingInvitationResponse,
+  MeetingParticipantNicknameResponse,
   MeetingViewResponse,
   MemberJoinRequest,
+  MyMeetingDetailResponse,
+  MyMeetingListResponse,
   ParticipantJoinResponse,
   PlaceViewResponse,
   ReplaceCoverImageBody,
   ScheduleViewResponse,
+  UpdateMeetingParticipantNicknameRequest,
 } from '../schemas';
 
 import { customInstance } from '../../axios-instance';
@@ -58,7 +66,7 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
 };
 
 /**
- * 임시 MVP 정책상 방장만 커버 사진을 교체할 수 있습니다. 성공 응답의 coverImageUrl은 새로 저장된 이미지의 상대 조회 경로입니다. 프론트는 기존 <img src>를 이 값에 API 서버 주소를 붙인 URL로 교체합니다.
+ * 임시 MVP 정책상 방장만 최대 10MB, 13MP이고 한 변이 8,000px 이하인 JPEG/PNG 커버 사진을 교체할 수 있습니다. 성공 응답의 coverImageUrl은 새로 저장된 이미지의 상대 조회 경로입니다. 프론트는 기존 <img src>를 이 값에 API 서버 주소를 붙인 URL로 교체합니다.
  * @summary 모임 커버 사진 교체
  */
 export const replaceCoverImage = (
@@ -237,7 +245,7 @@ export const useDeleteCoverImage = <TError = ErrorType<void>, TContext = unknown
  * `application/json` 타입의 Blob 파트여야 합니다.
  *
  * `request`에는 모임 설정과 방장의 후보 날짜·가능 일정·출발지를 선택한 플로우에 맞게
- * 모두 담습니다. 성공 시 `meetingId`, `inviteCode`, `invitePath`를 반환합니다.
+ * 모두 담습니다. 성공 시 `meetingId`, `inviteCode`를 반환합니다.
  *
  * `FormData` 요청에서 `Content-Type` 헤더는 직접 설정하지 마세요. 브라우저 또는 curl이
  * multipart boundary를 자동으로 추가합니다.
@@ -353,6 +361,262 @@ export const useCreateMeetingWithCover = <
   TContext
 > => {
   return useMutation(getCreateMeetingWithCoverMutationOptions(options), queryClient);
+};
+/**
+ * 방장만 실행할 수 있습니다. 일정과 장소가 모두 확정되면 모임이 최종 확정됩니다.
+ * @summary 일정 확정
+ */
+export const confirmSchedule = (
+  meetingId: number,
+  confirmScheduleRequest: BodyType<ConfirmScheduleRequest>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<MeetingConfirmationResponse>(
+    {
+      url: `/api/meetings/${meetingId}/schedule-confirmation`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: confirmScheduleRequest,
+      signal,
+    },
+    options
+  );
+};
+
+export const getConfirmScheduleMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof confirmSchedule>>,
+    TError,
+    { meetingId: number; data: BodyType<ConfirmScheduleRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof confirmSchedule>>,
+  TError,
+  { meetingId: number; data: BodyType<ConfirmScheduleRequest> },
+  TContext
+> => {
+  const mutationKey = ['confirmSchedule'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof confirmSchedule>>,
+    { meetingId: number; data: BodyType<ConfirmScheduleRequest> }
+  > = (props) => {
+    const { meetingId, data } = props ?? {};
+
+    return confirmSchedule(meetingId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ConfirmScheduleMutationResult = NonNullable<
+  Awaited<ReturnType<typeof confirmSchedule>>
+>;
+export type ConfirmScheduleMutationBody = BodyType<ConfirmScheduleRequest>;
+export type ConfirmScheduleMutationError = ErrorType<unknown>;
+
+/**
+ * @summary 일정 확정
+ */
+export const useConfirmSchedule = <TError = ErrorType<unknown>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof confirmSchedule>>,
+      TError,
+      { meetingId: number; data: BodyType<ConfirmScheduleRequest> },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof confirmSchedule>>,
+  TError,
+  { meetingId: number; data: BodyType<ConfirmScheduleRequest> },
+  TContext
+> => {
+  return useMutation(getConfirmScheduleMutationOptions(options), queryClient);
+};
+/**
+ * 방장만 실행할 수 있습니다. 일정과 장소가 모두 확정되면 모임이 최종 확정됩니다.
+ * @summary 장소 확정
+ */
+export const confirmPlace = (
+  meetingId: number,
+  confirmPlaceRequest: BodyType<ConfirmPlaceRequest>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<MeetingConfirmationResponse>(
+    {
+      url: `/api/meetings/${meetingId}/place-confirmation`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: confirmPlaceRequest,
+      signal,
+    },
+    options
+  );
+};
+
+export const getConfirmPlaceMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof confirmPlace>>,
+    TError,
+    { meetingId: number; data: BodyType<ConfirmPlaceRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof confirmPlace>>,
+  TError,
+  { meetingId: number; data: BodyType<ConfirmPlaceRequest> },
+  TContext
+> => {
+  const mutationKey = ['confirmPlace'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof confirmPlace>>,
+    { meetingId: number; data: BodyType<ConfirmPlaceRequest> }
+  > = (props) => {
+    const { meetingId, data } = props ?? {};
+
+    return confirmPlace(meetingId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ConfirmPlaceMutationResult = NonNullable<Awaited<ReturnType<typeof confirmPlace>>>;
+export type ConfirmPlaceMutationBody = BodyType<ConfirmPlaceRequest>;
+export type ConfirmPlaceMutationError = ErrorType<unknown>;
+
+/**
+ * @summary 장소 확정
+ */
+export const useConfirmPlace = <TError = ErrorType<unknown>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof confirmPlace>>,
+      TError,
+      { meetingId: number; data: BodyType<ConfirmPlaceRequest> },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof confirmPlace>>,
+  TError,
+  { meetingId: number; data: BodyType<ConfirmPlaceRequest> },
+  TContext
+> => {
+  return useMutation(getConfirmPlaceMutationOptions(options), queryClient);
+};
+/**
+ * 방장만 실행할 수 있습니다. 예비 후보를 카카오 실제 이동시간으로 재정렬해 반환하며 결과는 아직 확정 저장하지 않습니다.
+ * @summary 방장 실제 이동시간 장소 추천
+ */
+export const calculateActualRouteRecommendation = (
+  inviteCode: string,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<ActualRouteRecommendationResponse>(
+    {
+      url: `/api/meetings/invitations/${inviteCode}/view/places/actual-time`,
+      method: 'POST',
+      signal,
+    },
+    options
+  );
+};
+
+export const getCalculateActualRouteRecommendationMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof calculateActualRouteRecommendation>>,
+    TError,
+    { inviteCode: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof calculateActualRouteRecommendation>>,
+  TError,
+  { inviteCode: string },
+  TContext
+> => {
+  const mutationKey = ['calculateActualRouteRecommendation'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof calculateActualRouteRecommendation>>,
+    { inviteCode: string }
+  > = (props) => {
+    const { inviteCode } = props ?? {};
+
+    return calculateActualRouteRecommendation(inviteCode, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CalculateActualRouteRecommendationMutationResult = NonNullable<
+  Awaited<ReturnType<typeof calculateActualRouteRecommendation>>
+>;
+
+export type CalculateActualRouteRecommendationMutationError = ErrorType<unknown>;
+
+/**
+ * @summary 방장 실제 이동시간 장소 추천
+ */
+export const useCalculateActualRouteRecommendation = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof calculateActualRouteRecommendation>>,
+      TError,
+      { inviteCode: string },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof calculateActualRouteRecommendation>>,
+  TError,
+  { inviteCode: string },
+  TContext
+> => {
+  return useMutation(getCalculateActualRouteRecommendationMutationOptions(options), queryClient);
 };
 /**
  * **출발지 이름 공통 안내**
@@ -538,6 +802,410 @@ export const useJoinGuest = <TError = ErrorType<unknown>, TContext = unknown>(
 > => {
   return useMutation(getJoinGuestMutationOptions(options), queryClient);
 };
+/**
+ * 방장 또는 로그인 회원이 해당 모임에서 표시되는 본인 닉네임만 수정합니다. 기본 프로필 닉네임은 변경하지 않으며, 회원·방장 닉네임 중복은 허용됩니다.
+ * @summary 모임 내 본인 닉네임 수정
+ */
+export const updateMeetingParticipantNickname = (
+  meetingId: number,
+  updateMeetingParticipantNicknameRequest: BodyType<UpdateMeetingParticipantNicknameRequest>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<MeetingParticipantNicknameResponse>(
+    {
+      url: `/api/meetings/${meetingId}/participants/me/nickname`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: updateMeetingParticipantNicknameRequest,
+      signal,
+    },
+    options
+  );
+};
+
+export const getUpdateMeetingParticipantNicknameMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateMeetingParticipantNickname>>,
+    TError,
+    { meetingId: number; data: BodyType<UpdateMeetingParticipantNicknameRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateMeetingParticipantNickname>>,
+  TError,
+  { meetingId: number; data: BodyType<UpdateMeetingParticipantNicknameRequest> },
+  TContext
+> => {
+  const mutationKey = ['updateMeetingParticipantNickname'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateMeetingParticipantNickname>>,
+    { meetingId: number; data: BodyType<UpdateMeetingParticipantNicknameRequest> }
+  > = (props) => {
+    const { meetingId, data } = props ?? {};
+
+    return updateMeetingParticipantNickname(meetingId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateMeetingParticipantNicknameMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateMeetingParticipantNickname>>
+>;
+export type UpdateMeetingParticipantNicknameMutationBody =
+  BodyType<UpdateMeetingParticipantNicknameRequest>;
+export type UpdateMeetingParticipantNicknameMutationError = ErrorType<unknown>;
+
+/**
+ * @summary 모임 내 본인 닉네임 수정
+ */
+export const useUpdateMeetingParticipantNickname = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateMeetingParticipantNickname>>,
+      TError,
+      { meetingId: number; data: BodyType<UpdateMeetingParticipantNicknameRequest> },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateMeetingParticipantNickname>>,
+  TError,
+  { meetingId: number; data: BodyType<UpdateMeetingParticipantNicknameRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateMeetingParticipantNicknameMutationOptions(options), queryClient);
+};
+/**
+ * 로그인 회원이 방장 또는 회원 참여자로 속한 모임의 상세 정보를 반환합니다. 참여자 목록의 isMe로 현재 사용자를 표시합니다.
+ * @summary 내 모임 상세 조회
+ */
+export const getMyMeetingDetail = (
+  meetingId: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<MyMeetingDetailResponse>(
+    { url: `/api/meetings/${meetingId}`, method: 'GET', signal },
+    options
+  );
+};
+
+export const getGetMyMeetingDetailQueryKey = (meetingId: number) => {
+  return [`/api/meetings/${meetingId}`] as const;
+};
+
+export const getGetMyMeetingDetailQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMyMeetingDetail>>,
+  TError = ErrorType<MyMeetingDetailResponse>,
+>(
+  meetingId: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyMeetingDetail>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetMyMeetingDetailQueryKey(meetingId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyMeetingDetail>>> = ({ signal }) =>
+    getMyMeetingDetail(meetingId, requestOptions, signal);
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: meetingId !== null && meetingId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getMyMeetingDetail>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type GetMyMeetingDetailQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getMyMeetingDetail>>
+>;
+export type GetMyMeetingDetailQueryError = ErrorType<MyMeetingDetailResponse>;
+
+export function useGetMyMeetingDetail<
+  TData = Awaited<ReturnType<typeof getMyMeetingDetail>>,
+  TError = ErrorType<MyMeetingDetailResponse>,
+>(
+  meetingId: number,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyMeetingDetail>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyMeetingDetail>>,
+          TError,
+          Awaited<ReturnType<typeof getMyMeetingDetail>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetMyMeetingDetail<
+  TData = Awaited<ReturnType<typeof getMyMeetingDetail>>,
+  TError = ErrorType<MyMeetingDetailResponse>,
+>(
+  meetingId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getMyMeetingDetail>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyMeetingDetail>>,
+          TError,
+          Awaited<ReturnType<typeof getMyMeetingDetail>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetMyMeetingDetail<
+  TData = Awaited<ReturnType<typeof getMyMeetingDetail>>,
+  TError = ErrorType<MyMeetingDetailResponse>,
+>(
+  meetingId: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyMeetingDetail>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary 내 모임 상세 조회
+ */
+
+export function useGetMyMeetingDetail<
+  TData = Awaited<ReturnType<typeof getMyMeetingDetail>>,
+  TError = ErrorType<MyMeetingDetailResponse>,
+>(
+  meetingId: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyMeetingDetail>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetMyMeetingDetailQueryOptions(meetingId, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+/**
+ * 방장은 진행 중·확정 모임을 포함해 자신이 생성한 모임을 삭제할 수 있습니다. 참여자, 일정 응답·후보, 모임 출발지 검색 이력과 커버 이미지도 함께 삭제합니다.
+ * @summary 방장 모임 삭제
+ */
+export const deleteMeeting = (
+  meetingId: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<void>(
+    { url: `/api/meetings/${meetingId}`, method: 'DELETE', signal },
+    options
+  );
+};
+
+export const getDeleteMeetingMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteMeeting>>,
+    TError,
+    { meetingId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteMeeting>>,
+  TError,
+  { meetingId: number },
+  TContext
+> => {
+  const mutationKey = ['deleteMeeting'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteMeeting>>,
+    { meetingId: number }
+  > = (props) => {
+    const { meetingId } = props ?? {};
+
+    return deleteMeeting(meetingId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteMeetingMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMeeting>>>;
+
+export type DeleteMeetingMutationError = ErrorType<unknown>;
+
+/**
+ * @summary 방장 모임 삭제
+ */
+export const useDeleteMeeting = <TError = ErrorType<unknown>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteMeeting>>,
+      TError,
+      { meetingId: number },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteMeeting>>,
+  TError,
+  { meetingId: number },
+  TContext
+> => {
+  return useMutation(getDeleteMeetingMutationOptions(options), queryClient);
+};
+/**
+ * 로그인 회원이 방장 또는 회원 참여자로 속한 진행 중 및 확정 모임을 반환합니다.
+ * @summary 내 모임 홈 목록
+ */
+export const getMyMeetings = (
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<MyMeetingListResponse>(
+    { url: `/api/meetings/me`, method: 'GET', signal },
+    options
+  );
+};
+
+export const getGetMyMeetingsQueryKey = () => {
+  return [`/api/meetings/me`] as const;
+};
+
+export const getGetMyMeetingsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMyMeetings>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyMeetings>>, TError, TData>>;
+  request?: SecondParameter<typeof customInstance>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetMyMeetingsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyMeetings>>> = ({ signal }) =>
+    getMyMeetings(requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMyMeetings>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetMyMeetingsQueryResult = NonNullable<Awaited<ReturnType<typeof getMyMeetings>>>;
+export type GetMyMeetingsQueryError = ErrorType<unknown>;
+
+export function useGetMyMeetings<
+  TData = Awaited<ReturnType<typeof getMyMeetings>>,
+  TError = ErrorType<unknown>,
+>(
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyMeetings>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyMeetings>>,
+          TError,
+          Awaited<ReturnType<typeof getMyMeetings>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetMyMeetings<
+  TData = Awaited<ReturnType<typeof getMyMeetings>>,
+  TError = ErrorType<unknown>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyMeetings>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyMeetings>>,
+          TError,
+          Awaited<ReturnType<typeof getMyMeetings>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetMyMeetings<
+  TData = Awaited<ReturnType<typeof getMyMeetings>>,
+  TError = ErrorType<unknown>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyMeetings>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary 내 모임 홈 목록
+ */
+
+export function useGetMyMeetings<
+  TData = Awaited<ReturnType<typeof getMyMeetings>>,
+  TError = ErrorType<unknown>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyMeetings>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetMyMeetingsQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
 /**
  * 초대 링크 진입 화면에서 사용할 모임 정보를 조회합니다.<br>
  * 참여 가능 여부와 마감/정원 초과 안내 문구를 함께 반환합니다.
@@ -788,8 +1456,8 @@ export function useGetMeetingView<
 
 /**
  * 확정 전 모임 상세 화면의 일정 조율 현황을 조회합니다.<br>
- * 저장된 참여자 가능 시간 슬롯을 집계해 최대 3개의 후보를 반환합니다.
- * sort는 LONGEST_MEETING 또는 EARLIEST_DATE를 사용할 수 있으며, 생략하면 LONGEST_MEETING으로 정렬합니다.
+ * 저장된 참여자 가능 시간 슬롯을 집계해 동시 참여 가능 인원이 최대인 후보를 최대 5개 반환합니다.
+ * sort는 LONGEST_MEETING 또는 EARLIEST_DATE를 사용할 수 있으며, 생략하면 EARLIEST_DATE로 정렬합니다.
  * @summary 일정 조율 현황 조회
  */
 export const getScheduleView = (
@@ -1177,3 +1845,81 @@ export function useGetCoverImage<
 
   return withQueryKey(query, queryOptions.queryKey);
 }
+
+/**
+ * 로그인 회원 참여자(MEMBER)는 상태와 무관하게 본인 참여를 취소할 수 있습니다. 참여자 행과 일정 응답·출발지 정보는 hard delete됩니다. 방장은 이 API 대신 모임 삭제를 사용합니다.
+ * @summary 회원 모임 나가기
+ */
+export const leaveMeeting = (
+  meetingId: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<void>(
+    { url: `/api/meetings/${meetingId}/participation`, method: 'DELETE', signal },
+    options
+  );
+};
+
+export const getLeaveMeetingMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof leaveMeeting>>,
+    TError,
+    { meetingId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof leaveMeeting>>,
+  TError,
+  { meetingId: number },
+  TContext
+> => {
+  const mutationKey = ['leaveMeeting'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof leaveMeeting>>,
+    { meetingId: number }
+  > = (props) => {
+    const { meetingId } = props ?? {};
+
+    return leaveMeeting(meetingId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type LeaveMeetingMutationResult = NonNullable<Awaited<ReturnType<typeof leaveMeeting>>>;
+
+export type LeaveMeetingMutationError = ErrorType<unknown>;
+
+/**
+ * @summary 회원 모임 나가기
+ */
+export const useLeaveMeeting = <TError = ErrorType<unknown>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof leaveMeeting>>,
+      TError,
+      { meetingId: number },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof leaveMeeting>>,
+  TError,
+  { meetingId: number },
+  TContext
+> => {
+  return useMutation(getLeaveMeetingMutationOptions(options), queryClient);
+};

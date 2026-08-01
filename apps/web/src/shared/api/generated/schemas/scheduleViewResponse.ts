@@ -5,6 +5,7 @@
  * CMC Moyeo MVP server API
  * OpenAPI spec version: v1
  */
+import type { AvailabilityStatusResponse } from './availabilityStatusResponse';
 import type { CandidateResponse } from './candidateResponse';
 import type { ScheduleViewResponseScheduleInputType } from './scheduleViewResponseScheduleInputType';
 import type { ScheduleViewResponseSort } from './scheduleViewResponseSort';
@@ -15,12 +16,14 @@ import type { ScheduleViewResponseSort } from './scheduleViewResponseSort';
 export interface ScheduleViewResponse {
   /** 모임 ID */
   meetingId?: number;
-  /** 일정 참여 입력 유형입니다. 장소만 정하는 모임은 NONE입니다. */
+  /** 일정 참여 입력 유형 */
   scheduleInputType?: ScheduleViewResponseScheduleInputType;
   /** 적용된 정렬 방식 */
   sort?: ScheduleViewResponseSort;
   /** 현재 참여 인원. 방장을 포함합니다. */
   participantCount?: number;
-  /** 일정 후보 목록. 적용된 정렬 방식에 따라 최대 3개를 반환합니다. 후보가 없으면 빈 배열입니다. */
+  /** 동시 참여 가능 인원이 최대인 일정 후보입니다. 2명 이상 겹치는 시간이 없으면 빈 배열이며, 정렬 방식에 따라 최대 5개를 반환합니다. */
   candidates?: CandidateResponse[];
+  /** 일정 응답 현황 블록입니다. DATE_ONLY는 날짜별 블록이며 시작·종료 시간은 null입니다. DATE_AND_TIME은 같은 가능 참여자 집합의 연속 1시간 슬롯을 합쳐 반환합니다. 클라이언트는 availableParticipantCount / participantCount 비율로 화면 색상을 표시합니다. */
+  availabilityStatuses?: AvailabilityStatusResponse[];
 }
