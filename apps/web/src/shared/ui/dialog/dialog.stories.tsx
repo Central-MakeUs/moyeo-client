@@ -88,6 +88,21 @@ export const ScrollableBody: Story = {
               '닉네임',
               '닉네임',
               '닉네임',
+              '닉네임',
+              '닉네임',
+              '닉네임',
+              '닉네임',
+              '닉네임',
+              '닉네임',
+              '닉네임',
+              '닉네임',
+              '닉네임',
+              '닉네임',
+              '닉네임',
+              '닉네임',
+              '닉네임',
+              '닉네임',
+              '닉네임',
             ].map((name, index) => (
               <div key={`${name}-${index}`} className="text-medium-14 text-neutral-700">
                 {name}

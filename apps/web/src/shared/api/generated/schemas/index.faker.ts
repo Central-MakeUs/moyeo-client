@@ -555,6 +555,10 @@ export const getMyMeetingDetailResponseMock = (
 
 export const getItemMock = (overrideResponse: Partial<Item> = {}): Item => ({
   meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  inviteCode: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
   name: faker.helpers.arrayElement([
     faker.string.alpha({ length: { min: 10, max: 20 } }),
     undefined,

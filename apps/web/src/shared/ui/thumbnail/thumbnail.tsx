@@ -13,6 +13,8 @@ export interface ThumbnailProps extends Omit<React.ComponentProps<'div'>, 'child
   iconSize?: number;
   /** 플레이스홀더 아이콘 표시 여부. 기본 true */
   showIcon?: boolean;
+  /** 이미지 위 블랙 20% 오버레이 표시 여부. 기본 false */
+  overlay?: boolean;
 }
 
 export function Thumbnail({
@@ -20,6 +22,7 @@ export function Thumbnail({
   alt,
   iconSize = 80,
   showIcon = true,
+  overlay = false,
   className,
   ...props
 }: ThumbnailProps): React.JSX.Element {
@@ -45,6 +48,7 @@ export function Thumbnail({
           {showIcon && <Icon name="moyeo-logo-placeholder" size={iconSize} />}
         </div>
       )}
+      {overlay && <div data-slot="thumbnail-overlay" className="absolute inset-0 bg-black/20" />}
     </div>
   );
 }

@@ -32,6 +32,11 @@ const meta = {
       description: '플레이스홀더 아이콘 표시 여부.',
       table: { defaultValue: { summary: 'true' } },
     },
+    overlay: {
+      control: 'boolean',
+      description: '이미지 위 블랙 20% 오버레이 표시 여부.',
+      table: { defaultValue: { summary: 'false' } },
+    },
   },
   args: {
     className: 'h-42 w-70 rounded-10',
@@ -60,5 +65,15 @@ export const WithImage: Story = {
 export const CustomSize: Story = {
   args: {
     className: 'h-15 w-15 rounded-8',
+  },
+};
+
+/** overlay가 true면 이미지 위에 블랙 20% 레이어가 깔립니다(모임 현황 페이지 커버 등). */
+export const Overlay: Story = {
+  args: {
+    imageUrl:
+      'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="280" height="168"><rect width="280" height="168" fill="%23FD716C"/></svg>',
+    alt: '모임 커버',
+    overlay: true,
   },
 };

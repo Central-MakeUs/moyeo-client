@@ -21,5 +21,5 @@ export function WizardProgress() {
   // 경로는 아직 스텝이라 진행바가 100%로 잠깐 보이는 것을 막는다.
   if (getSteps(flow).length === 0) return null;
 
-  return <Progress value={progressPercent(step, flow)} className="duration-200 ease-in-out" />;
+  return <Progress value={progressPercent(step, flow)} />;
 }

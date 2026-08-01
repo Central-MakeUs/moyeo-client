@@ -30,6 +30,7 @@ export function InProgressMeetingSection({
               <CarouselItem key={meeting.meetingId}>
                 <MeetingCard
                   meetingId={meeting.meetingId}
+                  inviteCode={meeting.inviteCode}
                   title={meeting.name}
                   capacity={meeting.capacity}
                   joinedCount={meeting.joinedCount}

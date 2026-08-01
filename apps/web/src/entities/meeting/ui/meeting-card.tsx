@@ -8,6 +8,8 @@ import { Thumbnail } from '@/shared/ui/thumbnail';
 
 export interface MeetingCardProps {
   meetingId: number;
+  /** 모임 현황(VIEW-01) 화면 이동에 쓰는 초대 코드 */
+  inviteCode: string;
   title: string;
   capacity: number;
   joinedCount: number;
@@ -16,7 +18,7 @@ export interface MeetingCardProps {
 }
 
 export function MeetingCard({
-  meetingId,
+  inviteCode,
   title,
   capacity,
   joinedCount,
@@ -27,7 +29,7 @@ export function MeetingCard({
   return (
     <button
       type="button"
-      onClick={() => router.push(`/meetings/${meetingId}`)}
+      onClick={() => router.push(`/meetings?code=${inviteCode}`)}
       className="flex w-full flex-col gap-[18px] rounded-12 border border-accessible-100 bg-accessible-10 px-5 pt-7 pb-6"
     >
       <div className="flex flex-col items-center gap-[14px]">
