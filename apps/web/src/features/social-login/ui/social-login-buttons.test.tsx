@@ -20,6 +20,9 @@ describe('SocialLoginButtons', () => {
     sessionStorage.clear();
     searchParams.forEach((_, key) => searchParams.delete(key));
     vi.stubEnv('NEXT_PUBLIC_APPLE_CLIENT_ID', 'com.moyeozo.moyeo.web');
+    // stub하지 않으면 로컬 .env의 `local`을 타고 getAppleRedirectTarget()이 throw 한다.
+    // Apple 웹 로그인은 local 콜백을 지원하지 않는다.
+    vi.stubEnv('NEXT_PUBLIC_OAUTH_REDIRECT_TARGET', 'dev');
     assignMock = vi.fn();
     Object.defineProperty(window, 'location', {
       configurable: true,
@@ -80,6 +83,23 @@ describe('SocialLoginButtons', () => {
     await userEvent.click(screen.getByRole('button', { name: /카카오로 시작하기/ }));
 
     expect(readOAuthTransaction()?.next).toBeUndefined();
+  });
+
+  it('next를 prop으로 받고 URL에 next가 없으면 prop 값이 트랜잭션에 실린다', async () => {
+    render(<SocialLoginButtons next="/i/ABC123" />);
+
+    await userEvent.click(screen.getByRole('button', { name: /카카오로 시작하기/ }));
+
+    expect(readOAuthTransaction()?.next).toBe('/i/ABC123');
+  });
+
+  it('next prop과 URL의 next가 모두 있으면 prop이 이긴다', async () => {
+    searchParams.set('next', '/home');
+    render(<SocialLoginButtons next="/i/ABC123" />);
+
+    await userEvent.click(screen.getByRole('button', { name: /카카오로 시작하기/ }));
+
+    expect(readOAuthTransaction()?.next).toBe('/i/ABC123');
   });
 
   it('should show a message when the url carries a known error reason', () => {

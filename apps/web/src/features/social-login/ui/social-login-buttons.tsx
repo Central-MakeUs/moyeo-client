@@ -13,28 +13,44 @@ import { startKakaoLogin } from '../model/start-kakao-login';
 import { AppleLoginButton } from './apple-login-button';
 import { KakaoLoginButton } from './kakao-login-button';
 
+export interface SocialLoginButtonsProps {
+  /**
+   * 로그인 후 돌아갈 내부 경로. 넘기지 않으면 URL의 `?next=`를 읽는다.
+   * 초대 화면처럼 현재 경로 자체로 복귀해야 하는 경우 prop으로 직접 전달한다.
+   */
+  next?: string | null;
+}
+
+type StartLogin = (next?: string | null) => void;
+
 /**
  * 로그인 시작 버튼 묶음.
  *
  * `?next=`는 로그인 후 돌아갈 목적지이고, `?error=`는 직전 시도의 실패 사유다.
- * 두 값 모두 URL에서 읽으므로 `useSearchParams`를 쓰는 이 컴포넌트는 Suspense 안에 있어야 한다.
+ * `?error=`는 URL에서만 읽으므로 `useSearchParams`를 쓰는 이 컴포넌트는 Suspense 안에 있어야 한다.
+ *
+ * 목적지는 prop이 URL보다 우선한다. 호출부가 명시적으로 넘긴 값이 화면 URL에 남아 있는
+ * 파라미터보다 의도가 분명하기 때문이다.
  */
-export function SocialLoginButtons(): React.JSX.Element {
+export function SocialLoginButtons({
+  next: nextProp,
+}: SocialLoginButtonsProps = {}): React.JSX.Element {
   const searchParams = useSearchParams();
-  const [startError, setStartError] = React.useState<string | null>(null);
+  const [loginStartErrorMessage, setLoginStartErrorMessage] = React.useState<string | null>(null);
 
-  const next = searchParams.get(NEXT_PARAM);
-  const message = startError ?? toLoginErrorMessage(searchParams.get(LOGIN_ERROR_PARAM));
+  const next = nextProp ?? searchParams.get(NEXT_PARAM);
+  const message =
+    loginStartErrorMessage ?? toLoginErrorMessage(searchParams.get(LOGIN_ERROR_PARAM));
 
-  // start*는 공급자로 페이지를 넘기므로 정상 흐름에서는 반환되지 않는다.
+  // startKakaoLogin·startAppleLogin은 공급자 페이지로 넘기므로 정상 흐름에서는 반환되지 않는다.
   // 여기서 throw가 올라오면 클릭이 무반응으로 끝나므로 화면에 사유를 남긴다.
-  const handleStart = (start: (next?: string | null) => void) => () => {
-    setStartError(null);
+  const createLoginStartHandler = (startLogin: StartLogin) => () => {
+    setLoginStartErrorMessage(null);
 
     try {
-      start(next);
+      startLogin(next);
     } catch {
-      setStartError(toLoginErrorMessage('start_failed'));
+      setLoginStartErrorMessage(toLoginErrorMessage('start_failed'));
     }
   };
 
@@ -45,8 +61,8 @@ export function SocialLoginButtons(): React.JSX.Element {
           {message}
         </p>
       )}
-      <KakaoLoginButton onClick={handleStart(startKakaoLogin)} />
-      <AppleLoginButton onClick={handleStart(startAppleLogin)} />
+      <KakaoLoginButton onClick={createLoginStartHandler(startKakaoLogin)} />
+      <AppleLoginButton onClick={createLoginStartHandler(startAppleLogin)} />
     </div>
   );
 }
