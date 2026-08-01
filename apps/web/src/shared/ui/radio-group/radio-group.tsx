@@ -164,4 +164,37 @@ function RadioGroupIconCard({
   );
 }
 
-export { RadioGroup, RadioGroupCard, RadioGroupIconCard };
+/**
+ * 칩형 라디오 옵션. 정렬 기준처럼 항상 하나가 선택된 상태를 유지하는 필터에 쓴다.
+ * `RadioGroupCard`와 달리 각 칩이 독립된 pill이며, 트랙 배경 없이 나열된다.
+ */
+function RadioGroupChip({
+  className,
+  ...props
+}: React.ComponentProps<typeof RadioGroupPrimitive.Item>) {
+  return (
+    <RadioGroupPrimitive.Item
+      data-slot="radio-group-chip"
+      className={cn(
+        // 레이아웃
+        'inline-flex h-8 shrink-0 items-center justify-center rounded-6 border px-2 text-semibold-14 whitespace-nowrap transition-colors outline-none',
+
+        // default
+        'border-neutral-50 bg-white text-neutral-500',
+
+        // selected
+        'data-[state=checked]:border-transparent data-[state=checked]:bg-neutral-700 data-[state=checked]:text-white',
+
+        // 키보드 포커스
+        'focus-visible:ring-3 focus-visible:ring-ring/50',
+
+        // 비활성화
+        'disabled:cursor-not-allowed disabled:opacity-50',
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+export { RadioGroup, RadioGroupCard, RadioGroupIconCard, RadioGroupChip };

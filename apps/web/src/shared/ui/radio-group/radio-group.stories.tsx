@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 
-import { RadioGroup, RadioGroupCard } from './radio-group';
+import { RadioGroup, RadioGroupCard, RadioGroupChip } from './radio-group';
 
 const meta = {
   title: 'Primitives/RadioGroup',
@@ -50,6 +50,16 @@ export const TitleOnly: Story = {
       {OPTIONS.map((option) => (
         <RadioGroupCard key={option.value} value={option.value} title={option.title} />
       ))}
+    </RadioGroup>
+  ),
+};
+
+/** 정렬 기준 선택처럼, 트랙 없이 독립된 칩으로 나열되는 필터입니다. */
+export const Chip: Story = {
+  render: () => (
+    <RadioGroup defaultValue="oldest" className="inline-flex w-auto gap-2">
+      <RadioGroupChip value="oldest">오래 만나는 순</RadioGroupChip>
+      <RadioGroupChip value="date">빠른 일자 순</RadioGroupChip>
     </RadioGroup>
   ),
 };

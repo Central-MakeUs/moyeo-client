@@ -15,3 +15,9 @@ export {
   type MeetingInvitationCardProps,
 } from './ui/meeting-invitation-card';
 export { MeetingInvitationCardSkeleton } from './ui/meeting-invitation-card-skeleton';
+export { MeetingCover } from './ui/meeting-cover';
+export type { MeetingCoverProps } from './ui/meeting-cover';
+export { MeetingInfoCard } from './ui/meeting-info-card';
+export type { MeetingInfoCardProps } from './ui/meeting-info-card';
+export { MeetingParticipationProgress } from './ui/meeting-participation-progress';
+export type { MeetingParticipationProgressProps } from './ui/meeting-participation-progress';
