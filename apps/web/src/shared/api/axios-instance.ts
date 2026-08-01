@@ -2,8 +2,14 @@ import Axios, { type AxiosError, type AxiosRequestConfig } from 'axios';
 
 import { getAuthToken, isUnauthorizedExempt, notifyUnauthorized } from './auth-token';
 
+const apiProxyPath = process.env.NEXT_PUBLIC_API_PROXY_PATH?.trim();
+const apiBaseUrl =
+  typeof window !== 'undefined'
+    ? apiProxyPath || process.env.NEXT_PUBLIC_API_BASE_URL
+    : process.env.NEXT_PUBLIC_API_BASE_URL;
+
 export const AXIOS_INSTANCE = Axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  baseURL: apiBaseUrl,
 });
 
 // 세션이 있으면 모든 요청에 Bearer 토큰을 붙인다.

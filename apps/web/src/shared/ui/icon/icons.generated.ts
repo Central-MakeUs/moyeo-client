@@ -20,6 +20,7 @@ import Close from '@/shared/assets/icons/close.svg';
 import Confetti from '@/shared/assets/icons/confetti.svg';
 import Envelope from '@/shared/assets/icons/envelope.svg';
 import KakaoLogo from '@/shared/assets/icons/kakao-logo.svg';
+import KakaoText from '@/shared/assets/icons/kakao-text.svg';
 import Kakao from '@/shared/assets/icons/kakao.svg';
 import LinkSmall from '@/shared/assets/icons/link-small.svg';
 import Link from '@/shared/assets/icons/link.svg';
@@ -32,6 +33,7 @@ import Note from '@/shared/assets/icons/note.svg';
 import Person from '@/shared/assets/icons/person.svg';
 import PinnedPrimary from '@/shared/assets/icons/pinned-primary.svg';
 import Pinned from '@/shared/assets/icons/pinned.svg';
+import Plane from '@/shared/assets/icons/plane.svg';
 import Plus from '@/shared/assets/icons/plus.svg';
 import Search from '@/shared/assets/icons/search.svg';
 
@@ -57,6 +59,7 @@ export const ICONS = {
   confetti: Confetti,
   envelope: Envelope,
   'kakao-logo': KakaoLogo,
+  'kakao-text': KakaoText,
   kakao: Kakao,
   'link-small': LinkSmall,
   link: Link,
@@ -69,6 +72,7 @@ export const ICONS = {
   person: Person,
   'pinned-primary': PinnedPrimary,
   pinned: Pinned,
+  plane: Plane,
   plus: Plus,
   search: Search,
 } as const;

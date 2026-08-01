@@ -63,6 +63,9 @@
   /* opacity */
   --color-opacity-40: #00000066;
 
+  /* background image */
+  --background-image-celebration: radial-gradient(50% 50% at 50% 50%, #fff4f4 0%, #ffffff 100%);
+
   /* extrabold */
   --text-extrabold-22: 1.375rem; /* 22px */
   --text-extrabold-22--line-height: 1.4; /* 140% */
