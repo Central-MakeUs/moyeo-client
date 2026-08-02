@@ -5,12 +5,14 @@ import * as React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import {
-  MeetingCover,
   MeetingInfoCard,
   MeetingParticipationProgress,
   useMeetingDetailQuery,
 } from '@/entities/meeting';
 import { CoordinationSection } from '@/widgets/meeting-coordination';
+import { IconButton } from '@/shared/ui/icon-button';
+import { Thumbnail } from '@/shared/ui/thumbnail';
+import { TopAppBar } from '@/shared/ui/top-app-bar';
 
 /**
  * create-meeting의 invitePath()와 같은 쿼리 키.
@@ -35,8 +37,26 @@ function MeetingOverviewContent(): React.JSX.Element {
   const { data, isLoading, isError } = useMeetingDetailQuery(inviteCode);
 
   return (
-    <main>
-      <MeetingCover coverImageUrl={data?.coverImageUrl} onBack={() => router.back()} />
+    <main className="relative flex h-dvh flex-col overflow-hidden">
+      <Thumbnail
+        overlay
+        showIcon={false}
+        imageUrl={data?.coverImageUrl}
+        className="absolute inset-x-0 top-0 h-41.5"
+      />
+
+      <TopAppBar
+        className="relative z-20 shrink-0"
+        leading={
+          <IconButton
+            icon="chevron-left"
+            aria-label="뒤로가기"
+            className="text-white"
+            onClick={() => router.back()}
+          />
+        }
+        trailing={<IconButton icon="kebab" aria-label="더보기" className="text-white" />}
+      />
 
       {isLoading && (
         <div className="pt-8 text-center text-medium-14 text-neutral-400">불러오는 중...</div>
@@ -48,16 +68,21 @@ function MeetingOverviewContent(): React.JSX.Element {
       )}
 
       {data && (
-        <div className="z-10 -mt-22.25 flex flex-col gap-7 px-5 pt-5 pb-16">
-          <div className="relative flex flex-col gap-6">
-            <MeetingInfoCard name={data.name} description={data.description} />
-            <MeetingParticipationProgress joinedCount={data.joinedCount} capacity={data.capacity} />
+        <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto">
+          <div className="flex flex-col gap-7 px-5 pt-10.75 pb-16">
+            <div className="relative flex flex-col gap-6">
+              <MeetingInfoCard name={data.name} description={data.description} />
+              <MeetingParticipationProgress
+                joinedCount={data.joinedCount}
+                capacity={data.capacity}
+              />
+            </div>
+            <CoordinationSection
+              inviteCode={inviteCode}
+              planningType={data.planningType}
+              capacity={data.capacity}
+            />
           </div>
-          <CoordinationSection
-            inviteCode={inviteCode}
-            planningType={data.planningType}
-            capacity={data.capacity}
-          />
         </div>
       )}
     </main>
