@@ -29,6 +29,8 @@ import Kakao from '@/shared/assets/icons/kakao.svg';
 import Kebab from '@/shared/assets/icons/kebab.svg';
 import LinkSmall from '@/shared/assets/icons/link-small.svg';
 import Link from '@/shared/assets/icons/link.svg';
+import LocationNeutral from '@/shared/assets/icons/location-neutral.svg';
+import LocationPrimary from '@/shared/assets/icons/location-primary.svg';
 import Location from '@/shared/assets/icons/location.svg';
 import Minus from '@/shared/assets/icons/minus.svg';
 import MoyeoLogoPlaceholder from '@/shared/assets/icons/moyeo-logo-placeholder.svg';
@@ -73,6 +75,8 @@ export const ICONS = {
   kebab: Kebab,
   'link-small': LinkSmall,
   link: Link,
+  'location-neutral': LocationNeutral,
+  'location-primary': LocationPrimary,
   location: Location,
   minus: Minus,
   'moyeo-logo-placeholder': MoyeoLogoPlaceholder,
