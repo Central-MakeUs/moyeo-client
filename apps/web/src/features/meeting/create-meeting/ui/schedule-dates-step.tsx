@@ -2,16 +2,20 @@
 
 import * as React from 'react';
 
-import { CTASection, DraggableCalendar, toast } from '@/shared/ui';
+import { CTASection, toast } from '@/shared/ui';
+import {
+  DraggableCalendar,
+  formatScheduleCandidateDates,
+  parseScheduleCandidateDates,
+  toLocalDate,
+} from '@/shared/ui/calendar';
 import { Button } from '@/shared/ui/button';
 import { PageHeader } from '@/shared/ui/page-header';
 import { Skeleton } from '@/shared/ui/skeleton';
 
 import { useCreateMeetingDraft } from '../model/create-meeting-draft';
-import { fromScheduleCandidateDates, toLocalDate } from '../model/from-schedule-candidate-dates';
 import { isBeforeServerToday } from '../model/is-before-server-today';
 import { isStepComplete } from '../model/step-config';
-import { toScheduleCandidateDates } from '../model/to-schedule-candidate-dates';
 import { useServerToday } from '../model/use-server-today';
 import { WizardStepLayout } from './wizard-step-layout';
 
@@ -37,7 +41,7 @@ export function ScheduleDatesStep({ onNext }: ScheduleDatesStepProps): React.JSX
   // 사용자가 달을 넘기기 전까지는 serverToday가 속한 달을 보여준다.
   const [month, setMonth] = React.useState<Date | null>(null);
 
-  const selected = fromScheduleCandidateDates(draft.scheduleCandidateDates);
+  const selected = parseScheduleCandidateDates(draft.scheduleCandidateDates);
   const canGoNext = status === 'success' && isStepComplete('schedule-dates', draft);
 
   const notifyLimitExceeded = () => {
@@ -81,7 +85,7 @@ export function ScheduleDatesStep({ onNext }: ScheduleDatesStepProps): React.JSX
         <DraggableCalendar
           className="mx-auto"
           value={selected}
-          onChange={(next) => setScheduleCandidateDates(toScheduleCandidateDates(next))}
+          onChange={(next) => setScheduleCandidateDates(formatScheduleCandidateDates(next))}
           isDateDisabled={(date) => isBeforeServerToday(date, serverToday)}
           month={month ?? toLocalDate(serverToday)}
           onMonthChange={setMonth}
