@@ -1,0 +1,21 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["GXCTW7LL7X.com.moyeozo.moyeo"],
+        "components": [
+          {
+            "/": "/i/*",
+            "comment": "Matches invitation routes"
+          }
+        ]
+      }
+    ]
+  },
+  "activitycontinuation": {
+    "apps": ["GXCTW7LL7X.com.moyeozo.moyeo"]
+  },
+  "webcredentials": {
+    "apps": ["GXCTW7LL7X.com.moyeozo.moyeo"]
+  }
+}

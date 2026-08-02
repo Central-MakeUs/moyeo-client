@@ -13,7 +13,8 @@
       "bundleIdentifier": "com.moyeozo.moyeo",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "associatedDomains": ["applinks:moyeo-web.vercel.app", "applinks:moyeo-dev.vercel.app"]
     },
     "android": {
       "package": "com.moyeozo.moyeo",
