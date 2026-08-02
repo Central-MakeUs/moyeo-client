@@ -19,17 +19,19 @@ export function MeetingParticipationProgress({
   return (
     <div className="flex flex-1 items-center">
       <div className="flex flex-col items-center gap-1.5 pt-8">
-        <div className="flex size-[42px] flex-col items-center justify-center rounded-8 border-2 border-accessible-50 bg-accessible-100">
+        <div className="flex size-[42px] flex-col items-center justify-center rounded-8 border-2 border-accessible-100 bg-accessible-50">
           <Icon name="invitation" size={24} />
         </div>
         <span className="text-bold-14 text-accessible-400">초대</span>
       </div>
 
       <div className="relative flex flex-1 items-center justify-center pt-11.5 pb-11">
-        <Tooltip icon="group" className="top-0" style={{ left: `${progressPercent}%` }}>
-          <span className="text-accessible-500">{joinedCount}</span>
-          <span className="text-neutral-600">{`/${capacity}`}</span>
-        </Tooltip>
+        {!isComplete && (
+          <Tooltip icon="group" className="top-0" style={{ left: `${progressPercent}%` }}>
+            <span className="text-accessible-500">{joinedCount}</span>
+            <span className="text-neutral-600">{`/${capacity}`}</span>
+          </Tooltip>
+        )}
 
         <Progress
           value={progressPercent}
@@ -43,11 +45,11 @@ export function MeetingParticipationProgress({
           className={cn(
             'flex size-[42px] flex-col items-center justify-center rounded-8 border-2',
             isComplete
-              ? 'border-accessible-50 bg-accessible-100'
+              ? 'border-accessible-100 bg-accessible-50'
               : 'border-neutral-50 bg-neutral-10'
           )}
         >
-          <Icon name="note" size={24} />
+          <Icon name={isComplete ? 'note-primary' : 'note'} size={24} />
         </div>
         <span
           className={cn('text-bold-14', isComplete ? 'text-accessible-400' : 'text-neutral-300')}
