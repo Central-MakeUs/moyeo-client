@@ -24,6 +24,7 @@ describe('PlaceRecommendationsSection', () => {
             guName: '마포구',
             dongName: '합정동',
             averageTravelTimeSeconds: 720,
+            station: { name: '합정역', lineNames: ['2호선', '6호선'] },
           },
           { rank: 2, areaName: '신촌동' },
         ],
@@ -38,6 +39,7 @@ describe('PlaceRecommendationsSection', () => {
     expect(screen.getByText('합정동')).toBeInTheDocument();
     expect(screen.getByText('신촌동')).toBeInTheDocument();
     expect(screen.getByText('평균 12분')).toBeInTheDocument();
+    expect(screen.getByText('지하철 2·6호선')).toBeInTheDocument();
   });
 
   it('recommendations가 빈 배열이면 "추천 위치 후보가 없어요" 안내가 표시된다', () => {

@@ -24,6 +24,7 @@ const server = setupServer(
           dongName: '합정동',
           averageStraightDistanceMeters: 820,
           averageTravelTimeSeconds: 720,
+          station: { name: '합정역', lineNames: ['2호선', '6호선'] },
         },
       ],
     })
@@ -61,9 +62,27 @@ describe('usePlaceViewQuery', () => {
           categoryName: '발달상권',
           averageStraightDistanceMeters: 820,
           averageTravelTimeSeconds: 720,
+          station: { name: '합정역', lineNames: ['2호선', '6호선'] },
         },
       ],
     });
+  });
+
+  it('station이 null이면 undefined로 매핑된다', async () => {
+    server.use(
+      http.get('*/api/meetings/invitations/:inviteCode/view/places', () =>
+        HttpResponse.json({
+          meetingId: 9,
+          participantCount: 2,
+          recommendations: [{ rank: 1, areaName: '랜덤 상권' }],
+        })
+      )
+    );
+    const { result } = renderPlaceViewQuery('NOSTATION');
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.data?.recommendations[0]).toMatchObject({ station: undefined });
   });
 
   it('recommendations가 비어 있으면 빈 배열을 반환한다', async () => {
