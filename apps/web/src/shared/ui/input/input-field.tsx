@@ -4,7 +4,7 @@ import { cn } from '@/shared/lib/cn';
 
 const inputFieldClasses = cn(
   // 레이아웃
-  'group/input-field flex w-full flex-col gap-0.5 rounded-12 border px-4 py-3 transition-colors ease-in-out duration-200 text-neutral-950',
+  'group/input-field relative flex w-full flex-col gap-0.5 rounded-12 border px-4 py-3 transition-colors ease-in-out duration-200 text-neutral-950',
   // default
   'border-transparent bg-neutral-10',
   // activated
@@ -30,19 +30,25 @@ function InputField({
   disabled,
   description,
   errorMessage,
+  trailingAction,
   'aria-describedby': ariaDescribedBy,
   'aria-invalid': ariaInvalid,
+  id,
   ...props
 }: React.ComponentProps<'input'> & {
   /** 주 라벨*/
   label: React.ReactNode;
   /** 보조 힌트 라벨 */
   hint?: React.ReactNode;
+  /** 입력창 오른쪽에 표시할 보조 동작. */
+  trailingAction?: React.ReactNode;
   description?: string;
   errorMessage?: string;
 }) {
   const message = errorMessage ?? description;
   const isInvalid = Boolean(errorMessage);
+  const generatedInputId = React.useId();
+  const inputId = id ?? generatedInputId;
   const messageId = `${React.useId()}-message`;
 
   let describedBy = ariaDescribedBy;
@@ -53,27 +59,35 @@ function InputField({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label
+      <div
         data-slot="input-field"
         data-invalid={isInvalid || undefined}
         className={cn(inputFieldClasses, className)}
       >
-        <span
+        <label
+          htmlFor={inputId}
           data-slot="input-field-label"
           className="text-medium-12 text-neutral-500 group-has-[input:disabled]/input-field:text-neutral-400"
         >
           {label}
           {hint ? <span className="ml-1 text-neutral-400">{hint}</span> : null}
-        </span>
+        </label>
         <input
+          id={inputId}
           data-slot="input"
           disabled={disabled}
           aria-describedby={describedBy}
           aria-invalid={isInvalid ? true : ariaInvalid}
-          className="w-full bg-transparent text-medium-16 outline-none placeholder:text-neutral-400 disabled:cursor-not-allowed disabled:text-neutral-400"
+          className={cn(
+            'w-full bg-transparent text-medium-16 outline-none placeholder:text-neutral-400 disabled:cursor-not-allowed disabled:text-neutral-400',
+            trailingAction && 'pr-10'
+          )}
           {...props}
         />
-      </label>
+        {trailingAction ? (
+          <span className="absolute right-4 bottom-[14px] flex">{trailingAction}</span>
+        ) : null}
+      </div>
       {message && (
         <small
           id={messageId}

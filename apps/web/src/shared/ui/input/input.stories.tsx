@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 
+import { IconButton } from '@/shared/ui/icon-button';
+
 import { InputField } from './input-field';
 
 const meta = {
@@ -104,6 +106,22 @@ export const WithError: Story = {
     defaultValue: 'invalid text',
     description: '영문과 숫자를 포함해 8자 이상 입력해주세요.',
     errorMessage: '입력한 내용을 다시 확인해주세요.',
+  },
+};
+
+/** 오른쪽 보조 동작이 기본 입력 높이에 영향을 주지 않는 경우입니다. */
+export const WithTrailingAction: Story = {
+  args: {
+    defaultValue: '입력값',
+    trailingAction: (
+      <IconButton
+        type="button"
+        icon="close"
+        iconSize={20}
+        className="size-10 rounded-full"
+        aria-label="입력 지우기"
+      />
+    ),
   },
 };
 
