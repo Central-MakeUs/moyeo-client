@@ -12,6 +12,9 @@ export const metadata: Metadata = {
     template: '%s | 모여',
   },
   description: '함께 만나는 가장 쉬운 방법, 모여',
+  itunes: {
+    appId: '6797212723',
+  },
 };
 
 export default function RootLayout({
