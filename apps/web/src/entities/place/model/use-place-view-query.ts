@@ -30,6 +30,7 @@ export function usePlaceViewQuery(inviteCode: string): UsePlaceViewQueryResult {
             categoryName: recommendation.categoryName ?? undefined,
             averageStraightDistanceMeters:
               recommendation.averageStraightDistanceMeters ?? undefined,
+            averageTravelTimeSeconds: recommendation.averageTravelTimeSeconds ?? undefined,
           })),
         }
       : undefined,

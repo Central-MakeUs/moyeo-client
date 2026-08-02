@@ -45,6 +45,7 @@ export function PlaceRecommendationsSection({
                   areaName={recommendation.areaName}
                   guName={recommendation.guName}
                   dongName={recommendation.dongName}
+                  averageTravelTimeSeconds={recommendation.averageTravelTimeSeconds}
                 />
               ))}
             </div>

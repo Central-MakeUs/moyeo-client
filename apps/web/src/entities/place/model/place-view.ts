@@ -12,6 +12,8 @@ export interface PlaceRecommendation {
   categoryName?: PlaceCategoryName;
   /** 참여자 출발지에서 상권까지의 평균 직선거리(m). 랜덤 추천이면 undefined */
   averageStraightDistanceMeters?: number;
+  /** 정원이 찬 뒤 저장된 평균 실제 이동시간(초). 직선거리 미리보기 단계면 undefined */
+  averageTravelTimeSeconds?: number;
 }
 
 export interface PlaceView {

@@ -23,6 +23,7 @@ const server = setupServer(
           guName: '마포구',
           dongName: '합정동',
           averageStraightDistanceMeters: 820,
+          averageTravelTimeSeconds: 720,
         },
       ],
     })
@@ -59,6 +60,7 @@ describe('usePlaceViewQuery', () => {
           dongName: '합정동',
           categoryName: '발달상권',
           averageStraightDistanceMeters: 820,
+          averageTravelTimeSeconds: 720,
         },
       ],
     });

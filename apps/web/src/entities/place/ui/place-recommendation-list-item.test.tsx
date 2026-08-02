@@ -17,4 +17,16 @@ describe('PlaceRecommendationListItem', () => {
     expect(screen.getByText('랜덤 상권')).toBeInTheDocument();
     expect(screen.queryByText('마포구 합정동')).not.toBeInTheDocument();
   });
+
+  it('averageTravelTimeSeconds가 있으면 "평균 N분"을 표시한다', () => {
+    render(<PlaceRecommendationListItem areaName="합정동" averageTravelTimeSeconds={720} />);
+
+    expect(screen.getByText('평균 12분')).toBeInTheDocument();
+  });
+
+  it('averageTravelTimeSeconds가 없으면 이동시간을 표시하지 않는다', () => {
+    render(<PlaceRecommendationListItem areaName="합정동" />);
+
+    expect(screen.queryByText(/평균/)).not.toBeInTheDocument();
+  });
 });
