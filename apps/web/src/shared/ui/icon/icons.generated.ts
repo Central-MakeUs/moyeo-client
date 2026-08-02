@@ -21,6 +21,8 @@ import Clock from '@/shared/assets/icons/clock.svg';
 import Close from '@/shared/assets/icons/close.svg';
 import Confetti from '@/shared/assets/icons/confetti.svg';
 import Envelope from '@/shared/assets/icons/envelope.svg';
+import EyeOff from '@/shared/assets/icons/eye-off.svg';
+import Eye from '@/shared/assets/icons/eye.svg';
 import Group from '@/shared/assets/icons/group.svg';
 import Invitation from '@/shared/assets/icons/invitation.svg';
 import KakaoLogo from '@/shared/assets/icons/kakao-logo.svg';
@@ -65,6 +67,8 @@ export const ICONS = {
   close: Close,
   confetti: Confetti,
   envelope: Envelope,
+  'eye-off': EyeOff,
+  eye: Eye,
   group: Group,
   invitation: Invitation,
   'kakao-logo': KakaoLogo,
