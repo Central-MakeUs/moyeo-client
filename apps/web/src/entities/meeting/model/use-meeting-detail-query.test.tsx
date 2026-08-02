@@ -15,6 +15,7 @@ const server = setupServer(
       coverImageUrl: '/api/meetings/7/cover-image',
       maxParticipants: 5,
       participantCount: 3,
+      planningType: 'SCHEDULE_ONLY',
     })
   )
 );
@@ -45,6 +46,7 @@ describe('useMeetingDetailQuery', () => {
       coverImageUrl: '/api/meetings/7/cover-image',
       capacity: 5,
       joinedCount: 3,
+      planningType: 'SCHEDULE_ONLY',
     });
   });
 
@@ -72,6 +74,19 @@ describe('useMeetingDetailQuery', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     expect(result.current.data).toMatchObject({ capacity: 0, joinedCount: 0 });
+  });
+
+  it('planningType이 없으면 SCHEDULE_AND_PLACE로 기본 매핑된다', async () => {
+    server.use(
+      http.get('*/api/meetings/invitations/:inviteCode/view', () =>
+        HttpResponse.json({ meetingId: 11, name: '유형 미정 모임' })
+      )
+    );
+    const { result } = renderMeetingDetailQuery('NOPLANNINGTYPE');
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.data).toMatchObject({ planningType: 'SCHEDULE_AND_PLACE' });
   });
 
   it('500 에러를 반환하면 isError === true이다', async () => {

@@ -26,6 +26,7 @@ export function useMeetingDetailQuery(inviteCode: string): UseMeetingDetailQuery
           coverImageUrl: data.coverImageUrl,
           capacity: data.maxParticipants ?? 0,
           joinedCount: data.participantCount ?? 0,
+          planningType: data.planningType ?? 'SCHEDULE_AND_PLACE',
         }
       : undefined,
     isLoading,
