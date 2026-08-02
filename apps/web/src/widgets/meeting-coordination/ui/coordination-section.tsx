@@ -5,12 +5,34 @@ import * as React from 'react';
 import type { MeetingPlanningType } from '@/entities/meeting';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui';
 
+import { ParticipantDeparturesSection } from './participant-departures-section';
 import { PlaceRecommendationsSection } from './place-recommendations-section';
 import { ScheduleCandidatesSection } from './schedule-candidates-section';
+import { EditResponseButton } from '@/features/meeting/edit-response';
 
 export interface CoordinationSectionProps {
   inviteCode: string;
   planningType: MeetingPlanningType;
+  /** 모임 참여 가능 정원 */
+  capacity: number;
+}
+
+function PlaceTabContent({
+  inviteCode,
+  capacity,
+}: {
+  inviteCode: string;
+  capacity: number;
+}): React.JSX.Element {
+  return (
+    <div className="flex flex-col gap-6">
+      <PlaceRecommendationsSection inviteCode={inviteCode} />
+      <ParticipantDeparturesSection inviteCode={inviteCode} capacity={capacity} />
+      <div className="flex justify-center">
+        <EditResponseButton />
+      </div>
+    </div>
+  );
 }
 
 /**
@@ -20,13 +42,14 @@ export interface CoordinationSectionProps {
 export function CoordinationSection({
   inviteCode,
   planningType,
+  capacity,
 }: CoordinationSectionProps): React.JSX.Element {
   if (planningType === 'SCHEDULE_ONLY') {
     return <ScheduleCandidatesSection inviteCode={inviteCode} />;
   }
 
   if (planningType === 'PLACE_ONLY') {
-    return <PlaceRecommendationsSection inviteCode={inviteCode} />;
+    return <PlaceTabContent inviteCode={inviteCode} capacity={capacity} />;
   }
 
   return (
@@ -41,7 +64,7 @@ export function CoordinationSection({
       </TabsContent>
 
       <TabsContent value="place">
-        <PlaceRecommendationsSection inviteCode={inviteCode} />
+        <PlaceTabContent inviteCode={inviteCode} capacity={capacity} />
       </TabsContent>
     </Tabs>
   );

@@ -2,6 +2,7 @@ export type {
   PlaceCategoryName,
   PlaceRecommendation,
   PlaceStation,
+  PlaceParticipant,
   PlaceView,
 } from './model/place-view';
 export { formatTravelTime } from './model/format-travel-time';
@@ -13,3 +14,5 @@ export { PlaceRecommendationListItem } from './ui/place-recommendation-list-item
 export type { PlaceRecommendationListItemProps } from './ui/place-recommendation-list-item';
 export { SubwayLineChip } from './ui/subway-line-chip';
 export type { SubwayLineChipProps } from './ui/subway-line-chip';
+export { PlaceParticipantListItem } from './ui/place-participant-list-item';
+export type { PlaceParticipantListItemProps } from './ui/place-participant-list-item';

@@ -13,7 +13,16 @@ const server = setupServer(
       placeRecommendationStrategy: 'MIDDLE_POINT',
       recommendationBasis: 'STRAIGHT_LINE_PREVIEW',
       participantCount: 5,
-      participants: [],
+      participants: [
+        { participantId: 1, nickname: '소미', participantType: 'HOST' },
+        {
+          participantId: 2,
+          nickname: '린',
+          participantType: 'MEMBER',
+          departureName: '합정역 2번 출구',
+        },
+        { participantId: 3, nickname: '제이', participantType: 'MEMBER' },
+      ],
       recommendations: [
         {
           rank: 1,
@@ -53,6 +62,11 @@ describe('usePlaceViewQuery', () => {
 
     expect(result.current.data).toMatchObject({
       participantCount: 5,
+      participants: [
+        { participantId: 1, nickname: '소미', isHost: true, departureName: '' },
+        { participantId: 2, nickname: '린', isHost: false, departureName: '합정역 2번 출구' },
+        { participantId: 3, nickname: '제이', isHost: false, departureName: '' },
+      ],
       recommendations: [
         {
           rank: 1,

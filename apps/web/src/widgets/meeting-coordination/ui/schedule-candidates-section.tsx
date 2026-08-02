@@ -63,8 +63,8 @@ export function ScheduleCandidatesSection({
             <EditResponseButton />
           </div>
         ) : (
-          <div className="flex w-full flex-col items-center gap-6">
-            <div className="flex w-full flex-col">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col">
               {data.candidates.map((candidate) => (
                 <ScheduleCandidateListItem
                   key={`${candidate.candidateDate}-${candidate.startTime ?? ''}`}
@@ -76,7 +76,9 @@ export function ScheduleCandidatesSection({
                 />
               ))}
             </div>
-            <EditResponseButton />
+            <div className="flex justify-center">
+              <EditResponseButton />
+            </div>
           </div>
         ))}
     </section>

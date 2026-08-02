@@ -25,9 +25,18 @@ export interface PlaceRecommendation {
   station?: PlaceStation;
 }
 
+export interface PlaceParticipant {
+  participantId: number;
+  nickname: string;
+  isHost: boolean;
+  departureName: string;
+}
+
 export interface PlaceView {
   /** 현재 참여 인원(방장 포함) */
   participantCount: number;
   /** 추천 상권 목록. 추천이 없으면 빈 배열 */
   recommendations: PlaceRecommendation[];
+  /** 참여자별 출발지 응답 현황 */
+  participants: PlaceParticipant[];
 }

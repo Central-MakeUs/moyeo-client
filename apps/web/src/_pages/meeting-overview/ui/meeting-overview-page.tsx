@@ -53,7 +53,11 @@ function MeetingOverviewContent(): React.JSX.Element {
             <MeetingInfoCard name={data.name} description={data.description} />
             <MeetingParticipationProgress joinedCount={data.joinedCount} capacity={data.capacity} />
           </div>
-          <CoordinationSection inviteCode={inviteCode} planningType={data.planningType} />
+          <CoordinationSection
+            inviteCode={inviteCode}
+            planningType={data.planningType}
+            capacity={data.capacity}
+          />
         </div>
       )}
     </main>
