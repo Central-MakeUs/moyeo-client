@@ -229,6 +229,15 @@ describe('InviteLandingPage', () => {
       expect(screen.getByText('이번에만 게스트로 참여하기')).toBeInTheDocument();
     });
 
+    it('Drawer에서 게스트 참여를 선택하면 게스트 신원 입력 화면으로 이동한다', async () => {
+      renderPage(INVITATION, AVAILABLE);
+      await userEvent.click(screen.getByRole('button', { name: '모임 참여하기' }));
+
+      await userEvent.click(screen.getByRole('button', { name: '이번에만 게스트로 참여하기' }));
+
+      expect(push).toHaveBeenCalledWith('/i/ABC123/guest');
+    });
+
     it('anonymous이고 WebView 안이면 모임 참여하기 탭 시 게스트 선택지가 없는 Drawer가 열린다', async () => {
       native.current = true;
       renderPage(INVITATION, AVAILABLE);

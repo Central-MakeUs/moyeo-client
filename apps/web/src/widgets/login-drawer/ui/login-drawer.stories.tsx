@@ -58,6 +58,7 @@ export const Guest: Story = {
     isOpen: false,
     onOpenChange: () => {},
     type: 'guest',
+    onGuestJoin: () => {},
   },
   render: renderLoginDrawer,
 };
@@ -65,7 +66,8 @@ export const Guest: Story = {
 /** 게스트 참여 선택지 없이 소셜 로그인만 제공합니다. */
 export const Member: Story = {
   args: {
-    ...Guest.args,
+    isOpen: false,
+    onOpenChange: () => {},
     type: 'member',
   },
   render: renderLoginDrawer,

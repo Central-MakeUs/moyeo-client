@@ -30,6 +30,8 @@ export interface UseJoinEntryReturn {
    * 로그인한 사용자는 토큰 실은 조회로 이미 참여했는지 확인한 뒤 목적지를 정하므로 비동기다.
    */
   participate: () => Promise<void>;
+  /** 로그인 없이 일회성 게스트 신원 입력 화면으로 이동한다. */
+  participateAsGuest: () => void;
   /** Drawer 열림 상태 변경 요청(오버레이 탭·드래그). */
   setDrawerOpen: (next: boolean) => void;
   /**
@@ -133,6 +135,7 @@ export function useJoinEntry({ inviteCode, canJoin }: UseJoinEntryParams): UseJo
     // 앱 WebView 안에서는 게스트 참여를 제공하지 않는다(prd.md ADR-5).
     drawerType: isNativeContext() ? 'member' : 'guest',
     participate,
+    participateAsGuest: () => router.push(`/i/${inviteCode}/guest`),
     setDrawerOpen,
     // 세션 오류는 기다린다고 낫지 않는다. 사용자가 직접 다시 시도할 수단을 준다
     // (spec-fixed.md §4-3).
