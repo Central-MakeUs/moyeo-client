@@ -1,5 +1,6 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { Platform, StyleSheet } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
 import Constants from 'expo-constants';
@@ -15,6 +16,17 @@ const WEB_URL =
   __DEV__ && devHost
     ? `http://${devHost}:3000`
     : (process.env.EXPO_PUBLIC_WEB_URL ?? 'https://moyeo-web.vercel.app');
+
+function toWebViewUrl(appLinkPath: string | string[] | undefined): string {
+  const path = Array.isArray(appLinkPath) ? appLinkPath[0] : appLinkPath;
+  if (!path?.startsWith('/i/')) return WEB_URL;
+
+  try {
+    return new URL(path, WEB_URL).toString();
+  } catch {
+    return WEB_URL;
+  }
+}
 
 /** SecureStore 키. 알파벳·숫자와 `.`, `-`, `_`만 쓸 수 있다. */
 const ACCESS_TOKEN_KEY = 'moyeo.session.accessToken';
@@ -62,6 +74,9 @@ function parseIntentUrl(url: string): { schemeUrl: string; fallbackUrl: string |
 
 export default function HomeScreen() {
   const webViewRef = useRef<WebView>(null);
+  // App Link의 origin을 제외한 `/i/{inviteToken}` 경로다.
+  const { appLinkPath } = useLocalSearchParams<{ appLinkPath?: string | string[] }>();
+  const webViewUrl = useMemo(() => toWebViewUrl(appLinkPath), [appLinkPath]);
 
   const postMessageToWeb = useCallback((message: NativeToWebMessage) => {
     webViewRef.current?.postMessage(JSON.stringify(message));
@@ -201,7 +216,7 @@ export default function HomeScreen() {
     <WebView
       ref={webViewRef}
       style={styles.container}
-      source={{ uri: WEB_URL }}
+      source={{ uri: webViewUrl }}
       onMessage={handleMessage}
       onShouldStartLoadWithRequest={handleShouldStartLoad}
       // 커스텀 스킴 판단을 위 핸들러가 전담하도록 WebView 자체 필터는 열어둔다.
