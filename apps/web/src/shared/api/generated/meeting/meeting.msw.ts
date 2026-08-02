@@ -11,7 +11,6 @@ import { HttpResponse, http } from 'msw';
 import type { RequestHandlerOptions } from 'msw';
 
 import type {
-  ActualRouteRecommendationResponse,
   CreateMeetingResponse,
   MeetingConfirmationResponse,
   MeetingCoverResponse,
@@ -20,6 +19,7 @@ import type {
   MeetingViewResponse,
   MyMeetingDetailResponse,
   MyMeetingListResponse,
+  MyParticipationResponse,
   ParticipantJoinResponse,
   PlaceViewResponse,
   ScheduleViewResponse,
@@ -29,13 +29,14 @@ import {
   getAvailabilityStatusResponseMock,
   getCandidateResponseMock,
   getCoordinateResponseMock,
+  getDepartureMock,
   getItemMock,
   getParticipantDepartureResponseMock,
   getParticipantMock,
   getParticipantResponseMock,
   getParticipationStatusResponseMock,
-  getRecommendationMock,
   getRecommendationResponseMock,
+  getScheduleResponseMock,
 } from '../schemas/index.faker';
 
 export const getReplaceCoverImageResponseMock = (
@@ -121,19 +122,6 @@ export const getConfirmPlaceResponseMock = (
   ...overrideResponse,
 });
 
-export const getCalculateActualRouteRecommendationResponseMock = (
-  overrideResponse: Partial<Extract<ActualRouteRecommendationResponse, object>> = {}
-): ActualRouteRecommendationResponse => ({
-  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
-  recommendations: faker.helpers.arrayElement([
-    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-      ...getRecommendationMock(),
-    })),
-    undefined,
-  ]),
-  ...overrideResponse,
-});
-
 export const getJoinMemberResponseMock = (
   overrideResponse: Partial<Extract<ParticipantJoinResponse, object>> = {}
 ): ParticipantJoinResponse => ({
@@ -175,6 +163,40 @@ export const getUpdateMeetingParticipantNicknameResponseMock = (
     faker.string.alpha({ length: { min: 10, max: 20 } }),
     undefined,
   ]),
+  ...overrideResponse,
+});
+
+export const getUpdateMyScheduleResponseResponseMock = (
+  overrideResponse: Partial<Extract<MyParticipationResponse, object>> = {}
+): MyParticipationResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  participantType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['HOST', 'MEMBER'] as const),
+    undefined,
+  ]),
+  scheduleInputType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['DATE_ONLY', 'DATE_AND_TIME', 'NONE'] as const),
+    undefined,
+  ]),
+  scheduleResponse: faker.helpers.arrayElement([{ ...getScheduleResponseMock() }, undefined]),
+  departure: faker.helpers.arrayElement([{ ...getDepartureMock() }, undefined]),
+  ...overrideResponse,
+});
+
+export const getUpdateMyDepartureResponseMock = (
+  overrideResponse: Partial<Extract<MyParticipationResponse, object>> = {}
+): MyParticipationResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  participantType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['HOST', 'MEMBER'] as const),
+    undefined,
+  ]),
+  scheduleInputType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['DATE_ONLY', 'DATE_AND_TIME', 'NONE'] as const),
+    undefined,
+  ]),
+  scheduleResponse: faker.helpers.arrayElement([{ ...getScheduleResponseMock() }, undefined]),
+  departure: faker.helpers.arrayElement([{ ...getDepartureMock() }, undefined]),
   ...overrideResponse,
 });
 
@@ -421,6 +443,23 @@ export const getGetPlaceViewResponseMock = (
   ...overrideResponse,
 });
 
+export const getGetMyParticipationResponseMock = (
+  overrideResponse: Partial<Extract<MyParticipationResponse, object>> = {}
+): MyParticipationResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  participantType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['HOST', 'MEMBER'] as const),
+    undefined,
+  ]),
+  scheduleInputType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['DATE_ONLY', 'DATE_AND_TIME', 'NONE'] as const),
+    undefined,
+  ]),
+  scheduleResponse: faker.helpers.arrayElement([{ ...getScheduleResponseMock() }, undefined]),
+  departure: faker.helpers.arrayElement([{ ...getDepartureMock() }, undefined]),
+  ...overrideResponse,
+});
+
 export const getGetCoverImageResponseMock = (): string => faker.word.sample();
 
 export const getReplaceCoverImageMockHandler = (
@@ -538,30 +577,6 @@ export const getConfirmPlaceMockHandler = (
   );
 };
 
-export const getCalculateActualRouteRecommendationMockHandler = (
-  overrideResponse?:
-    | ActualRouteRecommendationResponse
-    | ((
-        info: Parameters<Parameters<typeof http.post>[1]>[0]
-      ) => Promise<ActualRouteRecommendationResponse> | ActualRouteRecommendationResponse),
-  options?: RequestHandlerOptions
-) => {
-  return http.post(
-    '*/api/meetings/invitations/:inviteCode/view/places/actual-time',
-    async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
-      return HttpResponse.json(
-        overrideResponse !== undefined
-          ? typeof overrideResponse === 'function'
-            ? await overrideResponse(info)
-            : overrideResponse
-          : getCalculateActualRouteRecommendationResponseMock(),
-        { status: 200 }
-      );
-    },
-    options
-  );
-};
-
 export const getJoinMemberMockHandler = (
   overrideResponse?:
     | ParticipantJoinResponse
@@ -627,6 +642,54 @@ export const getUpdateMeetingParticipantNicknameMockHandler = (
             ? await overrideResponse(info)
             : overrideResponse
           : getUpdateMeetingParticipantNicknameResponseMock(),
+        { status: 200 }
+      );
+    },
+    options
+  );
+};
+
+export const getUpdateMyScheduleResponseMockHandler = (
+  overrideResponse?:
+    | MyParticipationResponse
+    | ((
+        info: Parameters<Parameters<typeof http.patch>[1]>[0]
+      ) => Promise<MyParticipationResponse> | MyParticipationResponse),
+  options?: RequestHandlerOptions
+) => {
+  return http.patch(
+    '*/api/meetings/invitations/:inviteCode/members/me/participation/schedule-response',
+    async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+      return HttpResponse.json(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getUpdateMyScheduleResponseResponseMock(),
+        { status: 200 }
+      );
+    },
+    options
+  );
+};
+
+export const getUpdateMyDepartureMockHandler = (
+  overrideResponse?:
+    | MyParticipationResponse
+    | ((
+        info: Parameters<Parameters<typeof http.patch>[1]>[0]
+      ) => Promise<MyParticipationResponse> | MyParticipationResponse),
+  options?: RequestHandlerOptions
+) => {
+  return http.patch(
+    '*/api/meetings/invitations/:inviteCode/members/me/participation/departure',
+    async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+      return HttpResponse.json(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getUpdateMyDepartureResponseMock(),
         { status: 200 }
       );
     },
@@ -797,6 +860,30 @@ export const getGetPlaceViewMockHandler = (
   );
 };
 
+export const getGetMyParticipationMockHandler = (
+  overrideResponse?:
+    | MyParticipationResponse
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0]
+      ) => Promise<MyParticipationResponse> | MyParticipationResponse),
+  options?: RequestHandlerOptions
+) => {
+  return http.get(
+    '*/api/meetings/invitations/:inviteCode/members/me/participation',
+    async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+      return HttpResponse.json(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getGetMyParticipationResponseMock(),
+        { status: 200 }
+      );
+    },
+    options
+  );
+};
+
 export const getGetCoverImageMockHandler = (
   overrideResponse?:
     | string
@@ -837,16 +924,36 @@ export const getLeaveMeetingMockHandler = (
     options
   );
 };
+
+export const getLeaveGuestMockHandler = (
+  overrideResponse?:
+    | void
+    | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
+  options?: RequestHandlerOptions
+) => {
+  return http.delete(
+    '*/api/meetings/invitations/:inviteCode/guests/:nickname',
+    async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
+      if (typeof overrideResponse === 'function') {
+        await overrideResponse(info);
+      }
+
+      return new HttpResponse(null, { status: 204 });
+    },
+    options
+  );
+};
 export const getMeetingMock = () => [
   getReplaceCoverImageMockHandler(),
   getDeleteCoverImageMockHandler(),
   getCreateMeetingWithCoverMockHandler(),
   getConfirmScheduleMockHandler(),
   getConfirmPlaceMockHandler(),
-  getCalculateActualRouteRecommendationMockHandler(),
   getJoinMemberMockHandler(),
   getJoinGuestMockHandler(),
   getUpdateMeetingParticipantNicknameMockHandler(),
+  getUpdateMyScheduleResponseMockHandler(),
+  getUpdateMyDepartureMockHandler(),
   getGetMyMeetingDetailMockHandler(),
   getDeleteMeetingMockHandler(),
   getGetMyMeetingsMockHandler(),
@@ -854,6 +961,8 @@ export const getMeetingMock = () => [
   getGetMeetingViewMockHandler(),
   getGetScheduleViewMockHandler(),
   getGetPlaceViewMockHandler(),
+  getGetMyParticipationMockHandler(),
   getGetCoverImageMockHandler(),
   getLeaveMeetingMockHandler(),
+  getLeaveGuestMockHandler(),
 ];
