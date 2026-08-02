@@ -98,10 +98,11 @@ export function GuestMeetingJoinPage({ inviteToken, planningType }: GuestMeeting
             trailingAction={
               <IconButton
                 type="button"
+                shape="rounded"
                 icon={isPasswordVisible ? 'eye-off' : 'eye'}
                 iconSize={20}
                 variant="ghost"
-                className="size-10 shrink-0 rounded-full"
+                className="relative size-5 shrink-0 p-0 after:absolute after:-inset-2.5 after:content-['']"
                 aria-label={isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 보기'}
                 aria-pressed={isPasswordVisible}
                 onClick={() => setIsPasswordVisible((visible) => !visible)}

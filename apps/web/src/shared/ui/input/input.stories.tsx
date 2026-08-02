@@ -118,7 +118,7 @@ export const WithTrailingAction: Story = {
         type="button"
         icon="close"
         iconSize={20}
-        className="size-10 rounded-full"
+        className="relative size-5 rounded-full p-0 after:absolute after:-inset-2.5 after:content-['']"
         aria-label="입력 지우기"
       />
     ),

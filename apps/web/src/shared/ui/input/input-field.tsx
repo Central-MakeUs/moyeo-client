@@ -85,7 +85,7 @@ function InputField({
           {...props}
         />
         {trailingAction ? (
-          <span className="absolute right-4 bottom-[14px] flex">{trailingAction}</span>
+          <span className="absolute right-[15px] bottom-[13px] flex">{trailingAction}</span>
         ) : null}
       </div>
       {message && (

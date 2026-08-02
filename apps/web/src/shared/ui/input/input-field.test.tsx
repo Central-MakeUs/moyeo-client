@@ -10,7 +10,7 @@ describe('InputField', () => {
     const action = screen.getByRole('button', { name: '보기' });
     const actionSlot = action.parentElement;
 
-    expect(actionSlot).toHaveClass('absolute', 'right-4', 'bottom-[14px]');
+    expect(actionSlot).toHaveClass('absolute', 'right-[15px]', 'bottom-[13px]');
     expect(screen.getByLabelText('비밀번호')).toHaveClass('pr-10');
   });
 });
