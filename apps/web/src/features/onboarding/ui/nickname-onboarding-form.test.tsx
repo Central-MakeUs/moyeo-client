@@ -89,6 +89,15 @@ describe('NicknameOnboardingForm', () => {
     expect(screen.getByRole('button', { name: '다음' })).toBeDisabled();
   });
 
+  it('유효한 닉네임을 입력하고 Enter를 누르면 제출한다', async () => {
+    render(<NicknameOnboardingForm />);
+
+    const nicknameInput = screen.getByRole('textbox');
+    await userEvent.type(nicknameInput, '모여{Enter}');
+
+    expect(mutateMock).toHaveBeenCalledWith({ data: { nickname: '모여' } });
+  });
+
   it('유효하지 않은 닉네임이면 오류를 표시하고 제출하지 않는다', async () => {
     render(<NicknameOnboardingForm />);
 

@@ -7,9 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { NEXT_PARAM, toSafeNextPath } from '@/entities/session';
 import { getMeQueryKey, useCompleteOnboarding } from '@/shared/api';
-import { Button } from '@/shared/ui/button';
-import { CTASection } from '@/shared/ui/cta-section';
-import { InputField } from '@/shared/ui/input';
+import { ParticipantIdentityForm } from '@/shared/ui/participant-identity-form';
 
 import { isValidNickname } from '../model/validate-nickname';
 
@@ -46,26 +44,16 @@ export function NicknameOnboardingForm() {
   };
 
   return (
-    <div className="flex flex-1 flex-col">
-      <div className="px-5">
-        <InputField
-          label="내 닉네임"
-          placeholder="기본 닉네임"
-          value={value}
-          onChange={(event) => setValue(event.target.value)}
-          description={NICKNAME_HINT}
-          errorMessage={showError ? NICKNAME_HINT : undefined}
-        />
-      </div>
-      <div className="mt-auto">
-        <CTASection
-          primaryAction={
-            <Button fullWidth disabled={!isValid || isPending} onClick={handleSubmit}>
-              다음
-            </Button>
-          }
-        />
-      </div>
-    </div>
+    <ParticipantIdentityForm
+      nickname={value}
+      nicknameLabel="내 닉네임"
+      nicknamePlaceholder="기본 닉네임"
+      nicknameDescription={NICKNAME_HINT}
+      nicknameErrorMessage={showError ? NICKNAME_HINT : undefined}
+      submitLabel="다음"
+      isSubmitDisabled={!isValid || isPending}
+      onNicknameChange={setValue}
+      onSubmit={handleSubmit}
+    />
   );
 }

@@ -7,7 +7,7 @@ import { Button, Celebration, CTASection, TopAppBar } from '@/shared/ui';
 import { IconButton } from '@/shared/ui/icon-button';
 import { CompletionLayout } from '@/shared/ui/layouts';
 import { PageHeader } from '@/shared/ui/page-header';
-import { LoginDrawer } from '@/widgets/login-drawer';
+import { LoginDrawer, type LoginDrawerProps } from '@/widgets/login-drawer';
 
 import { toParticipationGuide } from '../config/participation-guide';
 
@@ -32,6 +32,7 @@ export function InviteLandingPage({
     isDrawerOpen,
     drawerType,
     participate,
+    participateAsGuest,
     setDrawerOpen,
     retrySession,
     loginNextPath,
@@ -39,6 +40,21 @@ export function InviteLandingPage({
     inviteCode,
     canJoin: participationGuide.canJoin,
   });
+  const loginDrawerProps: LoginDrawerProps =
+    drawerType === 'guest'
+      ? {
+          type: 'guest',
+          isOpen: isDrawerOpen,
+          onOpenChange: setDrawerOpen,
+          next: loginNextPath,
+          onGuestJoin: participateAsGuest,
+        }
+      : {
+          type: 'member',
+          isOpen: isDrawerOpen,
+          onOpenChange: setDrawerOpen,
+          next: loginNextPath,
+        };
 
   return (
     <div className="flex h-dvh flex-col bg-celebration">
@@ -101,12 +117,7 @@ export function InviteLandingPage({
           />
         )}
       </CompletionLayout>
-      <LoginDrawer
-        type={drawerType}
-        isOpen={isDrawerOpen}
-        onOpenChange={setDrawerOpen}
-        next={loginNextPath}
-      />
+      <LoginDrawer {...loginDrawerProps} />
     </div>
   );
 }
