@@ -73,7 +73,7 @@ export function GuestMeetingJoinPage({ inviteToken, planningType }: GuestMeeting
         <ParticipantIdentityForm
           nickname={nickname}
           nicknameLabel="내 닉네임"
-          nicknamePlaceholder="모임에서 사용할 닉네임"
+          nicknamePlaceholder="모임에서 사용할 닉네임을 입력해주세요"
           nicknameDescription={NICKNAME_HINT}
           nicknameErrorMessage={showNicknameError ? NICKNAME_HINT : undefined}
           submitLabel="이번에만 게스트로 참여하기"
