@@ -1,3 +1,6 @@
+/** 모임 생성 유형 */
+export type MeetingPlanningType = 'SCHEDULE_ONLY' | 'PLACE_ONLY' | 'SCHEDULE_AND_PLACE';
+
 export interface MeetingDetail {
   name: string;
   /** 입력하지 않았으면 undefined */
@@ -8,4 +11,5 @@ export interface MeetingDetail {
   capacity: number;
   /** 현재 참여 인원 */
   joinedCount: number;
+  planningType: MeetingPlanningType;
 }

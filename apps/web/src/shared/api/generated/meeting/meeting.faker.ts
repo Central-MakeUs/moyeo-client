@@ -8,7 +8,6 @@
 import { faker } from '@faker-js/faker';
 
 import type {
-  ActualRouteRecommendationResponse,
   CreateMeetingResponse,
   MeetingConfirmationResponse,
   MeetingCoverResponse,
@@ -17,6 +16,7 @@ import type {
   MeetingViewResponse,
   MyMeetingDetailResponse,
   MyMeetingListResponse,
+  MyParticipationResponse,
   ParticipantJoinResponse,
   PlaceViewResponse,
   ScheduleViewResponse,
@@ -26,13 +26,14 @@ import {
   getAvailabilityStatusResponseMock,
   getCandidateResponseMock,
   getCoordinateResponseMock,
+  getDepartureMock,
   getItemMock,
   getParticipantDepartureResponseMock,
   getParticipantMock,
   getParticipantResponseMock,
   getParticipationStatusResponseMock,
-  getRecommendationMock,
   getRecommendationResponseMock,
+  getScheduleResponseMock,
 } from '../schemas/index.faker';
 
 export const getReplaceCoverImageResponseMock = (
@@ -118,19 +119,6 @@ export const getConfirmPlaceResponseMock = (
   ...overrideResponse,
 });
 
-export const getCalculateActualRouteRecommendationResponseMock = (
-  overrideResponse: Partial<Extract<ActualRouteRecommendationResponse, object>> = {}
-): ActualRouteRecommendationResponse => ({
-  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
-  recommendations: faker.helpers.arrayElement([
-    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-      ...getRecommendationMock(),
-    })),
-    undefined,
-  ]),
-  ...overrideResponse,
-});
-
 export const getJoinMemberResponseMock = (
   overrideResponse: Partial<Extract<ParticipantJoinResponse, object>> = {}
 ): ParticipantJoinResponse => ({
@@ -172,6 +160,40 @@ export const getUpdateMeetingParticipantNicknameResponseMock = (
     faker.string.alpha({ length: { min: 10, max: 20 } }),
     undefined,
   ]),
+  ...overrideResponse,
+});
+
+export const getUpdateMyScheduleResponseResponseMock = (
+  overrideResponse: Partial<Extract<MyParticipationResponse, object>> = {}
+): MyParticipationResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  participantType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['HOST', 'MEMBER'] as const),
+    undefined,
+  ]),
+  scheduleInputType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['DATE_ONLY', 'DATE_AND_TIME', 'NONE'] as const),
+    undefined,
+  ]),
+  scheduleResponse: faker.helpers.arrayElement([{ ...getScheduleResponseMock() }, undefined]),
+  departure: faker.helpers.arrayElement([{ ...getDepartureMock() }, undefined]),
+  ...overrideResponse,
+});
+
+export const getUpdateMyDepartureResponseMock = (
+  overrideResponse: Partial<Extract<MyParticipationResponse, object>> = {}
+): MyParticipationResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  participantType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['HOST', 'MEMBER'] as const),
+    undefined,
+  ]),
+  scheduleInputType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['DATE_ONLY', 'DATE_AND_TIME', 'NONE'] as const),
+    undefined,
+  ]),
+  scheduleResponse: faker.helpers.arrayElement([{ ...getScheduleResponseMock() }, undefined]),
+  departure: faker.helpers.arrayElement([{ ...getDepartureMock() }, undefined]),
   ...overrideResponse,
 });
 
@@ -415,6 +437,23 @@ export const getGetPlaceViewResponseMock = (
     })),
     undefined,
   ]),
+  ...overrideResponse,
+});
+
+export const getGetMyParticipationResponseMock = (
+  overrideResponse: Partial<Extract<MyParticipationResponse, object>> = {}
+): MyParticipationResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  participantType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['HOST', 'MEMBER'] as const),
+    undefined,
+  ]),
+  scheduleInputType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['DATE_ONLY', 'DATE_AND_TIME', 'NONE'] as const),
+    undefined,
+  ]),
+  scheduleResponse: faker.helpers.arrayElement([{ ...getScheduleResponseMock() }, undefined]),
+  departure: faker.helpers.arrayElement([{ ...getDepartureMock() }, undefined]),
   ...overrideResponse,
 });
 

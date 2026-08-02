@@ -19,6 +19,10 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams('code=29NRVBGXGP'),
 }));
 
+vi.mock('@/widgets/meeting-coordination', () => ({
+  CoordinationSection: () => null,
+}));
+
 describe('MeetingOverviewPage', () => {
   it('설명이 있는 모임을 반환하면 모임명·설명·참여 정원이 모두 표시된다', () => {
     useMeetingDetailQueryMock.mockReturnValue({

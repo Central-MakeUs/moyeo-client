@@ -8,7 +8,6 @@
 import { faker } from '@faker-js/faker';
 
 import type {
-  ActualRouteRecommendationResponse,
   AppleLoginRequest,
   AuthResponse,
   AuthUserResponse,
@@ -21,6 +20,7 @@ import type {
   CoordinateResponse,
   CreateMeetingRequest,
   CreateMeetingResponse,
+  Departure,
   DeparturePlaceSearchRequest,
   DeparturePlaceSearchResponse,
   DepartureRequest,
@@ -36,23 +36,26 @@ import type {
   MemberJoinRequest,
   MyMeetingDetailResponse,
   MyMeetingListResponse,
+  MyParticipationResponse,
   Participant,
   ParticipantDepartureResponse,
   ParticipantJoinResponse,
   ParticipantResponse,
   ParticipationStatusResponse,
   PlaceViewResponse,
-  Recommendation,
   RecommendationResponse,
   RenameSavedPlaceRequest,
   Result,
   SavePlaceRequest,
   SavedPlaceListResponse,
   SavedPlaceResponse,
+  ScheduleAvailability,
   ScheduleAvailabilityRequest,
+  ScheduleResponse,
   ScheduleResponseRequest,
   ScheduleViewResponse,
   ServerTimeResponse,
+  StationResponse,
   UpdateMeetingParticipantNicknameRequest,
   UpdateNicknameRequest,
 } from '.';
@@ -239,36 +242,6 @@ export const getConfirmPlaceRequestMock = (
   overrideResponse: Partial<ConfirmPlaceRequest> = {}
 ): ConfirmPlaceRequest => ({
   commercialAreaCode: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  ...overrideResponse,
-});
-
-export const getRecommendationMock = (
-  overrideResponse: Partial<Recommendation> = {}
-): Recommendation => ({
-  rank: faker.helpers.arrayElement([faker.number.int(), undefined]),
-  areaCode: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
-    undefined,
-  ]),
-  areaName: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
-    undefined,
-  ]),
-  averageTravelTimeSeconds: faker.helpers.arrayElement([faker.number.int(), undefined]),
-  maxTravelTimeSeconds: faker.helpers.arrayElement([faker.number.int(), undefined]),
-  ...overrideResponse,
-});
-
-export const getActualRouteRecommendationResponseMock = (
-  overrideResponse: Partial<ActualRouteRecommendationResponse> = {}
-): ActualRouteRecommendationResponse => ({
-  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
-  recommendations: faker.helpers.arrayElement([
-    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-      ...getRecommendationMock(),
-    })),
-    undefined,
-  ]),
   ...overrideResponse,
 });
 
@@ -474,6 +447,83 @@ export const getMeetingParticipantNicknameResponseMock = (
     faker.string.alpha({ length: { min: 10, max: 20 } }),
     undefined,
   ]),
+  ...overrideResponse,
+});
+
+export const getDepartureMock = (overrideResponse: Partial<Departure> = {}): Departure => ({
+  name: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  address: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  latitude: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.number.float({ fractionDigits: 2 }), null]),
+    undefined,
+  ]),
+  longitude: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.number.float({ fractionDigits: 2 }), null]),
+    undefined,
+  ]),
+  transportationMode: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['PUBLIC_TRANSIT', 'CAR'] as const),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getScheduleAvailabilityMock = (
+  overrideResponse: Partial<ScheduleAvailability> = {}
+): ScheduleAvailability => ({
+  candidateDate: faker.helpers.arrayElement([
+    faker.date.past().toISOString().slice(0, 10),
+    undefined,
+  ]),
+  startTime: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  endTime: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getScheduleResponseMock = (
+  overrideResponse: Partial<ScheduleResponse> = {}
+): ScheduleResponse => ({
+  availableDates: faker.helpers.arrayElement([
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.date.past().toISOString().slice(0, 10)
+    ),
+    undefined,
+  ]),
+  availableTimeRanges: faker.helpers.arrayElement([
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      ...getScheduleAvailabilityMock(),
+    })),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getMyParticipationResponseMock = (
+  overrideResponse: Partial<MyParticipationResponse> = {}
+): MyParticipationResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  participantType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['HOST', 'MEMBER'] as const),
+    undefined,
+  ]),
+  scheduleInputType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['DATE_ONLY', 'DATE_AND_TIME', 'NONE'] as const),
+    undefined,
+  ]),
+  scheduleResponse: faker.helpers.arrayElement([{ ...getScheduleResponseMock() }, undefined]),
+  departure: faker.helpers.arrayElement([{ ...getDepartureMock() }, undefined]),
   ...overrideResponse,
 });
 
@@ -896,6 +946,22 @@ export const getParticipantDepartureResponseMock = (
   ...overrideResponse,
 });
 
+export const getStationResponseMock = (
+  overrideResponse: Partial<StationResponse> = {}
+): StationResponse => ({
+  name: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  lineNames: faker.helpers.arrayElement([
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } })
+    ),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
 export const getRecommendationResponseMock = (
   overrideResponse: Partial<RecommendationResponse> = {}
 ): RecommendationResponse => ({
@@ -923,6 +989,9 @@ export const getRecommendationResponseMock = (
     undefined,
   ]),
   averageStraightDistanceMeters: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  averageTravelTimeSeconds: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  maxTravelTimeSeconds: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  station: faker.helpers.arrayElement([{ ...getStationResponseMock() }, undefined]),
   ...overrideResponse,
 });
 

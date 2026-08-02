@@ -1,5 +1,6 @@
 export * from './avatar';
 export * from './avatar-group';
+export * from './badge';
 export * from './button';
 export * from './checkbox';
 export * from './duration-picker';

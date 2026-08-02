@@ -8,7 +8,7 @@
 import type { AvailableParticipantResponse } from './availableParticipantResponse';
 
 /**
- * 최적 일정 후보
+ * 일정 후보
  */
 export interface CandidateResponse {
   /** 후보 날짜 */

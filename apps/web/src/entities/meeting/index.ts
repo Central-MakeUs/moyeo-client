@@ -1,7 +1,7 @@
 export type { MeetingSummary } from './model/meeting-summary';
 export { useMeetingsQuery } from './model/use-meetings-query';
 export type { UseMeetingsQueryResult } from './model/use-meetings-query';
-export type { MeetingDetail } from './model/meeting-detail';
+export type { MeetingDetail, MeetingPlanningType } from './model/meeting-detail';
 export { useMeetingDetailQuery } from './model/use-meeting-detail-query';
 export type { UseMeetingDetailQueryResult } from './model/use-meeting-detail-query';
 export { MeetingCard } from './ui/meeting-card';

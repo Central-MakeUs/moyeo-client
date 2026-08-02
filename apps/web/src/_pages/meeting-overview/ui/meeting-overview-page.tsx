@@ -10,6 +10,7 @@ import {
   MeetingParticipationProgress,
   useMeetingDetailQuery,
 } from '@/entities/meeting';
+import { CoordinationSection } from '@/widgets/meeting-coordination';
 
 /**
  * create-meeting의 invitePath()와 같은 쿼리 키.
@@ -47,9 +48,16 @@ function MeetingOverviewContent(): React.JSX.Element {
       )}
 
       {data && (
-        <div className="relative z-10 -mt-17.25 flex flex-col gap-6 px-5">
-          <MeetingInfoCard name={data.name} description={data.description} />
-          <MeetingParticipationProgress joinedCount={data.joinedCount} capacity={data.capacity} />
+        <div className="z-10 -mt-22.25 flex flex-col gap-7 px-5 pt-5 pb-16">
+          <div className="relative flex flex-col gap-6">
+            <MeetingInfoCard name={data.name} description={data.description} />
+            <MeetingParticipationProgress joinedCount={data.joinedCount} capacity={data.capacity} />
+          </div>
+          <CoordinationSection
+            inviteCode={inviteCode}
+            planningType={data.planningType}
+            capacity={data.capacity}
+          />
         </div>
       )}
     </main>

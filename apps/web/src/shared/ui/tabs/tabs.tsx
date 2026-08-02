@@ -7,11 +7,7 @@ import { cn } from '@/shared/lib/cn';
 
 function Tabs({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Root>) {
   return (
-    <TabsPrimitive.Root
-      data-slot="tabs"
-      className={cn('flex flex-col gap-1', className)}
-      {...props}
-    />
+    <TabsPrimitive.Root data-slot="tabs" className={cn('flex flex-col', className)} {...props} />
   );
 }
 
@@ -34,7 +30,7 @@ function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPr
       data-slot="tabs-trigger"
       className={cn(
         // 레이아웃
-        'h-[34px] flex-1 rounded-8 p-1 text-semibold-14 whitespace-nowrap',
+        'h-[34px] flex-1 rounded-8 px-1.5 text-semibold-14 whitespace-nowrap',
 
         // 상태 및 애니메이션
         'text-neutral-600 transition-colors outline-none',

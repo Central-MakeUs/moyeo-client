@@ -6,6 +6,7 @@
  * OpenAPI spec version: v1
  */
 import type { RecommendationResponseCategoryName } from './recommendationResponseCategoryName';
+import type { StationResponse } from './stationResponse';
 
 /**
  * 추천 상권
@@ -29,4 +30,10 @@ export interface RecommendationResponse {
   dongName?: string;
   /** 참여자 출발지에서 상권까지의 평균 직선거리 미터. 랜덤 추천이면 null입니다. */
   averageStraightDistanceMeters?: number;
+  /** 정원이 찬 뒤 최초 조회에서 저장한 참여자 평균 실제 이동시간(초)입니다. 직선거리 미리보기에서는 null입니다. */
+  averageTravelTimeSeconds?: number;
+  /** 정원이 찬 뒤 최초 조회에서 저장한 참여자 최대 실제 이동시간(초)입니다. 직선거리 미리보기에서는 null입니다. */
+  maxTravelTimeSeconds?: number;
+  /** 상권과 매핑된 지하철역 정보입니다. 매핑이 없으면 null이며, 거리·좌표는 노출하지 않습니다. */
+  station?: StationResponse;
 }
