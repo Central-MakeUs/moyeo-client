@@ -5,6 +5,7 @@
  * CMC Moyeo MVP server API
  * OpenAPI spec version: v1
  */
+import type { ProfileResponse } from './profileResponse';
 
 /**
  * 인증 사용자 응답
@@ -17,6 +18,8 @@ export interface AuthUserResponse {
    * @nullable
    */
   nickname?: string | null;
+  /** 회원 프로필 표시 정보 */
+  profile?: ProfileResponse;
   /** 닉네임 등록을 완료했는지 여부 */
   onboardingCompleted?: boolean;
 }

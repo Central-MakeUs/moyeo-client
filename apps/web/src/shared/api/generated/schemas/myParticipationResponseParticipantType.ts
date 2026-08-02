@@ -15,4 +15,5 @@ export type MyParticipationResponseParticipantType =
 export const MyParticipationResponseParticipantType = {
   HOST: 'HOST',
   MEMBER: 'MEMBER',
+  GUEST: 'GUEST',
 } as const;

@@ -18,6 +18,7 @@ import type {
   ConfirmPlaceRequest,
   ConfirmScheduleRequest,
   CoordinateResponse,
+  CreateFeedbackRequest,
   CreateMeetingRequest,
   CreateMeetingResponse,
   Departure,
@@ -25,6 +26,10 @@ import type {
   DeparturePlaceSearchResponse,
   DepartureRequest,
   DevAuthTokensResponse,
+  FeedbackListResponse,
+  FeedbackResponse,
+  GuestEntryRequest,
+  GuestEntryResponse,
   GuestJoinRequest,
   Item,
   KakaoLoginRequest,
@@ -36,6 +41,7 @@ import type {
   MemberJoinRequest,
   MyMeetingDetailResponse,
   MyMeetingListResponse,
+  MyPageResponse,
   MyParticipationResponse,
   Participant,
   ParticipantDepartureResponse,
@@ -43,6 +49,7 @@ import type {
   ParticipantResponse,
   ParticipationStatusResponse,
   PlaceViewResponse,
+  ProfileResponse,
   RecommendationResponse,
   RenameSavedPlaceRequest,
   Result,
@@ -51,6 +58,8 @@ import type {
   SavedPlaceResponse,
   ScheduleAvailability,
   ScheduleAvailabilityRequest,
+  ScheduleAvailabilityResponse,
+  ScheduleCandidateResponse,
   ScheduleResponse,
   ScheduleResponseRequest,
   ScheduleViewResponse,
@@ -58,12 +67,24 @@ import type {
   StationResponse,
   UpdateMeetingParticipantNicknameRequest,
   UpdateNicknameRequest,
+  UpdateProfileColorRequest,
 } from '.';
 
 export const getCompleteOnboardingRequestMock = (
   overrideResponse: Partial<CompleteOnboardingRequest> = {}
 ): CompleteOnboardingRequest => ({
   nickname: faker.helpers.fromRegExp('^[가-힣A-Za-z]{2,10}$'),
+  ...overrideResponse,
+});
+
+export const getProfileResponseMock = (
+  overrideResponse: Partial<ProfileResponse> = {}
+): ProfileResponse => ({
+  type: faker.helpers.arrayElement([faker.helpers.arrayElement(['COLOR'] as const), undefined]),
+  color: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['GRAY', 'RED', 'PURPLE', 'ORANGE'] as const),
+    undefined,
+  ]),
   ...overrideResponse,
 });
 
@@ -75,6 +96,7 @@ export const getAuthUserResponseMock = (
     faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
+  profile: faker.helpers.arrayElement([{ ...getProfileResponseMock() }, undefined]),
   onboardingCompleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
   ...overrideResponse,
 });
@@ -262,6 +284,10 @@ export const getParticipantJoinResponseMock = (
 ): ParticipantJoinResponse => ({
   meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
   participantId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  userId: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.number.int(), null]),
+    undefined,
+  ]),
   nickname: faker.helpers.arrayElement([
     faker.string.alpha({ length: { min: 10, max: 20 } }),
     undefined,
@@ -283,6 +309,24 @@ export const getGuestJoinRequestMock = (
     undefined,
   ]),
   departure: faker.helpers.arrayElement([{ ...getDepartureRequestMock() }, undefined]),
+  ...overrideResponse,
+});
+
+export const getGuestEntryRequestMock = (
+  overrideResponse: Partial<GuestEntryRequest> = {}
+): GuestEntryRequest => ({
+  nickname: faker.helpers.fromRegExp('^[가-힣A-Za-z]{2,10}$'),
+  password: faker.helpers.fromRegExp('^[0-9]{4}$'),
+  ...overrideResponse,
+});
+
+export const getGuestEntryResponseMock = (
+  overrideResponse: Partial<GuestEntryResponse> = {}
+): GuestEntryResponse => ({
+  entryType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['NEW_GUEST', 'EXISTING_GUEST'] as const),
+    undefined,
+  ]),
   ...overrideResponse,
 });
 
@@ -336,6 +380,28 @@ export const getSavedPlaceResponseMock = (
   ]),
   latitude: faker.helpers.arrayElement([faker.number.float({ fractionDigits: 2 }), undefined]),
   longitude: faker.helpers.arrayElement([faker.number.float({ fractionDigits: 2 }), undefined]),
+  ...overrideResponse,
+});
+
+export const getCreateFeedbackRequestMock = (
+  overrideResponse: Partial<CreateFeedbackRequest> = {}
+): CreateFeedbackRequest => ({
+  content: faker.string.alpha({ length: { min: 0, max: 1000 } }),
+  ...overrideResponse,
+});
+
+export const getFeedbackResponseMock = (
+  overrideResponse: Partial<FeedbackResponse> = {}
+): FeedbackResponse => ({
+  id: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  content: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  createdAt: faker.helpers.arrayElement([
+    faker.date.past().toISOString().slice(0, 19) + 'Z',
+    undefined,
+  ]),
   ...overrideResponse,
 });
 
@@ -424,6 +490,13 @@ export const getAppleLoginRequestMock = (
   ...overrideResponse,
 });
 
+export const getUpdateProfileColorRequestMock = (
+  overrideResponse: Partial<UpdateProfileColorRequest> = {}
+): UpdateProfileColorRequest => ({
+  color: faker.helpers.arrayElement(['GRAY', 'RED', 'PURPLE', 'ORANGE'] as const),
+  ...overrideResponse,
+});
+
 export const getUpdateNicknameRequestMock = (
   overrideResponse: Partial<UpdateNicknameRequest> = {}
 ): UpdateNicknameRequest => ({
@@ -443,6 +516,10 @@ export const getMeetingParticipantNicknameResponseMock = (
 ): MeetingParticipantNicknameResponse => ({
   meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
   participantId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  userId: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.number.int(), null]),
+    undefined,
+  ]),
   nickname: faker.helpers.arrayElement([
     faker.string.alpha({ length: { min: 10, max: 20 } }),
     undefined,
@@ -515,7 +592,7 @@ export const getMyParticipationResponseMock = (
 ): MyParticipationResponse => ({
   meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
   participantType: faker.helpers.arrayElement([
-    faker.helpers.arrayElement(['HOST', 'MEMBER'] as const),
+    faker.helpers.arrayElement(['HOST', 'MEMBER', 'GUEST'] as const),
     undefined,
   ]),
   scheduleInputType: faker.helpers.arrayElement([
@@ -534,6 +611,23 @@ export const getRenameSavedPlaceRequestMock = (
   ...overrideResponse,
 });
 
+export const getMyPageResponseMock = (
+  overrideResponse: Partial<MyPageResponse> = {}
+): MyPageResponse => ({
+  nickname: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  profile: faker.helpers.arrayElement([{ ...getProfileResponseMock() }, undefined]),
+  places: faker.helpers.arrayElement([
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      ...getSavedPlaceResponseMock(),
+    })),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
 export const getServerTimeResponseMock = (
   overrideResponse: Partial<ServerTimeResponse> = {}
 ): ServerTimeResponse => ({
@@ -546,6 +640,10 @@ export const getServerTimeResponseMock = (
 
 export const getParticipantMock = (overrideResponse: Partial<Participant> = {}): Participant => ({
   participantId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  userId: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.number.int(), null]),
+    undefined,
+  ]),
   nickname: faker.helpers.arrayElement([
     faker.string.alpha({ length: { min: 10, max: 20 } }),
     undefined,
@@ -672,6 +770,36 @@ export const getMyMeetingListResponseMock = (
   ...overrideResponse,
 });
 
+export const getScheduleAvailabilityResponseMock = (
+  overrideResponse: Partial<ScheduleAvailabilityResponse> = {}
+): ScheduleAvailabilityResponse => ({
+  startTime: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  endTime: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getScheduleCandidateResponseMock = (
+  overrideResponse: Partial<ScheduleCandidateResponse> = {}
+): ScheduleCandidateResponse => ({
+  candidateDate: faker.helpers.arrayElement([
+    faker.date.past().toISOString().slice(0, 10),
+    undefined,
+  ]),
+  availableTimeRanges: faker.helpers.arrayElement([
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      ...getScheduleAvailabilityResponseMock(),
+    })),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
 export const getParticipationStatusResponseMock = (
   overrideResponse: Partial<ParticipationStatusResponse> = {}
 ): ParticipationStatusResponse => ({
@@ -722,17 +850,9 @@ export const getMeetingInvitationResponseMock = (
     undefined,
   ]),
   scheduleCandidateDates: faker.helpers.arrayElement([
-    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-      faker.date.past().toISOString().slice(0, 10)
-    ),
-    undefined,
-  ]),
-  availableStartTime: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
-    undefined,
-  ]),
-  availableEndTime: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      ...getScheduleCandidateResponseMock(),
+    })),
     undefined,
   ]),
   placeMode: faker.helpers.arrayElement([
@@ -763,6 +883,10 @@ export const getParticipantResponseMock = (
   overrideResponse: Partial<ParticipantResponse> = {}
 ): ParticipantResponse => ({
   participantId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  userId: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.number.int(), null]),
+    undefined,
+  ]),
   nickname: faker.helpers.arrayElement([
     faker.string.alpha({ length: { min: 10, max: 20 } }),
     undefined,
@@ -850,6 +974,10 @@ export const getAvailableParticipantResponseMock = (
   overrideResponse: Partial<AvailableParticipantResponse> = {}
 ): AvailableParticipantResponse => ({
   participantId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  userId: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.number.int(), null]),
+    undefined,
+  ]),
   nickname: faker.helpers.arrayElement([
     faker.string.alpha({ length: { min: 10, max: 20 } }),
     undefined,
@@ -922,6 +1050,10 @@ export const getParticipantDepartureResponseMock = (
   overrideResponse: Partial<ParticipantDepartureResponse> = {}
 ): ParticipantDepartureResponse => ({
   participantId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  userId: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.number.int(), null]),
+    undefined,
+  ]),
   nickname: faker.helpers.arrayElement([
     faker.string.alpha({ length: { min: 10, max: 20 } }),
     undefined,
@@ -1034,6 +1166,18 @@ export const getSavedPlaceListResponseMock = (
   places: faker.helpers.arrayElement([
     Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
       ...getSavedPlaceResponseMock(),
+    })),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getFeedbackListResponseMock = (
+  overrideResponse: Partial<FeedbackListResponse> = {}
+): FeedbackListResponse => ({
+  feedbacks: faker.helpers.arrayElement([
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      ...getFeedbackResponseMock(),
     })),
     undefined,
   ]),

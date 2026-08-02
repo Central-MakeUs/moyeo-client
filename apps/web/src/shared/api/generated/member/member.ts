@@ -5,24 +5,49 @@
  * CMC Moyeo MVP server API
  * OpenAPI spec version: v1
  */
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
   QueryClient,
+  QueryFunction,
+  QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
   UseMutationResult,
+  UseQueryOptions,
+  UseQueryResult,
 } from '@tanstack/react-query';
 
 import type {
   AuthUserResponse,
   CompleteOnboardingRequest,
+  MyPageResponse,
   UpdateNicknameRequest,
+  UpdateProfileColorRequest,
 } from '../schemas';
 
 import { customInstance } from '../../axios-instance';
 import type { ErrorType, BodyType } from '../../axios-instance';
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKey: K } => {
+  const result = { queryKey } as T & { queryKey: K };
+  for (const key of Object.keys(query)) {
+    // The explicit queryKey always wins, matching the previous
+    // `{ ...query, queryKey }` spread where it was set last.
+    if (key === 'queryKey') continue;
+    Object.defineProperty(result, key, {
+      enumerable: true,
+      configurable: true,
+      get: () => (query as Record<string, unknown>)[key],
+    });
+  }
+  return result;
+};
 
 /**
  * 소셜 가입 직후 기본 닉네임이 없는 사용자의 닉네임을 최초 1회 등록합니다.
@@ -111,6 +136,91 @@ export const useCompleteOnboarding = <TError = ErrorType<unknown>, TContext = un
   return useMutation(getCompleteOnboardingMutationOptions(options), queryClient);
 };
 /**
+ * 현재 회원의 기본 프로필 색상을 GRAY, RED, PURPLE, ORANGE 중 하나로 변경합니다. 현재는 색상 프로필만 지원합니다.
+ * @summary 기본 프로필 색상 수정
+ */
+export const updateProfileColor = (
+  updateProfileColorRequest: BodyType<UpdateProfileColorRequest>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<AuthUserResponse>(
+    {
+      url: `/api/users/me/profile-color`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: updateProfileColorRequest,
+      signal,
+    },
+    options
+  );
+};
+
+export const getUpdateProfileColorMutationOptions = <
+  TError = ErrorType<AuthUserResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateProfileColor>>,
+    TError,
+    { data: BodyType<UpdateProfileColorRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateProfileColor>>,
+  TError,
+  { data: BodyType<UpdateProfileColorRequest> },
+  TContext
+> => {
+  const mutationKey = ['updateProfileColor'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateProfileColor>>,
+    { data: BodyType<UpdateProfileColorRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return updateProfileColor(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateProfileColorMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateProfileColor>>
+>;
+export type UpdateProfileColorMutationBody = BodyType<UpdateProfileColorRequest>;
+export type UpdateProfileColorMutationError = ErrorType<AuthUserResponse>;
+
+/**
+ * @summary 기본 프로필 색상 수정
+ */
+export const useUpdateProfileColor = <TError = ErrorType<AuthUserResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateProfileColor>>,
+      TError,
+      { data: BodyType<UpdateProfileColorRequest> },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateProfileColor>>,
+  TError,
+  { data: BodyType<UpdateProfileColorRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateProfileColorMutationOptions(options), queryClient);
+};
+/**
  * 현재 사용자의 기본 닉네임을 수정합니다.
  * 모임 안에서 이미 사용 중인 방장·회원 참여자 닉네임은 변경하지 않습니다.
  * @summary 기본 닉네임 수정
@@ -194,6 +304,114 @@ export const useUpdateNickname = <TError = ErrorType<AuthUserResponse>, TContext
 > => {
   return useMutation(getUpdateNicknameMutationOptions(options), queryClient);
 };
+/**
+ * 현재 회원의 기본 닉네임, 프로필 색상, 저장 출발지 목록을 함께 반환합니다. 출발지 목록은 GET /api/me/places와 같은 데이터를 마이페이지 화면용으로 복제해 반환하며, 피드백 이력은 포함하지 않습니다.
+ * @summary 마이페이지 조회
+ */
+export const getMyPage = (
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<MyPageResponse>({ url: `/api/users/me`, method: 'GET', signal }, options);
+};
+
+export const getGetMyPageQueryKey = () => {
+  return [`/api/users/me`] as const;
+};
+
+export const getGetMyPageQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMyPage>>,
+  TError = ErrorType<MyPageResponse>,
+>(options?: {
+  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyPage>>, TError, TData>>;
+  request?: SecondParameter<typeof customInstance>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetMyPageQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyPage>>> = ({ signal }) =>
+    getMyPage(requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMyPage>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetMyPageQueryResult = NonNullable<Awaited<ReturnType<typeof getMyPage>>>;
+export type GetMyPageQueryError = ErrorType<MyPageResponse>;
+
+export function useGetMyPage<
+  TData = Awaited<ReturnType<typeof getMyPage>>,
+  TError = ErrorType<MyPageResponse>,
+>(
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyPage>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyPage>>,
+          TError,
+          Awaited<ReturnType<typeof getMyPage>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetMyPage<
+  TData = Awaited<ReturnType<typeof getMyPage>>,
+  TError = ErrorType<MyPageResponse>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyPage>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyPage>>,
+          TError,
+          Awaited<ReturnType<typeof getMyPage>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetMyPage<
+  TData = Awaited<ReturnType<typeof getMyPage>>,
+  TError = ErrorType<MyPageResponse>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyPage>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary 마이페이지 조회
+ */
+
+export function useGetMyPage<
+  TData = Awaited<ReturnType<typeof getMyPage>>,
+  TError = ErrorType<MyPageResponse>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyPage>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetMyPageQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
 /**
  * 현재 회원을 탈퇴 처리하고 본인이 생성한 모든 모임과 개인 소유 데이터를 삭제합니다.
  * 별도 소셜 로그인 없이 저장된 연결 정보로 Apple 토큰 철회 또는 Kakao 연결 해제를 완료합니다.

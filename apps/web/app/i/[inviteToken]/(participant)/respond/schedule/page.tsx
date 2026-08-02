@@ -17,11 +17,15 @@ export default async function RespondSchedulePage({ params }: InvitePageProps) {
     return <main>INV-02 시간표 placeholder</main>;
   }
 
+  const candidateDates = (invitation.scheduleCandidateDates ?? [])
+    .map((candidate) => candidate.candidateDate)
+    .filter((date): date is string => date !== undefined);
+
   return (
     <GuestSchedulePage
       inviteToken={inviteToken}
       planningType={invitation.planningType}
-      candidateDates={invitation.scheduleCandidateDates ?? []}
+      candidateDates={candidateDates}
     />
   );
 }

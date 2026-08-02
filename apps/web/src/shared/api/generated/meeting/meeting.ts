@@ -29,6 +29,8 @@ import type {
   DepartureRequest,
   GetCoverImageParams,
   GetScheduleViewParams,
+  GuestEntryRequest,
+  GuestEntryResponse,
   GuestJoinRequest,
   MeetingConfirmationResponse,
   MeetingCoverResponse,
@@ -719,6 +721,96 @@ export const useJoinGuest = <TError = ErrorType<unknown>, TContext = unknown>(
   return useMutation(getJoinGuestMutationOptions(options), queryClient);
 };
 /**
+ * 게스트 참여 요청 전에 호출하는 공개 분기 API입니다. Bearer Access Token은 사용하지 않습니다.
+ *
+ * - `NEW_GUEST`: 해당 모임에서 게스트 닉네임이 미사용입니다. 신규 게스트 참여 입력 플로우로 이동합니다.
+ * - `EXISTING_GUEST`: 해당 닉네임의 게스트가 있고 비밀번호가 일치합니다. 모임 현황 플로우로 이동합니다.
+ * - 이미 사용 중인 닉네임의 비밀번호가 일치하지 않으면 `DUPLICATE_MEETING_PARTICIPANT_NICKNAME`을 반환합니다. 비밀번호 불일치 여부는 별도 오류로 노출하지 않습니다.
+ * @summary 게스트 참여 진입 분기
+ */
+export const checkGuestEntry = (
+  inviteCode: string,
+  guestEntryRequest: BodyType<GuestEntryRequest>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<unknown>(
+    {
+      url: `/api/meetings/invitations/${inviteCode}/guests/entry`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: guestEntryRequest,
+      signal,
+    },
+    options
+  );
+};
+
+export const getCheckGuestEntryMutationOptions = <
+  TError = ErrorType<GuestEntryResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof checkGuestEntry>>,
+    TError,
+    { inviteCode: string; data: BodyType<GuestEntryRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof checkGuestEntry>>,
+  TError,
+  { inviteCode: string; data: BodyType<GuestEntryRequest> },
+  TContext
+> => {
+  const mutationKey = ['checkGuestEntry'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof checkGuestEntry>>,
+    { inviteCode: string; data: BodyType<GuestEntryRequest> }
+  > = (props) => {
+    const { inviteCode, data } = props ?? {};
+
+    return checkGuestEntry(inviteCode, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CheckGuestEntryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof checkGuestEntry>>
+>;
+export type CheckGuestEntryMutationBody = BodyType<GuestEntryRequest>;
+export type CheckGuestEntryMutationError = ErrorType<GuestEntryResponse>;
+
+/**
+ * @summary 게스트 참여 진입 분기
+ */
+export const useCheckGuestEntry = <TError = ErrorType<GuestEntryResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof checkGuestEntry>>,
+      TError,
+      { inviteCode: string; data: BodyType<GuestEntryRequest> },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof checkGuestEntry>>,
+  TError,
+  { inviteCode: string; data: BodyType<GuestEntryRequest> },
+  TContext
+> => {
+  return useMutation(getCheckGuestEntryMutationOptions(options), queryClient);
+};
+/**
  * 방장 또는 로그인 회원이 해당 모임에서 표시되는 본인 닉네임만 수정합니다. 기본 프로필 닉네임은 변경하지 않으며, 회원·방장 닉네임 중복은 허용됩니다.
  * @summary 모임 내 본인 닉네임 수정
  */
@@ -985,6 +1077,186 @@ export const useUpdateMyDeparture = <
   TContext
 > => {
   return useMutation(getUpdateMyDepartureMutationOptions(options), queryClient);
+};
+/**
+ * 초대 코드와 게스트 닉네임으로 대상을 식별한 뒤, 일정 응답 전체를 교체합니다.
+ * @summary 게스트 일정 참여 응답 수정
+ */
+export const updateGuestScheduleResponse = (
+  inviteCode: string,
+  nickname: string,
+  scheduleResponseRequest: BodyType<ScheduleResponseRequest>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<MyParticipationResponse>(
+    {
+      url: `/api/meetings/invitations/${inviteCode}/guests/${nickname}/participation/schedule-response`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: scheduleResponseRequest,
+      signal,
+    },
+    options
+  );
+};
+
+export const getUpdateGuestScheduleResponseMutationOptions = <
+  TError = ErrorType<MyParticipationResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateGuestScheduleResponse>>,
+    TError,
+    { inviteCode: string; nickname: string; data: BodyType<ScheduleResponseRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateGuestScheduleResponse>>,
+  TError,
+  { inviteCode: string; nickname: string; data: BodyType<ScheduleResponseRequest> },
+  TContext
+> => {
+  const mutationKey = ['updateGuestScheduleResponse'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateGuestScheduleResponse>>,
+    { inviteCode: string; nickname: string; data: BodyType<ScheduleResponseRequest> }
+  > = (props) => {
+    const { inviteCode, nickname, data } = props ?? {};
+
+    return updateGuestScheduleResponse(inviteCode, nickname, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateGuestScheduleResponseMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateGuestScheduleResponse>>
+>;
+export type UpdateGuestScheduleResponseMutationBody = BodyType<ScheduleResponseRequest>;
+export type UpdateGuestScheduleResponseMutationError = ErrorType<MyParticipationResponse>;
+
+/**
+ * @summary 게스트 일정 참여 응답 수정
+ */
+export const useUpdateGuestScheduleResponse = <
+  TError = ErrorType<MyParticipationResponse>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateGuestScheduleResponse>>,
+      TError,
+      { inviteCode: string; nickname: string; data: BodyType<ScheduleResponseRequest> },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateGuestScheduleResponse>>,
+  TError,
+  { inviteCode: string; nickname: string; data: BodyType<ScheduleResponseRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateGuestScheduleResponseMutationOptions(options), queryClient);
+};
+/**
+ * 초대 코드와 게스트 닉네임으로 대상을 식별한 뒤, 출발지와 교통수단 응답을 교체합니다.
+ * @summary 게스트 출발지 참여 응답 수정
+ */
+export const updateGuestDeparture = (
+  inviteCode: string,
+  nickname: string,
+  departureRequest: BodyType<DepartureRequest>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<MyParticipationResponse>(
+    {
+      url: `/api/meetings/invitations/${inviteCode}/guests/${nickname}/participation/departure`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: departureRequest,
+      signal,
+    },
+    options
+  );
+};
+
+export const getUpdateGuestDepartureMutationOptions = <
+  TError = ErrorType<MyParticipationResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateGuestDeparture>>,
+    TError,
+    { inviteCode: string; nickname: string; data: BodyType<DepartureRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateGuestDeparture>>,
+  TError,
+  { inviteCode: string; nickname: string; data: BodyType<DepartureRequest> },
+  TContext
+> => {
+  const mutationKey = ['updateGuestDeparture'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateGuestDeparture>>,
+    { inviteCode: string; nickname: string; data: BodyType<DepartureRequest> }
+  > = (props) => {
+    const { inviteCode, nickname, data } = props ?? {};
+
+    return updateGuestDeparture(inviteCode, nickname, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateGuestDepartureMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateGuestDeparture>>
+>;
+export type UpdateGuestDepartureMutationBody = BodyType<DepartureRequest>;
+export type UpdateGuestDepartureMutationError = ErrorType<MyParticipationResponse>;
+
+/**
+ * @summary 게스트 출발지 참여 응답 수정
+ */
+export const useUpdateGuestDeparture = <
+  TError = ErrorType<MyParticipationResponse>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateGuestDeparture>>,
+      TError,
+      { inviteCode: string; nickname: string; data: BodyType<DepartureRequest> },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateGuestDeparture>>,
+  TError,
+  { inviteCode: string; nickname: string; data: BodyType<DepartureRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateGuestDepartureMutationOptions(options), queryClient);
 };
 /**
  * 로그인 회원이 방장 또는 회원 참여자로 속한 모임의 상세 정보를 반환합니다. 참여자 목록의 isMe로 현재 사용자를 표시합니다.
