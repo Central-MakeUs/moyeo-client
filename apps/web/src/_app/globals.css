@@ -93,6 +93,10 @@
   --text-extrabold-14--line-height: normal; /* auto */
   --text-extrabold-14--font-weight: 800;
 
+  --text-extrabold-10: 0.625rem; /* 10px */
+  --text-extrabold-10--line-height: 1.5; /* 150% */
+  --text-extrabold-10--font-weight: 800;
+
   --text-extrabold-8: 0.5rem; /* 8px */
   --text-extrabold-8--line-height: normal; /* auto */
   --text-extrabold-8--font-weight: 800;
