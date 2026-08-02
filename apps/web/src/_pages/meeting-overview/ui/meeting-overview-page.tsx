@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
 import {
   MeetingInfoCard,
@@ -10,9 +10,8 @@ import {
   useMeetingDetailQuery,
 } from '@/entities/meeting';
 import { CoordinationSection } from '@/widgets/meeting-coordination';
-import { IconButton } from '@/shared/ui/icon-button';
+import { MeetingOverviewTopBar } from '@/widgets/meeting-overview-top-bar';
 import { Thumbnail } from '@/shared/ui/thumbnail';
-import { TopAppBar } from '@/shared/ui/top-app-bar';
 
 /**
  * create-meeting의 invitePath()와 같은 쿼리 키.
@@ -31,7 +30,6 @@ export function MeetingOverviewPage(): React.JSX.Element {
 }
 
 function MeetingOverviewContent(): React.JSX.Element {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const inviteCode = searchParams.get(INVITE_CODE_PARAM) ?? '';
   const { data, isLoading, isError } = useMeetingDetailQuery(inviteCode);
@@ -45,18 +43,7 @@ function MeetingOverviewContent(): React.JSX.Element {
         className="absolute inset-x-0 top-0 h-41.5"
       />
 
-      <TopAppBar
-        className="relative z-20 shrink-0"
-        leading={
-          <IconButton
-            icon="chevron-left"
-            aria-label="뒤로가기"
-            className="text-white"
-            onClick={() => router.back()}
-          />
-        }
-        trailing={<IconButton icon="kebab" aria-label="더보기" className="text-white" />}
-      />
+      <MeetingOverviewTopBar inviteCode={inviteCode} />
 
       {isLoading && (
         <div className="pt-8 text-center text-medium-14 text-neutral-400">불러오는 중...</div>

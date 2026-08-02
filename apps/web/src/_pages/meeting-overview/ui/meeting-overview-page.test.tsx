@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 
 import { MeetingOverviewPage } from './meeting-overview-page';
 
@@ -21,6 +20,11 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/widgets/meeting-coordination', () => ({
   CoordinationSection: () => null,
+}));
+
+// 상단바는 세션·참여 조회에 의존한다. 역할에 따른 노출 규칙은 위젯 쪽에서 검증한다.
+vi.mock('@/widgets/meeting-overview-top-bar', () => ({
+  MeetingOverviewTopBar: () => null,
 }));
 
 describe('MeetingOverviewPage', () => {
@@ -70,19 +74,5 @@ describe('MeetingOverviewPage', () => {
     render(<MeetingOverviewPage />);
 
     expect(screen.getByText('모임 정보를 불러오지 못했어요')).toBeInTheDocument();
-  });
-
-  it('뒤로가기 버튼을 누르면 router.back()이 호출된다', async () => {
-    const user = userEvent.setup();
-    useMeetingDetailQueryMock.mockReturnValue({
-      data: { name: '데모데이에 모여', description: undefined, capacity: 5, joinedCount: 3 },
-      isLoading: false,
-      isError: false,
-    });
-
-    render(<MeetingOverviewPage />);
-    await user.click(screen.getByRole('button', { name: '뒤로가기' }));
-
-    expect(routerBackMock).toHaveBeenCalledOnce();
   });
 });
