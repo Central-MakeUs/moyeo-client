@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { isValidNickname } from '@/entities/nickname';
 import {
   getGuestJoinNextPath,
-  isValidGuestNickname,
   isValidGuestPassword,
   useGuestJoinDraft,
 } from '@/features/meeting/invite-participation';
@@ -32,7 +32,7 @@ export function GuestMeetingJoinPage({ inviteToken, planningType }: GuestMeeting
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
-  const isNicknameValid = isValidGuestNickname(nickname);
+  const isNicknameValid = isValidNickname(nickname);
   const showNicknameError = nickname.length > 0 && !isNicknameValid;
   const isPasswordValid = isValidGuestPassword(password);
 

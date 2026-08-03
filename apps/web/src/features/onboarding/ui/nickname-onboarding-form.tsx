@@ -5,11 +5,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import { useQueryClient } from '@tanstack/react-query';
 
+import { isValidNickname } from '@/entities/nickname';
 import { NEXT_PARAM, toSafeNextPath } from '@/entities/session';
 import { getMeQueryKey, useCompleteOnboarding } from '@/shared/api';
 import { ParticipantIdentityForm } from '@/shared/ui/participant-identity-form';
-
-import { isValidNickname } from '../model/validate-nickname';
 
 const NICKNAME_HINT = '* 2~10자로 공백없이 한글과 영어만 입력해주세요';
 /** `next`가 없거나 외부 주소면 여기로 보낸다. 온보딩 직후의 기본 목적지다. */
