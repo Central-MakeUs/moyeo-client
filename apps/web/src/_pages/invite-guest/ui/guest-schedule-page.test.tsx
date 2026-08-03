@@ -6,10 +6,11 @@ import { useGuestJoinDraft } from '@/features/meeting/invite-participation';
 
 import { GuestSchedulePage } from './guest-schedule-page';
 
-const { push, replace, joinGuest } = vi.hoisted(() => ({
+const { push, replace, joinGuest, writeGuestSession } = vi.hoisted(() => ({
   push: vi.fn(),
   replace: vi.fn(),
   joinGuest: vi.fn(),
+  writeGuestSession: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -19,6 +20,11 @@ vi.mock('next/navigation', () => ({
 vi.mock('@/shared/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/shared/api')>()),
   joinGuest,
+}));
+
+vi.mock('@/entities/guest-session', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/entities/guest-session')>()),
+  writeGuestSession,
 }));
 
 const IDENTITY = { inviteToken: 'ABC123', nickname: '소미', password: '1234' };
@@ -49,6 +55,7 @@ beforeEach(() => {
   replace.mockReset();
   joinGuest.mockReset();
   joinGuest.mockResolvedValue({});
+  writeGuestSession.mockReset();
   useGuestJoinDraft.setState({ identity: IDENTITY, scheduleResponse: null });
 });
 
@@ -160,5 +167,27 @@ describe('GuestSchedulePage', () => {
     renderPage();
 
     expect(replace).toHaveBeenCalledWith('/i/ABC123/guest');
+  });
+
+  it("참여 제출이 성공하면 writeGuestSession이 'ABC123'·'소미'로 호출된다", async () => {
+    renderPage();
+
+    await userEvent.click(dateCell('2026-08-15'));
+    await userEvent.click(screen.getByRole('button', { name: '참여하기' }));
+
+    expect(writeGuestSession).toHaveBeenCalledWith('ABC123', '소미');
+  });
+
+  // 서버가 참여를 받아주지 않았으니 게스트로 기록하면 안 된다.
+  // 제출 시도 자체는 있었음을 joinGuest 호출로 함께 확인한다.
+  it('참여 제출이 실패하면 writeGuestSession이 호출되지 않는다', async () => {
+    joinGuest.mockRejectedValue(new Error('500'));
+    renderPage();
+
+    await userEvent.click(dateCell('2026-08-15'));
+    await userEvent.click(screen.getByRole('button', { name: '참여하기' }));
+
+    expect(joinGuest).toHaveBeenCalledTimes(1);
+    expect(writeGuestSession).not.toHaveBeenCalled();
   });
 });
