@@ -1,6 +1,7 @@
 export * from './auth/auth.faker';
 export * from './departure-place/departure-place.faker';
 export * from './development-auth/development-auth.faker';
+export * from './feedback/feedback.faker';
 export * from './health-controller/health-controller.faker';
 export * from './meeting/meeting.faker';
 export * from './member/member.faker';

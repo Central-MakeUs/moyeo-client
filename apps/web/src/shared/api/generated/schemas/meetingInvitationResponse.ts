@@ -11,6 +11,7 @@ import type { MeetingInvitationResponsePlanningType } from './meetingInvitationR
 import type { MeetingInvitationResponseScheduleInputType } from './meetingInvitationResponseScheduleInputType';
 import type { MeetingInvitationResponseScheduleMode } from './meetingInvitationResponseScheduleMode';
 import type { ParticipationStatusResponse } from './participationStatusResponse';
+import type { ScheduleCandidateResponse } from './scheduleCandidateResponse';
 
 /**
  * 초대 코드 모임 조회 응답
@@ -46,12 +47,8 @@ export interface MeetingInvitationResponse {
   scheduleMode?: MeetingInvitationResponseScheduleMode;
   /** 일정 참여 입력 유형입니다. */
   scheduleInputType?: MeetingInvitationResponseScheduleInputType;
-  /** 일정 후보 날짜 목록. scheduleMode=VOTE일 때 사용하며, scheduleMode=NONE이면 빈 배열입니다. */
-  scheduleCandidateDates?: string[];
-  /** 일정 조율 시작 시간. scheduleInputType=DATE_AND_TIME일 때만 값이 있습니다. */
-  availableStartTime?: string;
-  /** 일정 조율 종료 시간. scheduleInputType=DATE_AND_TIME일 때만 값이 있습니다. */
-  availableEndTime?: string;
+  /** 일정 후보 목록입니다. DATE_AND_TIME이면 모임장이 방 생성 때 선택한 시간 범위만 포함합니다. 시간이 없는 후보 날짜는 반환하지 않습니다. DATE_ONLY에서는 시간 범위가 빈 배열입니다. */
+  scheduleCandidateDates?: ScheduleCandidateResponse[];
   /**
    * 장소 설정 방식입니다.
    * <ul>

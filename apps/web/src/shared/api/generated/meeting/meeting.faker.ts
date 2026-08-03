@@ -33,6 +33,7 @@ import {
   getParticipantResponseMock,
   getParticipationStatusResponseMock,
   getRecommendationResponseMock,
+  getScheduleCandidateResponseMock,
   getScheduleResponseMock,
 } from '../schemas/index.faker';
 
@@ -124,6 +125,10 @@ export const getJoinMemberResponseMock = (
 ): ParticipantJoinResponse => ({
   meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
   participantId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  userId: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.number.int(), null]),
+    undefined,
+  ]),
   nickname: faker.helpers.arrayElement([
     faker.string.alpha({ length: { min: 10, max: 20 } }),
     undefined,
@@ -140,6 +145,10 @@ export const getJoinGuestResponseMock = (
 ): ParticipantJoinResponse => ({
   meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
   participantId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  userId: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.number.int(), null]),
+    undefined,
+  ]),
   nickname: faker.helpers.arrayElement([
     faker.string.alpha({ length: { min: 10, max: 20 } }),
     undefined,
@@ -156,6 +165,10 @@ export const getUpdateMeetingParticipantNicknameResponseMock = (
 ): MeetingParticipantNicknameResponse => ({
   meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
   participantId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  userId: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.number.int(), null]),
+    undefined,
+  ]),
   nickname: faker.helpers.arrayElement([
     faker.string.alpha({ length: { min: 10, max: 20 } }),
     undefined,
@@ -168,7 +181,7 @@ export const getUpdateMyScheduleResponseResponseMock = (
 ): MyParticipationResponse => ({
   meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
   participantType: faker.helpers.arrayElement([
-    faker.helpers.arrayElement(['HOST', 'MEMBER'] as const),
+    faker.helpers.arrayElement(['HOST', 'MEMBER', 'GUEST'] as const),
     undefined,
   ]),
   scheduleInputType: faker.helpers.arrayElement([
@@ -185,7 +198,41 @@ export const getUpdateMyDepartureResponseMock = (
 ): MyParticipationResponse => ({
   meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
   participantType: faker.helpers.arrayElement([
-    faker.helpers.arrayElement(['HOST', 'MEMBER'] as const),
+    faker.helpers.arrayElement(['HOST', 'MEMBER', 'GUEST'] as const),
+    undefined,
+  ]),
+  scheduleInputType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['DATE_ONLY', 'DATE_AND_TIME', 'NONE'] as const),
+    undefined,
+  ]),
+  scheduleResponse: faker.helpers.arrayElement([{ ...getScheduleResponseMock() }, undefined]),
+  departure: faker.helpers.arrayElement([{ ...getDepartureMock() }, undefined]),
+  ...overrideResponse,
+});
+
+export const getUpdateGuestScheduleResponseResponseMock = (
+  overrideResponse: Partial<Extract<MyParticipationResponse, object>> = {}
+): MyParticipationResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  participantType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['HOST', 'MEMBER', 'GUEST'] as const),
+    undefined,
+  ]),
+  scheduleInputType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['DATE_ONLY', 'DATE_AND_TIME', 'NONE'] as const),
+    undefined,
+  ]),
+  scheduleResponse: faker.helpers.arrayElement([{ ...getScheduleResponseMock() }, undefined]),
+  departure: faker.helpers.arrayElement([{ ...getDepartureMock() }, undefined]),
+  ...overrideResponse,
+});
+
+export const getUpdateGuestDepartureResponseMock = (
+  overrideResponse: Partial<Extract<MyParticipationResponse, object>> = {}
+): MyParticipationResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  participantType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['HOST', 'MEMBER', 'GUEST'] as const),
     undefined,
   ]),
   scheduleInputType: faker.helpers.arrayElement([
@@ -290,17 +337,9 @@ export const getGetInvitationResponseMock = (
     undefined,
   ]),
   scheduleCandidateDates: faker.helpers.arrayElement([
-    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-      faker.date.past().toISOString().slice(0, 10)
-    ),
-    undefined,
-  ]),
-  availableStartTime: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
-    undefined,
-  ]),
-  availableEndTime: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      ...getScheduleCandidateResponseMock(),
+    })),
     undefined,
   ]),
   placeMode: faker.helpers.arrayElement([
@@ -445,7 +484,24 @@ export const getGetMyParticipationResponseMock = (
 ): MyParticipationResponse => ({
   meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
   participantType: faker.helpers.arrayElement([
-    faker.helpers.arrayElement(['HOST', 'MEMBER'] as const),
+    faker.helpers.arrayElement(['HOST', 'MEMBER', 'GUEST'] as const),
+    undefined,
+  ]),
+  scheduleInputType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['DATE_ONLY', 'DATE_AND_TIME', 'NONE'] as const),
+    undefined,
+  ]),
+  scheduleResponse: faker.helpers.arrayElement([{ ...getScheduleResponseMock() }, undefined]),
+  departure: faker.helpers.arrayElement([{ ...getDepartureMock() }, undefined]),
+  ...overrideResponse,
+});
+
+export const getGetGuestParticipationResponseMock = (
+  overrideResponse: Partial<Extract<MyParticipationResponse, object>> = {}
+): MyParticipationResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  participantType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['HOST', 'MEMBER', 'GUEST'] as const),
     undefined,
   ]),
   scheduleInputType: faker.helpers.arrayElement([

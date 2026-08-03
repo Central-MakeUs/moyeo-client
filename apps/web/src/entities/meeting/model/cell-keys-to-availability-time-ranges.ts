@@ -1,4 +1,5 @@
 import type { ScheduleAvailabilityRequest } from '@/shared/api';
+
 import { parseCellKey } from '@/shared/ui/time-grid';
 
 /** 'HH:mm' → 시(hour). 블록이 1시간 단위라 분은 항상 00이다. */
@@ -25,7 +26,9 @@ function toHourRuns(hours: number[]): Array<[number, number]> {
  * 같은 날짜의 연속된 1시간 블록을 반개구간 [startTime, endTime)으로 병합한다.
  * 결과는 candidateDate 오름차순, 같은 날짜 안에서는 startTime 오름차순.
  */
-export function toAvailabilityTimeRanges(cellKeys: string[]): ScheduleAvailabilityRequest[] {
+export function cellKeysToAvailabilityTimeRanges(
+  cellKeys: string[]
+): ScheduleAvailabilityRequest[] {
   // 날짜별로 시(hour)를 모은다. 형식이 어긋난 키는 버린다.
   const hoursByDate = new Map<string, number[]>();
 

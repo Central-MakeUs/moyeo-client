@@ -10,7 +10,9 @@ import { faker } from '@faker-js/faker';
 import { HttpResponse, http } from 'msw';
 import type { RequestHandlerOptions } from 'msw';
 
-import type { AuthUserResponse } from '../schemas';
+import type { AuthUserResponse, MyPageResponse } from '../schemas';
+
+import { getProfileResponseMock, getSavedPlaceResponseMock } from '../schemas/index.faker';
 
 export const getCompleteOnboardingResponseMock = (
   overrideResponse: Partial<Extract<AuthUserResponse, object>> = {}
@@ -20,6 +22,20 @@ export const getCompleteOnboardingResponseMock = (
     faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
+  profile: faker.helpers.arrayElement([{ ...getProfileResponseMock() }, undefined]),
+  onboardingCompleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  ...overrideResponse,
+});
+
+export const getUpdateProfileColorResponseMock = (
+  overrideResponse: Partial<Extract<AuthUserResponse, object>> = {}
+): AuthUserResponse => ({
+  id: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  nickname: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  profile: faker.helpers.arrayElement([{ ...getProfileResponseMock() }, undefined]),
   onboardingCompleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
   ...overrideResponse,
 });
@@ -32,7 +48,25 @@ export const getUpdateNicknameResponseMock = (
     faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
+  profile: faker.helpers.arrayElement([{ ...getProfileResponseMock() }, undefined]),
   onboardingCompleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  ...overrideResponse,
+});
+
+export const getGetMyPageResponseMock = (
+  overrideResponse: Partial<Extract<MyPageResponse, object>> = {}
+): MyPageResponse => ({
+  nickname: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  profile: faker.helpers.arrayElement([{ ...getProfileResponseMock() }, undefined]),
+  places: faker.helpers.arrayElement([
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      ...getSavedPlaceResponseMock(),
+    })),
+    undefined,
+  ]),
   ...overrideResponse,
 });
 
@@ -53,6 +87,30 @@ export const getCompleteOnboardingMockHandler = (
             ? await overrideResponse(info)
             : overrideResponse
           : getCompleteOnboardingResponseMock(),
+        { status: 200 }
+      );
+    },
+    options
+  );
+};
+
+export const getUpdateProfileColorMockHandler = (
+  overrideResponse?:
+    | AuthUserResponse
+    | ((
+        info: Parameters<Parameters<typeof http.patch>[1]>[0]
+      ) => Promise<AuthUserResponse> | AuthUserResponse),
+  options?: RequestHandlerOptions
+) => {
+  return http.patch(
+    '*/api/users/me/profile-color',
+    async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+      return HttpResponse.json(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getUpdateProfileColorResponseMock(),
         { status: 200 }
       );
     },
@@ -84,6 +142,30 @@ export const getUpdateNicknameMockHandler = (
   );
 };
 
+export const getGetMyPageMockHandler = (
+  overrideResponse?:
+    | MyPageResponse
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0]
+      ) => Promise<MyPageResponse> | MyPageResponse),
+  options?: RequestHandlerOptions
+) => {
+  return http.get(
+    '*/api/users/me',
+    async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+      return HttpResponse.json(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getGetMyPageResponseMock(),
+        { status: 200 }
+      );
+    },
+    options
+  );
+};
+
 export const getWithdrawMockHandler = (
   overrideResponse?:
     | void
@@ -104,6 +186,8 @@ export const getWithdrawMockHandler = (
 };
 export const getMemberMock = () => [
   getCompleteOnboardingMockHandler(),
+  getUpdateProfileColorMockHandler(),
   getUpdateNicknameMockHandler(),
+  getGetMyPageMockHandler(),
   getWithdrawMockHandler(),
 ];

@@ -13,6 +13,18 @@ export function pruneScheduleResponse(
   if (response === null) return null;
 
   const isCandidate = (date: string) => candidateDates.includes(date);
+  const pruned: ScheduleResponseRequest = {};
 
-  return { availableDates: (response.availableDates ?? []).filter(isCandidate) };
+  // 없는 키는 만들지 않는다. 두 형식을 함께 보내면 서버가 무엇을 기준으로 볼지 모호해진다.
+  if (response.availableDates !== undefined) {
+    pruned.availableDates = response.availableDates.filter(isCandidate);
+  }
+
+  if (response.availableTimeRanges !== undefined) {
+    pruned.availableTimeRanges = response.availableTimeRanges.filter((range) =>
+      isCandidate(range.candidateDate)
+    );
+  }
+
+  return pruned;
 }

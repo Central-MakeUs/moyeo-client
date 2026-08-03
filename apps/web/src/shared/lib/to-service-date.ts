@@ -13,7 +13,7 @@ const dateFormatter = new Intl.DateTimeFormat('en-CA', {
  * 서버 UTC ISO-8601 시각 → 서비스 기준 시간대의 'yyyy-MM-dd'.
  * 값이 없거나 파싱 불가면 null (로컬 시각으로 대체하지 않는다).
  */
-export function toServerToday(serverTime: string | null | undefined): string | null {
+export function toServiceDate(serverTime: string | null | undefined): string | null {
   if (!serverTime) return null;
 
   const parsed = new Date(serverTime);

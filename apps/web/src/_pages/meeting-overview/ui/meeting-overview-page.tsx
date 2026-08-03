@@ -11,6 +11,7 @@ import {
   useMeetingDetailQuery,
 } from '@/entities/meeting';
 import { CoordinationSection } from '@/widgets/meeting-coordination';
+import { Spinner } from '@/shared/ui/spinner';
 
 /**
  * create-meeting의 invitePath()와 같은 쿼리 키.
@@ -39,7 +40,9 @@ function MeetingOverviewContent(): React.JSX.Element {
       <MeetingCover coverImageUrl={data?.coverImageUrl} onBack={() => router.back()} />
 
       {isLoading && (
-        <div className="pt-8 text-center text-medium-14 text-neutral-400">불러오는 중...</div>
+        <div className="flex justify-center pt-8">
+          <Spinner label="모임 정보를 불러오는 중" />
+        </div>
       )}
       {isError && (
         <p className="pt-8 text-center text-medium-14 text-neutral-400">

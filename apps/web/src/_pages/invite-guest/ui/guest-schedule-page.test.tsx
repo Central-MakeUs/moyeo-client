@@ -24,12 +24,16 @@ vi.mock('@/shared/api', async (importOriginal) => ({
 const IDENTITY = { inviteToken: 'ABC123', nickname: '소미', password: '1234' };
 const CANDIDATE_DATES = ['2026-08-15', '2026-08-20'];
 
-const renderPage = (candidateDates: string[] = CANDIDATE_DATES) =>
+/** 후보 날짜가 전부 미래라 지난 날짜 비활성화가 끼어들지 않는 기준일. */
+const SERVER_TODAY = '2026-08-01';
+
+const renderPage = (candidateDates: string[] = CANDIDATE_DATES, serverToday = SERVER_TODAY) =>
   render(
     <GuestSchedulePage
       inviteToken="ABC123"
       planningType="SCHEDULE_ONLY"
       candidateDates={candidateDates}
+      serverToday={serverToday}
     />
   );
 
@@ -53,6 +57,14 @@ describe('GuestSchedulePage', () => {
     renderPage();
 
     expect(dateCell('2026-08-15')).toBeEnabled();
+    expect(dateCell('2026-08-20')).toBeEnabled();
+  });
+
+  // 모임장이 만든 링크를 며칠 뒤에 여는 게 정상이라 후보 날짜가 이미 지나 있을 수 있다.
+  it('후보 날짜라도 서버 기준 오늘보다 이전이면 고를 수 없다', () => {
+    renderPage(CANDIDATE_DATES, '2026-08-20');
+
+    expect(dateCell('2026-08-15')).toBeDisabled();
     expect(dateCell('2026-08-20')).toBeEnabled();
   });
 

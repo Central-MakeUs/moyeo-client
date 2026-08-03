@@ -1,22 +1,22 @@
 import { describe, it, expect } from 'vitest';
 
-import { fromAvailabilityTimeRanges } from './from-availability-time-ranges';
+import { availabilityTimeRangesToCellKeys } from './availability-time-ranges-to-cell-keys';
 
-describe('fromAvailabilityTimeRanges', () => {
+describe('availabilityTimeRangesToCellKeys', () => {
   it("should return ['2026-07-10 18:00','2026-07-10 19:00'] when the range is 18:00~20:00", () => {
     expect(
-      fromAvailabilityTimeRanges([
+      availabilityTimeRangesToCellKeys([
         { candidateDate: '2026-07-10', startTime: '18:00', endTime: '20:00' },
       ])
     ).toEqual(['2026-07-10 18:00', '2026-07-10 19:00']);
   });
 
   it('should return [] when given []', () => {
-    expect(fromAvailabilityTimeRanges([])).toEqual([]);
+    expect(availabilityTimeRangesToCellKeys([])).toEqual([]);
   });
 
   it('should exclude the end time from the produced cell keys', () => {
-    const keys = fromAvailabilityTimeRanges([
+    const keys = availabilityTimeRangesToCellKeys([
       { candidateDate: '2026-07-10', startTime: '18:00', endTime: '20:00' },
     ]);
 
@@ -25,7 +25,7 @@ describe('fromAvailabilityTimeRanges', () => {
 
   it('should produce no cell keys when endTime is not after startTime', () => {
     expect(
-      fromAvailabilityTimeRanges([
+      availabilityTimeRangesToCellKeys([
         { candidateDate: '2026-07-10', startTime: '20:00', endTime: '18:00' },
       ])
     ).toEqual([]);

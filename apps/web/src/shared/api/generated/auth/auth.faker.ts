@@ -9,7 +9,7 @@ import { faker } from '@faker-js/faker';
 
 import type { AuthResponse, AuthUserResponse } from '../schemas';
 
-import { getAuthUserResponseMock } from '../schemas/index.faker';
+import { getAuthUserResponseMock, getProfileResponseMock } from '../schemas/index.faker';
 
 export const getLoginKakaoResponseMock = (
   overrideResponse: Partial<Extract<AuthResponse, object>> = {}
@@ -49,6 +49,7 @@ export const getMeResponseMock = (
     faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
+  profile: faker.helpers.arrayElement([{ ...getProfileResponseMock() }, undefined]),
   onboardingCompleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
   ...overrideResponse,
 });

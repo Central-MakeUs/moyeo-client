@@ -1,8 +1,7 @@
 'use client';
 
 import { useGetServerTime } from '@/shared/api';
-
-import { toServerToday } from './to-server-today';
+import { toServiceDate } from '@/shared/lib/to-service-date';
 
 export interface UseServerTodayResult {
   /** 서비스 기준 오늘 'yyyy-MM-dd'. 조회 전·실패 시 null. */
@@ -20,7 +19,7 @@ export interface UseServerTodayResult {
 export function useServerToday(): UseServerTodayResult {
   const { data, status, refetch } = useGetServerTime();
 
-  const serverToday = status === 'success' ? toServerToday(data?.serverTime) : null;
+  const serverToday = status === 'success' ? toServiceDate(data?.serverTime) : null;
 
   return {
     serverToday,
