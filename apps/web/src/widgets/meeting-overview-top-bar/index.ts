@@ -5,4 +5,3 @@ export type { MeetingViewerRole, ParticipationLookup } from './model/meeting-vie
 export { useMeetingViewerRole } from './model/use-meeting-viewer-role';
 export { toLeaveMeetingTarget } from './model/to-leave-meeting-target';
 export type { ToLeaveMeetingTargetParams } from './model/to-leave-meeting-target';
-export { toMeetingOverviewUrl } from './model/to-meeting-overview-url';

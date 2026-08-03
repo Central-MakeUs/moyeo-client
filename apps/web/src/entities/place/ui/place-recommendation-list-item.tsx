@@ -15,6 +15,11 @@ export interface PlaceRecommendationListItemProps {
   averageTravelTimeSeconds?: number;
   /** 매핑된 지하철역. 그냥 장소라 매핑이 없으면 undefined — 이때는 지하철 정보를 표시하지 않는다. */
   station?: PlaceStation;
+  /**
+   * 이 후보를 고르는 동작. 장소를 확정할 수 있는 모임장에게만 넘어온다.
+   * 없으면 눌리지 않는 항목으로 그린다 — 눌러도 아무 일이 없는 버튼을 두지 않는다.
+   */
+  onClick?: () => void;
 }
 
 export function PlaceRecommendationListItem({
@@ -23,11 +28,16 @@ export function PlaceRecommendationListItem({
   dongName,
   averageTravelTimeSeconds,
   station,
+  onClick,
 }: PlaceRecommendationListItemProps): React.JSX.Element {
   const regionLabel = [guName, dongName].filter(Boolean).join(' ');
+  const Root = onClick ? 'button' : 'div';
 
   return (
-    <div className="flex items-center gap-4 rounded-12 border border-neutral-50 p-4">
+    <Root
+      {...(onClick ? { type: 'button' as const, onClick } : {})}
+      className="flex w-full items-center gap-4 rounded-12 border border-neutral-50 p-4 text-left outline-none"
+    >
       <Icon name="location-neutral" size={24} />
 
       <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -55,6 +65,6 @@ export function PlaceRecommendationListItem({
           regionLabel && <p className="truncate text-bold-14 text-neutral-600">{regionLabel}</p>
         )}
       </div>
-    </div>
+    </Root>
   );
 }

@@ -3,7 +3,14 @@
 import * as React from 'react';
 
 import { isValidNickname } from '@/entities/nickname';
-import { Button, Drawer, DrawerContent, DrawerFooter, DrawerTitle } from '@/shared/ui';
+import {
+  Button,
+  Drawer,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/shared/ui';
 import { InputField } from '@/shared/ui/input';
 
 const NICKNAME_HINT = '* 2~10자로 공백없이 한글과 영어만 입력해주세요';
@@ -57,9 +64,9 @@ export function EditMeetingNicknameDrawer({
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent>
-        <DrawerTitle className="shrink-0 pb-5 text-bold-18 text-neutral-900">
-          모임별 닉네임 수정
-        </DrawerTitle>
+        <DrawerHeader>
+          <DrawerTitle>모임별 닉네임 수정</DrawerTitle>
+        </DrawerHeader>
 
         <form onSubmit={handleSubmit}>
           <InputField
@@ -72,7 +79,7 @@ export function EditMeetingNicknameDrawer({
             disabled={isSubmitting}
           />
 
-          <DrawerFooter className="grid grid-cols-2 gap-2">
+          <DrawerFooter className="grid grid-cols-2 gap-2.5">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               취소
             </Button>

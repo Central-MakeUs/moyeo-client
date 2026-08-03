@@ -11,15 +11,15 @@ import {
   useEditMeetingNickname,
   useMyMeetingNickname,
 } from '@/features/meeting/edit-meeting-nickname';
-import { useInviteShare } from '@/features/meeting/invite-share';
+import { toInviteShareUrl, useInviteShare } from '@/features/meeting/invite-share';
 import { LeaveMeetingDialog, useLeaveMeeting } from '@/features/meeting/leave-meeting';
 import { useGetMeetingView } from '@/shared/api';
+import { cn } from '@/shared/lib/cn';
 import { toast } from '@/shared/ui';
 import { IconButton } from '@/shared/ui/icon-button';
 import { TopAppBar } from '@/shared/ui/top-app-bar';
 
 import { toLeaveMeetingTarget } from '../model/to-leave-meeting-target';
-import { toMeetingOverviewUrl } from '../model/to-meeting-overview-url';
 import { useMeetingViewerRole } from '../model/use-meeting-viewer-role';
 import { MeetingMenuDrawer, type MeetingMenuItem } from './meeting-menu-drawer';
 
@@ -39,12 +39,19 @@ const MENU_CLOSE_MS = 500;
 export interface MeetingOverviewTopBarProps {
   /** 현황을 보고 있는 모임의 초대 코드. */
   inviteCode: string;
+  /**
+   * 본문이 상단바까지 올라왔는지. 커버가 가려진 상태를 뜻한다.
+   *
+   * 스크롤 컨테이너를 가진 쪽(현황 페이지)만 알 수 있어 값으로 받는다.
+   */
+  isScrolled?: boolean;
 }
 
 /**
  * 현황 화면(VIEW-01) 상단바.
  *
- * 커버 사진 위에 얹히므로 배경이 없고 아이콘이 흰색이다.
+ * 커버 사진 위에 얹히므로 기본은 배경이 없고 아이콘이 흰색이다. 본문이 올라와 커버를 가리면
+ * 흰 배경 위에 흰 아이콘이 남으므로, 그때는 배경을 흰색으로 채우고 아이콘을 어둡게 바꾼다.
  *
  * 뒤로가기·더보기는 이 모임의 참여자에게만 보인다(VIEW-01-F05). 링크만 열어본 사람에게는
  * 돌아갈 이전 화면도, 실행할 메뉴도 없기 때문이다. 역할이 아직 판별되지 않은 동안에도
@@ -52,6 +59,7 @@ export interface MeetingOverviewTopBarProps {
  */
 export function MeetingOverviewTopBar({
   inviteCode,
+  isScrolled = false,
 }: MeetingOverviewTopBarProps): React.JSX.Element {
   const router = useRouter();
   const role = useMeetingViewerRole(inviteCode);
@@ -89,8 +97,8 @@ export function MeetingOverviewTopBar({
   }, []);
 
   const { copyLink } = useInviteShare({
-    // 지금 보고 있는 현황 화면의 주소를 복사한다.
-    shareUrl: toMeetingOverviewUrl(inviteCode, origin),
+    // 초대 링크를 복사한다. 받은 사람이 참여까지 이어갈 수 있어야 한다.
+    shareUrl: toInviteShareUrl(inviteCode, origin),
     // 복사는 보내는 사람 이름을 쓰지 않는다. 문자·카카오 공유에만 필요한 값이다.
     senderNickname: null,
     onNotify: (message) => toast.add({ description: message }),
@@ -113,6 +121,12 @@ export function MeetingOverviewTopBar({
   });
 
   const isParticipant = role !== null && role !== 'non-participant';
+
+  // 커버 위에서는 흰색, 본문에 가려진 뒤에는 어둡게.
+  const iconColorClass = cn(
+    'transition-colors duration-200',
+    isScrolled ? 'text-neutral-950' : 'text-white'
+  );
 
   /** 그 항목을 지금 실행할 수 있는지. 필요한 식별자가 아직 없으면 열지 않는다. */
   const canRun = (item: MeetingMenuItem): boolean => {
@@ -140,13 +154,16 @@ export function MeetingOverviewTopBar({
   return (
     <>
       <TopAppBar
-        className="relative z-20 shrink-0"
+        className={cn(
+          'relative z-20 shrink-0 transition-colors duration-200',
+          isScrolled && 'bg-white'
+        )}
         leading={
           isParticipant && (
             <IconButton
               icon="chevron-left"
               aria-label="뒤로가기"
-              className="text-white"
+              className={iconColorClass}
               onClick={() => router.back()}
             />
           )
@@ -156,7 +173,7 @@ export function MeetingOverviewTopBar({
             <IconButton
               icon="kebab"
               aria-label="더보기"
-              className="text-white"
+              className={iconColorClass}
               onClick={() => setMenuOpen(true)}
             />
           )

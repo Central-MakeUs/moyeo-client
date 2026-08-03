@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 
-import { Button, Drawer, DrawerContent, DrawerFooter, DrawerTitle } from '@/shared/ui';
+import { Button, Drawer, DrawerBody, DrawerContent, DrawerTitle } from '@/shared/ui';
 
 import type { MeetingViewerRole } from '../model/meeting-viewer-role';
 
@@ -52,13 +52,13 @@ export function MeetingMenuDrawer({
         {/* 목록만 있는 메뉴라 시각적 제목은 없다. 스크린 리더에는 이름이 있어야 한다. */}
         <DrawerTitle className="sr-only">모임 메뉴</DrawerTitle>
 
-        <DrawerFooter>
+        <DrawerBody className="flex w-full flex-col gap-3 pb-11">
           {MENU_BY_ROLE[role].map((item) => (
             <Button key={item} variant="outline" fullWidth onClick={() => onSelect(item)}>
               {MENU_LABEL[item]}
             </Button>
           ))}
-        </DrawerFooter>
+        </DrawerBody>
       </DrawerContent>
     </Drawer>
   );

@@ -2,7 +2,15 @@
 
 import * as React from 'react';
 
-import { PlaceRecommendationListItem, usePlaceViewQuery } from '@/entities/place';
+import {
+  PlaceRecommendationListItem,
+  usePlaceViewQuery,
+  type PlaceRecommendation,
+} from '@/entities/place';
+import { ConfirmPlaceDialog, useConfirmPlace } from '@/features/meeting/confirm-place';
+import { useGetMeetingView } from '@/shared/api';
+
+import { useMeetingHost } from '../model/use-meeting-host';
 
 export interface PlaceRecommendationsSectionProps {
   inviteCode: string;
@@ -12,6 +20,21 @@ export function PlaceRecommendationsSection({
   inviteCode,
 }: PlaceRecommendationsSectionProps): React.JSX.Element {
   const { data, isLoading, isError } = usePlaceViewQuery(inviteCode);
+  const { isViewerHost } = useMeetingHost(inviteCode);
+
+  // 현황 화면이 이미 읽은 조회다. 확정 요청에 필요한 meetingId만 가져다 쓴다.
+  const { data: meeting } = useGetMeetingView(inviteCode, {
+    query: { enabled: inviteCode.length > 0 },
+  });
+
+  /** 확정 확인 팝업을 띄운 후보. */
+  const [confirmTarget, setConfirmTarget] = React.useState<PlaceRecommendation | null>(null);
+
+  const { confirm } = useConfirmPlace({
+    meetingId: meeting?.meetingId,
+    inviteCode,
+    onPartialConfirm: () => setConfirmTarget(null),
+  });
 
   return (
     <section className="flex flex-col gap-4 px-0.5">
@@ -46,10 +69,23 @@ export function PlaceRecommendationsSection({
                 dongName={recommendation.dongName}
                 averageTravelTimeSeconds={recommendation.averageTravelTimeSeconds}
                 station={recommendation.station}
+                // 장소를 확정할 수 있는 모임장에게만 고를 수 있게 한다.
+                onClick={isViewerHost ? () => setConfirmTarget(recommendation) : undefined}
               />
             ))}
           </div>
         ))}
+
+      {confirmTarget && (
+        <ConfirmPlaceDialog
+          areaName={confirmTarget.areaName}
+          open
+          onOpenChange={(open) => {
+            if (!open) setConfirmTarget(null);
+          }}
+          onConfirm={() => void confirm(confirmTarget.areaCode)}
+        />
+      )}
     </section>
   );
 }

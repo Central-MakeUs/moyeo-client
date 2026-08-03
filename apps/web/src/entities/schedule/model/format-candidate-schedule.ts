@@ -29,6 +29,23 @@ export function formatCandidateDuration(startTime: string, endTime: string): str
   return `${hours}시간 ${minutes}분`;
 }
 
+/**
+ * "7/18 (토) 14:00~18:00". 확정 확인 팝업과 확정 카드에 쓴다.
+ *
+ * 후보 상세의 "7월 18일 토요일"보다 짧다 — 확정 문구는 한 줄에 날짜와 시간을 함께 담는다.
+ * DATE_ONLY 모임은 시간이 없어 날짜까지만 나온다.
+ */
+export function formatConfirmedSchedule(
+  scheduleDate: string,
+  startTime?: string,
+  endTime?: string
+): string {
+  const date = format(parseISO(scheduleDate), 'M/d (E)', { locale: ko });
+  if (!startTime || !endTime) return date;
+
+  return `${date} ${startTime.slice(0, 5)}~${endTime.slice(0, 5)}`;
+}
+
 /** "14:00~18:00 (4시간)". 후보 상세 부제목에 쓴다. */
 export function formatCandidateTimeRange(startTime: string, endTime: string): string {
   const range = `${startTime.slice(0, 5)}~${endTime.slice(0, 5)}`;
