@@ -2,7 +2,10 @@
 
 import * as React from 'react';
 
+import { isViewerParticipant } from '@/entities/participant';
 import { PlaceParticipantListItem, usePlaceViewQuery } from '@/entities/place';
+
+import { useViewerIdentity } from '../model/use-viewer-identity';
 
 export interface ParticipantDeparturesSectionProps {
   inviteCode: string;
@@ -15,6 +18,7 @@ export function ParticipantDeparturesSection({
   capacity,
 }: ParticipantDeparturesSectionProps): React.JSX.Element {
   const { data, isLoading, isError } = usePlaceViewQuery(inviteCode);
+  const viewer = useViewerIdentity(inviteCode);
 
   return (
     <section className="flex flex-col gap-4 px-0.5">
@@ -43,6 +47,7 @@ export function ParticipantDeparturesSection({
                 nickname={participant.nickname}
                 isHost={participant.isHost}
                 departureName={participant.departureName}
+                isMe={isViewerParticipant(participant, viewer)}
               />
             ))}
           </div>

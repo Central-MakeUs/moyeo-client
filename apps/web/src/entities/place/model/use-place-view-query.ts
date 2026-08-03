@@ -40,6 +40,7 @@ export function usePlaceViewQuery(inviteCode: string): UsePlaceViewQueryResult {
           })),
           participants: (data.participants ?? []).map((participant) => ({
             participantId: participant.participantId ?? 0,
+            userId: participant.userId ?? null,
             nickname: participant.nickname ?? '',
             isHost: participant.participantType === 'HOST',
             departureName: participant.departureName ?? '',

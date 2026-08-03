@@ -27,6 +27,8 @@ export interface PlaceRecommendation {
 
 export interface PlaceParticipant {
   participantId: number;
+  /** 연결된 서비스 사용자 ID. 게스트 참여자는 null. "나" 판별에 쓴다. */
+  userId: number | null;
   nickname: string;
   isHost: boolean;
   departureName: string;
