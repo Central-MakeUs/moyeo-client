@@ -3,7 +3,7 @@ import { ChevronDownIcon, PlusIcon } from 'lucide-react';
 
 import { Button } from './button';
 
-const BUTTON_VARIANTS = ['default', 'outline', 'ghost'] as const;
+const BUTTON_VARIANTS = ['default', 'outline', 'ghost', 'link'] as const;
 
 const meta = {
   title: 'Primitives/Button',
@@ -38,6 +38,10 @@ const meta = {
       control: 'boolean',
       description: '선택한 variant의 비활성화 상태',
     },
+    isLoading: {
+      control: 'boolean',
+      description: '버튼의 작업 진행 상태. 중복 실행을 막고 variant별 Spinner를 표시합니다.',
+    },
     fullWidth: {
       control: 'boolean',
       description: '부모 컨테이너 폭을 가득 채움 (w-full). 폭 수치는 부모가 소유한다.',
@@ -55,6 +59,7 @@ const meta = {
     variant: 'default',
     size: 'default',
     disabled: false,
+    isLoading: false,
     fullWidth: true,
     children: 'text',
   },
@@ -66,6 +71,19 @@ type Story = StoryObj<typeof meta>;
 
 /** 기본 상태입니다. variant / size / disabled / children 을 컨트롤로 조작할 수 있습니다. */
 export const Default: Story = {};
+
+/** 비동기 작업 중인 variant를 비교합니다. 문구 너비를 유지한 채 Spinner를 표시합니다. */
+export const LoadingVariants: Story = {
+  render: (args) => (
+    <div className="flex flex-col gap-3">
+      {BUTTON_VARIANTS.map((variant) => (
+        <Button {...args} key={variant} variant={variant} isLoading>
+          {variant}
+        </Button>
+      ))}
+    </div>
+  ),
+};
 
 /** 제공되는 시각 스타일을 동일한 조건에서 비교합니다. */
 export const Variants: Story = {

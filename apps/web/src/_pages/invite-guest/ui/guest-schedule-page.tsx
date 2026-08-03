@@ -74,7 +74,12 @@ export function GuestSchedulePage({
 
       <CTASection
         primaryAction={
-          <Button fullWidth disabled={selectedDates.length === 0 || isSubmitting} onClick={proceed}>
+          <Button
+            fullWidth
+            disabled={selectedDates.length === 0}
+            isLoading={isSubmitting}
+            onClick={proceed}
+          >
             참여하기
           </Button>
         }
