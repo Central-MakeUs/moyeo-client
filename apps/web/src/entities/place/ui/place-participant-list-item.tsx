@@ -23,7 +23,7 @@ export function PlaceParticipantListItem({
           <Avatar size={24} tone="primary" />
           <span className="shrink-0 text-semibold-14 text-neutral-800">
             {nickname}
-            {isMe && <span className="ml-1 text-neutral-500">(나)</span>}
+            {isMe && <span className="text-neutral-500">(나)</span>}
           </span>
         </div>
         {isHost && <Badge tone="primary">모임장</Badge>}

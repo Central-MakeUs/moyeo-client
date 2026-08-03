@@ -3,6 +3,8 @@ export type ScheduleSort = 'EARLIEST_DATE' | 'LONGEST_MEETING';
 
 export interface ScheduleCandidateParticipant {
   participantId: number;
+  /** 연결된 서비스 사용자 ID. 게스트 참여자는 null. "나" 판별에 쓴다. */
+  userId: number | null;
   nickname: string;
 }
 
