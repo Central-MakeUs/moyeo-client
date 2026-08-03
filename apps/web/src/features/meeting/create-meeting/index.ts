@@ -2,7 +2,6 @@ export { isBeforeServerToday } from './model/is-before-server-today';
 export { useServerToday, type UseServerTodayResult } from './model/use-server-today';
 export {
   useCreateMeetingDraft,
-  type DepartureDraft,
   type PlanningType,
   type ScheduleInputType,
 } from './model/create-meeting-draft';
@@ -29,9 +28,8 @@ export { DeadlineStep, type DeadlineStepProps } from './ui/deadline-step';
 export { PlanningTypeDrawer, type PlanningTypeDrawerProps } from './ui/planning-type-drawer';
 export { ScheduleDatesStep, type ScheduleDatesStepProps } from './ui/schedule-dates-step';
 export { DepartureStep, type DepartureStepProps } from './ui/departure-step';
-export { DepartureSearchStep, type DepartureSearchStepProps } from './ui/departure-search-step';
+export { DepartureRadioGroup, type DepartureRadioGroupProps } from './ui/departure-radio-group';
 export { DepartureSearchRoute } from './ui/departure-search-route';
-export { toPlaceLabel } from './model/to-place-label';
 export { ScheduleTimesStep, type ScheduleTimesStepProps } from './ui/schedule-times-step';
 export { WizardProgress } from './ui/wizard-progress';
 export { WizardStepLayout } from './ui/wizard-step-layout';

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { DepartureSearchStep } from './departure-search-step';
+import { PlaceSearchView } from './place-search-view';
 
 const { usePlaceSearch } = vi.hoisted(() => ({
   usePlaceSearch: vi.fn(),
@@ -40,15 +40,21 @@ const mockQuery = (overrides: Record<string, unknown> = {}) => {
   });
 };
 
-const renderStep = (props?: Partial<React.ComponentProps<typeof DepartureSearchStep>>) =>
-  render(<DepartureSearchStep onSelect={vi.fn()} onBack={vi.fn()} {...props} />);
+const renderStep = (props?: Partial<React.ComponentProps<typeof PlaceSearchView>>) =>
+  render(<PlaceSearchView onSelect={vi.fn()} onBack={vi.fn()} {...props} />);
 
 beforeEach(() => {
   usePlaceSearch.mockReset();
   mockQuery();
 });
 
-describe('DepartureSearchStep', () => {
+describe('PlaceSearchView', () => {
+  it('게스트 inviteCode를 장소 검색 훅에 전달한다', () => {
+    renderStep({ inviteCode: 'ABC123' });
+
+    expect(usePlaceSearch).toHaveBeenCalledWith('', 'ABC123');
+  });
+
   it('검색 결과 1건을 선택하면 표시명·주소·좌표로 onSelect가 호출된다', async () => {
     const onSelect = vi.fn();
     mockQuery({
