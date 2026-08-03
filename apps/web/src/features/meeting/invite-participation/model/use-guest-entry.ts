@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
+import { writeGuestSession } from '@/entities/guest-session';
 import {
   checkGuestEntry,
   type GuestEntryRequest,
@@ -82,7 +83,11 @@ export function useGuestEntry({
         setIdentity({ inviteToken, ...request });
       }
 
-      // TODO(#183 머지 후): EXISTING_GUEST면 writeGuestSession(inviteToken, request.nickname)
+      // 서버가 이 모임의 게스트임을 확인해준 시점이다. 현황 화면이 신원을 알아볼 수 있도록
+      // 닉네임을 남긴다. NEW_GUEST는 아직 참여 전이라 남기지 않는다.
+      if (entryType === 'EXISTING_GUEST') {
+        writeGuestSession(inviteToken, request.nickname);
+      }
 
       router.push(getGuestEntryNextPath(inviteToken, planningType, entryType));
     } catch (caught) {

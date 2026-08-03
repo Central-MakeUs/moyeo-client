@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
+import { writeGuestSession } from '@/entities/guest-session';
 import { joinGuest } from '@/shared/api';
 import { toast } from '@/shared/ui';
 
@@ -47,6 +48,11 @@ export function useSubmitGuestJoin({
 
     try {
       await joinGuest(inviteCode, toGuestJoinRequest({ identity, scheduleResponse }));
+
+      // 참여가 확정된 시점이다. 초안은 비워지므로, 현황 화면이 신원을 알아볼 수 있도록
+      // 모임 닉네임만 게스트 세션에 남긴다.
+      writeGuestSession(inviteCode, identity.nickname);
+
       useGuestJoinDraft.getState().reset();
       router.replace(`/i/${inviteCode}/complete`);
     } catch {

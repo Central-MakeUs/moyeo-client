@@ -8,9 +8,10 @@ import { GuestEntryPage } from './guest-entry-page';
 
 const pushMock = vi.fn();
 
-const { checkGuestEntry, joinGuest } = vi.hoisted(() => ({
+const { checkGuestEntry, joinGuest, writeGuestSession } = vi.hoisted(() => ({
   checkGuestEntry: vi.fn(),
   joinGuest: vi.fn(),
+  writeGuestSession: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -21,6 +22,11 @@ vi.mock('@/shared/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/shared/api')>()),
   checkGuestEntry,
   joinGuest,
+}));
+
+vi.mock('@/entities/guest-session', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/entities/guest-session')>()),
+  writeGuestSession,
 }));
 
 const PASSWORD_MISMATCH_MESSAGE = '비밀번호가 일치하지 않아요';
@@ -54,6 +60,7 @@ describe('GuestEntryPage', () => {
     checkGuestEntry.mockReset();
     checkGuestEntry.mockResolvedValue({ entryType: 'NEW_GUEST' });
     joinGuest.mockReset();
+    writeGuestSession.mockReset();
     useGuestJoinDraft.setState({ identity: null });
   });
 
@@ -289,5 +296,27 @@ describe('GuestEntryPage', () => {
       expect(screen.getByRole('button', { name: '이번에만 게스트로 참여하기' })).toBeEnabled()
     );
     expect(pushMock).not.toHaveBeenCalled();
+  });
+
+  it("EXISTING_GUEST 응답이면 writeGuestSession이 'ABC123'·'소미'로 호출된다", async () => {
+    const user = userEvent.setup();
+    checkGuestEntry.mockResolvedValue({ entryType: 'EXISTING_GUEST' });
+    render(<GuestEntryPage inviteToken="ABC123" planningType="SCHEDULE_ONLY" />);
+
+    await submitEntry(user);
+
+    await waitFor(() => expect(writeGuestSession).toHaveBeenCalledWith('ABC123', '소미'));
+  });
+
+  // 아직 참여 전이라 저장하지 않는다. 분기 자체는 돌았음을 이동으로 함께 확인한다.
+  it('NEW_GUEST 응답이면 writeGuestSession이 호출되지 않는다', async () => {
+    const user = userEvent.setup();
+    checkGuestEntry.mockResolvedValue({ entryType: 'NEW_GUEST' });
+    render(<GuestEntryPage inviteToken="ABC123" planningType="SCHEDULE_ONLY" />);
+
+    await submitEntry(user);
+
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/i/ABC123/respond/schedule'));
+    expect(writeGuestSession).not.toHaveBeenCalled();
   });
 });
