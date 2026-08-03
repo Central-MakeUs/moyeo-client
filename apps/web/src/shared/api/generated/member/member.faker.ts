@@ -7,7 +7,9 @@
  */
 import { faker } from '@faker-js/faker';
 
-import type { AuthUserResponse } from '../schemas';
+import type { AuthUserResponse, MyPageResponse } from '../schemas';
+
+import { getProfileResponseMock, getSavedPlaceResponseMock } from '../schemas/index.faker';
 
 export const getCompleteOnboardingResponseMock = (
   overrideResponse: Partial<Extract<AuthUserResponse, object>> = {}
@@ -17,6 +19,20 @@ export const getCompleteOnboardingResponseMock = (
     faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
+  profile: faker.helpers.arrayElement([{ ...getProfileResponseMock() }, undefined]),
+  onboardingCompleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  ...overrideResponse,
+});
+
+export const getUpdateProfileColorResponseMock = (
+  overrideResponse: Partial<Extract<AuthUserResponse, object>> = {}
+): AuthUserResponse => ({
+  id: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  nickname: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  profile: faker.helpers.arrayElement([{ ...getProfileResponseMock() }, undefined]),
   onboardingCompleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
   ...overrideResponse,
 });
@@ -29,6 +45,24 @@ export const getUpdateNicknameResponseMock = (
     faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
+  profile: faker.helpers.arrayElement([{ ...getProfileResponseMock() }, undefined]),
   onboardingCompleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  ...overrideResponse,
+});
+
+export const getGetMyPageResponseMock = (
+  overrideResponse: Partial<Extract<MyPageResponse, object>> = {}
+): MyPageResponse => ({
+  nickname: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  profile: faker.helpers.arrayElement([{ ...getProfileResponseMock() }, undefined]),
+  places: faker.helpers.arrayElement([
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      ...getSavedPlaceResponseMock(),
+    })),
+    undefined,
+  ]),
   ...overrideResponse,
 });

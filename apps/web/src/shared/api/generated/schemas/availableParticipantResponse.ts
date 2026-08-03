@@ -11,5 +11,10 @@
  */
 export interface AvailableParticipantResponse {
   participantId?: number;
+  /**
+   * 연결된 서비스 사용자 ID입니다. 게스트 참여자는 null입니다.
+   * @nullable
+   */
+  userId?: number | null;
   nickname?: string;
 }

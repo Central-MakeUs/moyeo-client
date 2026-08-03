@@ -11,7 +11,7 @@ import type { MyParticipationResponseScheduleInputType } from './myParticipation
 import type { ScheduleResponse } from './scheduleResponse';
 
 /**
- * 로그인한 방장 또는 회원의 모임 참여 응답
+ * 방장, 회원 또는 게스트의 모임 참여 응답
  */
 export interface MyParticipationResponse {
   /** 모임 ID */

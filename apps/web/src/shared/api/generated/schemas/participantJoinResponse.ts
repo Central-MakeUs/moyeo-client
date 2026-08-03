@@ -15,6 +15,11 @@ export interface ParticipantJoinResponse {
   meetingId?: number;
   /** 서버에서 생성한 모임 참여자 ID */
   participantId?: number;
+  /**
+   * 연결된 서비스 사용자 ID입니다. 게스트 참여자는 null입니다.
+   * @nullable
+   */
+  userId?: number | null;
   /** 모임 안에서 사용할 표시 닉네임 */
   nickname?: string;
   /**
