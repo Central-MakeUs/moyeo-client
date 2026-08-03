@@ -13,15 +13,22 @@ export default defineConfig({
       httpClient: 'axios',
       mock: {
         indexMockFiles: true,
+        // TODO(임시): useExamples를 다시 켠다.
+        //
+        // 초대 조회 응답 example의 coverImageUrl·placeRecommendationStrategy·
+        // participationStatus.message가 null인데 스키마 타입에는 null이 빠져 있어
+        // (OpenAPI 3.1이라 `type: ["string", "null"]`이어야 한다), example을 그대로 쓰면
+        // non-nullable 타입에 null을 넣은 mock이 생성돼 타입 검사가 깨진다.
+        // 서버에 스키마 수정을 요청해 둔 상태이며, 반영되면 true로 되돌린다.
         generators: [
           {
             type: 'msw',
-            useExamples: true,
+            useExamples: false,
             preferredContentType: 'application/json',
           },
           {
             type: 'faker',
-            useExamples: true,
+            useExamples: false,
             schemas: true,
           },
         ],

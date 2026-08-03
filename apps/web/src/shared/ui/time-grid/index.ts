@@ -1,5 +1,6 @@
 export { toCellKey, parseCellKey, type CellKeyParts } from './cell-key';
 export { buildTimeRows } from './build-time-rows';
+export { buildCellKeysBeforeDate } from './build-cell-keys-before-date';
 export {
   applyCellSelection,
   type ApplyCellSelectionParams,

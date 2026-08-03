@@ -1,4 +1,4 @@
-import { toCellKey } from '@/shared/ui/time-grid';
+import { toCellKey } from './cell-key';
 
 /**
  * serverToday 이전 날짜 열의 모든 셀 키. 그리드의 disabledKeys로 넘긴다.
@@ -9,15 +9,15 @@ import { toCellKey } from '@/shared/ui/time-grid';
  * 현재 시각과 조정 리드타임을 반영한 당일 처리는 #120에서 다룬다
  * (시그니처에 서버 시각이 추가되어야 한다).
  */
-export function buildPastCellKeys(
+export function buildCellKeysBeforeDate(
   columns: string[],
   rows: string[],
-  serverToday: string
+  cutoffDate: string
 ): ReadonlySet<string> {
   const keys = new Set<string>();
 
   for (const date of columns) {
-    if (date >= serverToday) continue;
+    if (date >= cutoffDate) continue;
 
     for (const time of rows) keys.add(toCellKey(date, time));
   }

@@ -11,6 +11,7 @@ import {
 } from '@/entities/meeting';
 import { CoordinationSection } from '@/widgets/meeting-coordination';
 import { MeetingOverviewTopBar } from '@/widgets/meeting-overview-top-bar';
+import { Spinner } from '@/shared/ui/spinner';
 import { Thumbnail } from '@/shared/ui/thumbnail';
 
 /**
@@ -46,7 +47,9 @@ function MeetingOverviewContent(): React.JSX.Element {
       <MeetingOverviewTopBar inviteCode={inviteCode} />
 
       {isLoading && (
-        <div className="pt-8 text-center text-medium-14 text-neutral-400">불러오는 중...</div>
+        <div className="flex justify-center pt-8">
+          <Spinner label="모임 정보를 불러오는 중" />
+        </div>
       )}
       {isError && (
         <p className="pt-8 text-center text-medium-14 text-neutral-400">

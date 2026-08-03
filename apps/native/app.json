@@ -17,6 +17,32 @@
       "associatedDomains": ["applinks:moyeo-web.vercel.app", "applinks:moyeo-dev.vercel.app"]
     },
     "android": {
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "moyeo-web.vercel.app",
+              "pathPrefix": "/i/"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        },
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "moyeo-dev.vercel.app",
+              "pathPrefix": "/i/"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
       "package": "com.moyeozo.moyeo",
       "adaptiveIcon": {
         "backgroundColor": "#ffffff",

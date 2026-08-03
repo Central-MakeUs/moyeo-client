@@ -2,17 +2,23 @@
 
 import * as React from 'react';
 
+import {
+  availabilityTimeRangesToCellKeys,
+  cellKeysToAvailabilityTimeRanges,
+} from '@/entities/meeting';
 import { postMessageToNative } from '@/shared/model';
-import { AvailabilityTimeGrid, buildTimeRows, CTASection } from '@/shared/ui';
+import { CTASection } from '@/shared/ui';
+import {
+  AvailabilityTimeGrid,
+  buildCellKeysBeforeDate,
+  buildTimeRows,
+} from '@/shared/ui/time-grid';
 import { Button } from '@/shared/ui/button';
 import { PageHeader } from '@/shared/ui/page-header';
 import { Skeleton } from '@/shared/ui/skeleton';
 
-import { buildPastCellKeys } from '../model/build-past-cell-keys';
 import { useCreateMeetingDraft } from '../model/create-meeting-draft';
-import { fromAvailabilityTimeRanges } from '../model/from-availability-time-ranges';
 import { isStepComplete } from '../model/step-config';
-import { toAvailabilityTimeRanges } from '../model/to-availability-time-ranges';
 import { useServerToday } from '../model/use-server-today';
 import { WizardStepLayout } from './wizard-step-layout';
 
@@ -43,8 +49,10 @@ export function ScheduleTimesStep({ onNext }: ScheduleTimesStepProps): React.JSX
   const columns = draft.scheduleCandidateDates;
   const rows = buildTimeRows(draft.availableStartTime ?? '', draft.availableEndTime ?? '');
 
-  const selected = fromAvailabilityTimeRanges(draft.scheduleResponse?.availableTimeRanges ?? []);
-  const disabledKeys = buildPastCellKeys(columns, rows, serverToday ?? '');
+  const selected = availabilityTimeRangesToCellKeys(
+    draft.scheduleResponse?.availableTimeRanges ?? []
+  );
+  const disabledKeys = buildCellKeysBeforeDate(columns, rows, serverToday ?? '');
 
   const canGoNext = status === 'success' && isStepComplete('schedule-times', draft);
 
@@ -88,7 +96,7 @@ export function ScheduleTimesStep({ onNext }: ScheduleTimesStepProps): React.JSX
           rows={rows}
           value={selected}
           onChange={(next) =>
-            setScheduleResponse({ availableTimeRanges: toAvailabilityTimeRanges(next) })
+            setScheduleResponse({ availableTimeRanges: cellKeysToAvailabilityTimeRanges(next) })
           }
           disabledKeys={disabledKeys}
           onSelectionStart={notifySelectionStart}

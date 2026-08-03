@@ -14,7 +14,7 @@ export function CTASection({ primaryAction, secondaryAction, className }: CTASec
   return (
     <section
       className={cn(
-        'flex w-full flex-col items-center gap-1 rounded-t-12 bg-neutral-0 px-5 pt-5 pb-11',
+        'flex w-full flex-col items-center gap-1 rounded-t-12 bg-transparent px-5 pt-5 pb-11',
         className
       )}
     >
