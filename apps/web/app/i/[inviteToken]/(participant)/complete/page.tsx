@@ -1,3 +1,7 @@
-export default function RespondCompletePage() {
-  return <main>INV-04 placeholder</main>;
+import { InviteFinishPage, InvitePageProps } from '@/_pages/invite';
+
+export default async function InvitePage({ params }: InvitePageProps) {
+  const { inviteToken } = await params;
+
+  return <InviteFinishPage inviteCode={inviteToken} />;
 }
