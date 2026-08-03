@@ -1,9 +1,9 @@
 import { redirect } from 'next/navigation';
 
-import { GuestMeetingJoinPage } from '@/_pages/invite-guest';
+import { GuestEntryPage } from '@/_pages/invite-guest';
 import { fetchInvitationForPage, type InvitePageProps } from '@/_pages/invite';
 
-export default async function GuestLoginPage({ params }: InvitePageProps) {
+export default async function GuestEntryRoute({ params }: InvitePageProps) {
   const { inviteToken } = await params;
   const invitation = await fetchInvitationForPage(inviteToken);
 
@@ -11,5 +11,5 @@ export default async function GuestLoginPage({ params }: InvitePageProps) {
     redirect(`/i/${inviteToken}`);
   }
 
-  return <GuestMeetingJoinPage inviteToken={inviteToken} planningType={invitation.planningType} />;
+  return <GuestEntryPage inviteToken={inviteToken} planningType={invitation.planningType} />;
 }

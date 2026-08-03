@@ -84,7 +84,8 @@ export function GuestScheduleTimesPage({
         primaryAction={
           <Button
             fullWidth
-            disabled={selectedCellKeys.length === 0 || isSubmitting}
+            disabled={selectedCellKeys.length === 0}
+            isLoading={isSubmitting}
             onClick={proceed}
           >
             참여하기

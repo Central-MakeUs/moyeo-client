@@ -3,11 +3,12 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { Slot } from 'radix-ui';
 
 import { cn } from '@/shared/lib/cn';
+import { Spinner } from '@/shared/ui/spinner';
 
 const buttonVariants = cva(
   [
     // 레이아웃
-    'group/button inline-flex shrink-0 items-center justify-center whitespace-nowrap',
+    'group/button relative inline-flex shrink-0 items-center justify-center whitespace-nowrap',
 
     // 모양·타이포
     'rounded-8 border border-transparent bg-clip-padding text-bold-16',
@@ -39,6 +40,7 @@ const buttonVariants = cva(
           'focus-visible:bg-accessible-600 focus-visible:ring-accessible-300',
           'active:bg-accessible-700',
           'disabled:bg-neutral-70',
+          'disabled:data-[loading=true]:bg-primary/80',
         ],
         outline: [
           'border-neutral-50 bg-white text-neutral-600',
@@ -46,6 +48,7 @@ const buttonVariants = cva(
           'focus-visible:ring-accessible-300 focus-visible:bg-accessible-50 focus-visible:text-accessible-500',
           'active:border-accessible-500 active:text-neutral-950',
           'disabled:bg-neutral-50 disabled:text-white',
+          'disabled:data-[loading=true]:border-accessible-300 disabled:data-[loading=true]:bg-accessible-50 disabled:data-[loading=true]:text-accessible-500',
         ],
         ghost: [
           'border-transparent bg-transparent text-current',
@@ -53,6 +56,7 @@ const buttonVariants = cva(
           'focus-visible:ring-neutral-200 focus-visible:bg-neutral-20',
           'active:bg-neutral-50',
           'disabled:text-neutral-70',
+          'disabled:data-[loading=true]:bg-neutral-20 disabled:data-[loading=true]:text-neutral-600',
         ],
         link: [
           'rounded-none border-transparent bg-white text-neutral-500 underline underline-offset-4',
@@ -60,6 +64,7 @@ const buttonVariants = cva(
           'focus-visible:ring-accessible-300',
           'active:text-neutral-900',
           'disabled:text-neutral-200',
+          'disabled:data-[loading=true]:text-neutral-500',
         ],
       },
       size: {
@@ -80,27 +85,60 @@ const buttonVariants = cva(
   }
 );
 
+const LOADING_SPINNER_CLASS = {
+  default: '[&>span]:border-white/35 [&>span]:border-t-white',
+  outline: '[&>span]:border-accessible-200 [&>span]:border-t-accessible-500',
+  ghost: '[&>span]:border-neutral-100 [&>span]:border-t-neutral-600',
+  link: '[&>span]:border-neutral-100 [&>span]:border-t-neutral-500',
+} as const;
+
 function Button({
   className,
   variant = 'default',
   size = 'default',
   fullWidth = false,
   asChild = false,
+  isLoading = false,
+  children,
+  disabled,
   ...props
 }: React.ComponentProps<'button'> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
+    /** 버튼의 작업 진행 상태. 로딩 중에는 중복 실행을 막습니다. */
+    isLoading?: boolean;
   }) {
   const Comp = asChild ? Slot.Root : 'button';
+  const showLoading = !asChild && isLoading;
+  const resolvedVariant = variant ?? 'default';
 
   return (
     <Comp
       data-slot="button"
-      data-variant={variant}
+      data-variant={resolvedVariant}
       data-size={size}
-      className={cn(buttonVariants({ variant, size, fullWidth, className }))}
+      data-loading={showLoading || undefined}
+      aria-busy={showLoading || undefined}
+      disabled={disabled || showLoading}
+      className={cn(buttonVariants({ variant: resolvedVariant, size, fullWidth, className }))}
       {...props}
-    />
+    >
+      {showLoading ? (
+        <>
+          <span className="invisible">{children}</span>
+          <Spinner
+            aria-hidden="true"
+            size="sm"
+            className={cn(
+              'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
+              LOADING_SPINNER_CLASS[resolvedVariant]
+            )}
+          />
+        </>
+      ) : (
+        children
+      )}
+    </Comp>
   );
 }
 

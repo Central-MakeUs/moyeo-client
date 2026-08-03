@@ -4,10 +4,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import {
-  getGuestJoinNextPath,
   isValidGuestNickname,
   isValidGuestPassword,
-  useGuestJoinDraft,
+  useGuestEntry,
 } from '@/features/meeting/invite-participation';
 import type { MeetingInvitationResponsePlanningType } from '@/shared/api';
 import { IconButton } from '@/shared/ui/icon-button';
@@ -19,14 +18,20 @@ import { PageHeader } from '@/shared/ui/page-header';
 const NICKNAME_HINT = '* 2~10자로 공백없이 한글과 영어만 입력해주세요';
 const PASSWORD_LENGTH = 4;
 
-export interface GuestMeetingJoinPageProps {
+/**
+ * 서버는 닉네임 중복과 비밀번호 불일치를 하나의 409로 합쳐 준다. 이 응답은 "그 닉네임이 이미
+ * 있고 비밀번호가 다르다"일 때만 오므로 원인이 하나로 특정된다.
+ */
+const PASSWORD_MISMATCH_MESSAGE = '비밀번호가 일치하지 않아요';
+
+export interface GuestEntryPageProps {
   inviteToken: string;
   planningType: MeetingInvitationResponsePlanningType;
 }
 
-export function GuestMeetingJoinPage({ inviteToken, planningType }: GuestMeetingJoinPageProps) {
+export function GuestEntryPage({ inviteToken, planningType }: GuestEntryPageProps) {
   const router = useRouter();
-  const setIdentity = useGuestJoinDraft((state) => state.setIdentity);
+  const { enter, isEntering, error, clearError } = useGuestEntry({ inviteToken, planningType });
 
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
@@ -36,15 +41,20 @@ export function GuestMeetingJoinPage({ inviteToken, planningType }: GuestMeeting
   const showNicknameError = nickname.length > 0 && !isNicknameValid;
   const isPasswordValid = isValidGuestPassword(password);
 
+  const handleNicknameChange = (value: string) => {
+    clearError();
+    setNickname(value);
+  };
+
   const handlePasswordChange = (value: string) => {
+    clearError();
     setPassword(value.replace(/\D/g, '').slice(0, PASSWORD_LENGTH));
   };
 
   const handleSubmit = () => {
     if (!isNicknameValid || !isPasswordValid) return;
 
-    setIdentity({ inviteToken, nickname, password });
-    router.push(getGuestJoinNextPath(inviteToken, planningType));
+    void enter({ nickname, password });
   };
 
   return (
@@ -82,8 +92,8 @@ export function GuestMeetingJoinPage({ inviteToken, planningType }: GuestMeeting
               게스트는 초대받은 모임에만 참여할 수 있어요
             </p>
           }
-          isSubmitDisabled={!isNicknameValid || !isPasswordValid}
-          onNicknameChange={setNickname}
+          isSubmitDisabled={!isNicknameValid || !isPasswordValid || isEntering}
+          onNicknameChange={handleNicknameChange}
           onSubmit={handleSubmit}
         >
           <InputField
@@ -94,6 +104,7 @@ export function GuestMeetingJoinPage({ inviteToken, planningType }: GuestMeeting
             autoComplete="off"
             maxLength={PASSWORD_LENGTH}
             value={password}
+            errorMessage={error === 'PASSWORD_MISMATCH' ? PASSWORD_MISMATCH_MESSAGE : undefined}
             onChange={(event) => handlePasswordChange(event.target.value)}
             trailingAction={
               <IconButton

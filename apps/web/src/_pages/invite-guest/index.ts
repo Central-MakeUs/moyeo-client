@@ -1,4 +1,4 @@
-export { GuestMeetingJoinPage } from './ui/guest-meeting-join-page';
+export { GuestEntryPage } from './ui/guest-entry-page';
 export { GuestSchedulePage, type GuestSchedulePageProps } from './ui/guest-schedule-page';
 export {
   GuestScheduleTimesPage,
