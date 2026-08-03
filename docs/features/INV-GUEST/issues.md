@@ -17,6 +17,7 @@
 | 4      | #172   | 장소 조율 모임의 게스트 출발지 입력    |
 | 5      | #173   | 참여 단계 진행 표시                    |
 | 6      | #174   | 로그인 사용자의 게스트 경로 진입 차단  |
+| 7      | #185   | 게스트 참여 진입 분기                  |
 
 ## 의존성 순서
 
@@ -27,6 +28,7 @@ Issue 1 (게스트 신원 입력)
            └──▶ Issue 4 (출발지 → PLACE_ONLY · SCHEDULE_AND_PLACE 완주)
 Issue 5 (진행 표시) — Issue 1 이후 언제든
 Issue 6 (진입 가드)  — Issue 1 이후, Issue 4 전까지
+Issue 7 (진입 분기)  — Issue 3 이후. 서버에 진입 분기 API가 생기며 추가됐다
 ```
 
 Issue 2가 **가장 짧은 흐름을 끝까지** 완성한다. 제출 파이프라인(`toGuestJoinRequest`)이 여기서
@@ -347,6 +349,49 @@ Then `WizardStepLayout` 이동 후에도 전부 통과한다 (회귀 없음)
 ### 의존성
 
 Issue 1 완료 필요 (Issue 2~4와 병렬 가능)
+
+---
+
+## Issue 7: [feat] 게스트 참여 진입 분기
+
+> 최초 분해에는 없던 이슈다. 서버에 진입 분기 API
+> (`POST /api/meetings/invitations/{inviteCode}/guests/entry`)가 추가되면서 생겼다.
+
+### 설명
+
+게스트가 닉네임·비밀번호를 넣고 참여를 시작할 때 서버에 먼저 진입 분기를 물어, 신규 참여와
+이미 참여를 마친 게스트를 갈라 보낸다. 참여 제출은 마지막에 한 번이라 **제출을 끝낸 사람만
+참여자**이므로, 입력 도중 이탈한 사람은 `NEW_GUEST`로 다시 들어온다. 그래서
+`EXISTING_GUEST`는 `planningType`과 무관하게 항상 모임 현황으로 보낸다.
+
+### 구현 범위
+
+- `features/meeting/invite-participation/model/guest-entry-next-path.ts` (신규)
+- `features/meeting/invite-participation/model/use-guest-entry.ts` (신규)
+- `_pages/invite-guest/ui/guest-meeting-join-page.tsx` — CTA 제출을 분기 API 호출로 변경
+- `PageHeader` 문구 — 진입 화면 성격에 맞게 조정
+
+| 응답                                         | 의미                          | 처리                  |
+| -------------------------------------------- | ----------------------------- | --------------------- |
+| `200 NEW_GUEST`                              | 이 모임에서 미사용 닉네임     | 참여 입력 흐름으로    |
+| `200 EXISTING_GUEST`                         | 닉네임 존재 + 비밀번호 일치   | 모임 현황으로         |
+| `409 DUPLICATE_MEETING_PARTICIPANT_NICKNAME` | 닉네임 존재 + 비밀번호 불일치 | 이동 차단 + 오류 안내 |
+
+### 완료 조건 (Acceptance Criteria)
+
+AC는 GitHub #185에 있다. 요약하면 경로 결정 함수(단위) 2건, 분기 호출·이동·오류·중복 제출
+차단(통합) 5건이다.
+
+### 의존성
+
+Issue 1 완료 필요. Issue 3(#171) 머지 이후 진행한다.
+
+### 결정 기록
+
+- **`EXISTING_GUEST` 목적지는 `/meetings?code=`.** 모임 현황이 현재 붙어 있는 라우트를 그대로
+  쓴다. `/i/{code}/view` 라우트 정리는 이 이슈 범위 밖이다.
+- **409 문구는 비밀번호 불일치로 안내한다.** 409는 "닉네임 존재 + 비밀번호 불일치"일 때만
+  나와 원인이 1:1로 특정된다. 기획 카피가 확정되면 교체한다.
 
 ---
 
