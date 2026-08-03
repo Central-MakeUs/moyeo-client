@@ -66,7 +66,7 @@ export function ScheduleCandidateDialog({
         </DialogHeader>
 
         <DialogBody>
-          <ul className="flex flex-col gap-4">
+          <ul className="flex flex-col gap-[14px] px-1">
             {participants.map((participant) => (
               <li key={participant.participantId} className="flex items-center gap-2">
                 <div className="flex min-w-0 items-center gap-2.5">
