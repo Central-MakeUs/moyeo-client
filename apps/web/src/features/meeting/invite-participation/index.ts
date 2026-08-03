@@ -14,3 +14,4 @@ export {
 export { useGuestScheduleStep } from './model/use-guest-schedule-step';
 export { getGuestEntryNextPath } from './model/guest-entry-next-path';
 export { toGuestEntryType } from './model/to-guest-entry-type';
+export { useGuestEntry, type GuestEntryError } from './model/use-guest-entry';
