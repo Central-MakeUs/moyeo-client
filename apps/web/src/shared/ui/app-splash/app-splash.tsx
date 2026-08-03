@@ -1,3 +1,5 @@
+import { Spinner } from '@/shared/ui/spinner';
+
 /**
  * 세션 판정·리다이렉트처럼 "잠깐 기다려야 하는" 구간에 렌더하는 대기 화면.
  *
@@ -11,7 +13,7 @@ export function AppSplash() {
       aria-busy="true"
       aria-live="polite"
     >
-      <p className="text-medium-14 text-neutral-400">불러오는 중...</p>
+      <Spinner />
     </main>
   );
 }

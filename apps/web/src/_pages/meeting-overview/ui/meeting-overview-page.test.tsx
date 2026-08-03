@@ -56,12 +56,12 @@ describe('MeetingOverviewPage', () => {
     expect(screen.queryByText('부산 BEXCO에서 열리는 데모데이')).not.toBeInTheDocument();
   });
 
-  it('isLoading이 true이면 로딩 안내 텍스트가 표시된다', () => {
+  it('isLoading이 true이면 접근 가능한 로딩 상태가 표시된다', () => {
     useMeetingDetailQueryMock.mockReturnValue({ data: undefined, isLoading: true, isError: false });
 
     render(<MeetingOverviewPage />);
 
-    expect(screen.getByText('불러오는 중...')).toBeInTheDocument();
+    expect(screen.getByRole('status', { name: '모임 정보를 불러오는 중' })).toBeInTheDocument();
   });
 
   it('isError가 true이면 에러 안내 텍스트가 표시된다', () => {
