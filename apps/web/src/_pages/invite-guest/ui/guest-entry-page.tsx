@@ -3,11 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import {
-  isValidGuestNickname,
-  isValidGuestPassword,
-  useGuestEntry,
-} from '@/features/meeting/invite-participation';
+import { isValidNickname } from '@/entities/nickname';
+import { isValidGuestPassword, useGuestEntry } from '@/features/meeting/invite-participation';
 import type { MeetingInvitationResponsePlanningType } from '@/shared/api';
 import { IconButton } from '@/shared/ui/icon-button';
 import { InputField } from '@/shared/ui/input';
@@ -37,7 +34,7 @@ export function GuestEntryPage({ inviteToken, planningType }: GuestEntryPageProp
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
-  const isNicknameValid = isValidGuestNickname(nickname);
+  const isNicknameValid = isValidNickname(nickname);
   const showNicknameError = nickname.length > 0 && !isNicknameValid;
   const isPasswordValid = isValidGuestPassword(password);
 

@@ -15,7 +15,7 @@ export function Tooltip({ icon, children, className, ...props }: TooltipProps): 
       className={cn('absolute bottom-0 flex -translate-x-1/2 flex-col items-center', className)}
       {...props}
     >
-      <div className="flex h-7 items-center justify-center gap-1 rounded-8 bg-accessible-50 px-2.5 py-1">
+      <div className="flex h-7 items-center justify-center gap-1 rounded-8 bg-accessible-50/95 px-2.5 py-1">
         {icon && <Icon name={icon} size={16} />}
         <p className="text-bold-14">{children}</p>
       </div>

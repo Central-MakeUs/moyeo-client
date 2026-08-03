@@ -13,7 +13,7 @@ export function HomePage(): React.JSX.Element {
   return (
     <div className="relative flex h-dvh flex-col overflow-hidden bg-white">
       <HomeTopBar />
-      <main className="flex min-h-0 w-full flex-1 flex-col">
+      <main className="flex min-h-0 w-full flex-1 flex-col overflow-y-auto">
         {isLoading && (
           <p className="flex flex-1 items-center justify-center text-medium-14 text-neutral-400">
             불러오는 중...
@@ -25,7 +25,7 @@ export function HomePage(): React.JSX.Element {
           </p>
         )}
         {!isLoading && !isError && (
-          <div className="flex min-h-0 flex-1 flex-col gap-[35px] pt-8">
+          <div className="flex min-h-full flex-col gap-8.75 pt-8">
             <InProgressMeetingSection inProgress={data.inProgress} />
             <ConfirmedMeetingSection confirmed={data.confirmed} />
           </div>

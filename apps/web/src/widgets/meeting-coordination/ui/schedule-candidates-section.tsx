@@ -2,14 +2,20 @@
 
 import * as React from 'react';
 
+import { isViewerParticipant } from '@/entities/participant';
 import {
+  ScheduleCandidateDialog,
   ScheduleCandidateListItem,
   useScheduleViewQuery,
+  type ScheduleCandidate,
   type ScheduleSort,
 } from '@/entities/schedule';
 import { EditResponseButton } from '@/features/meeting/edit-response';
 import { RadioGroup, RadioGroupChip } from '@/shared/ui';
 import { Icon } from '@/shared/ui/icon';
+
+import { useMeetingHost } from '../model/use-meeting-host';
+import { useViewerIdentity } from '../model/use-viewer-identity';
 
 const SORT_DESCRIPTIONS: Record<ScheduleSort, string> = {
   EARLIEST_DATE: '가장 많은 인원이 가장 빨리 만날 수 있는 순서로 보여드려요',
@@ -25,6 +31,15 @@ export function ScheduleCandidatesSection({
 }: ScheduleCandidatesSectionProps): React.JSX.Element {
   const [sort, setSort] = React.useState<ScheduleSort>('EARLIEST_DATE');
   const { data, isLoading, isError } = useScheduleViewQuery(inviteCode, sort);
+
+  const viewer = useViewerIdentity(inviteCode);
+  const { participantId: hostParticipantId, isViewerHost } = useMeetingHost(inviteCode);
+
+  /**
+   * 상세를 열어 둔 후보. 후보 자체를 담는다 — 인덱스로 들고 있으면 정렬을 바꾸는 순간
+   * 다른 후보의 상세를 보게 된다.
+   */
+  const [selected, setSelected] = React.useState<ScheduleCandidate | null>(null);
 
   return (
     <section className="flex flex-col gap-4">
@@ -73,6 +88,7 @@ export function ScheduleCandidatesSection({
                   endTime={candidate.endTime}
                   availableParticipantCount={candidate.availableParticipantCount}
                   participantCount={data.participantCount}
+                  onClick={() => setSelected(candidate)}
                 />
               ))}
             </div>
@@ -81,6 +97,25 @@ export function ScheduleCandidatesSection({
             </div>
           </div>
         ))}
+
+      {selected && (
+        <ScheduleCandidateDialog
+          candidateDate={selected.candidateDate}
+          startTime={selected.startTime}
+          endTime={selected.endTime}
+          participants={selected.availableParticipants.map((participant) => ({
+            participantId: participant.participantId,
+            nickname: participant.nickname,
+            isHost: participant.participantId === hostParticipantId,
+            isMe: isViewerParticipant(participant, viewer),
+          }))}
+          canConfirm={isViewerHost}
+          open
+          onOpenChange={(open) => {
+            if (!open) setSelected(null);
+          }}
+        />
+      )}
     </section>
   );
 }

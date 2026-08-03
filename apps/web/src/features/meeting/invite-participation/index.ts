@@ -1,6 +1,6 @@
 export { useGuestJoinDraft } from './model/guest-join-draft';
 export { getGuestJoinNextPath } from './model/guest-join-next-path';
-export { isValidGuestNickname, isValidGuestPassword } from './model/validate-guest-identity';
+export { isValidGuestPassword } from './model/validate-guest-identity';
 export { getGuestScheduleNextPath } from './model/guest-join-next-path';
 export { isDraftUsableFor } from './model/validate-guest-identity';
 export { pruneScheduleResponse } from './model/prune-schedule-response';

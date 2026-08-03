@@ -24,7 +24,7 @@ export function HomeTopBar(): React.JSX.Element {
           <Avatar size={28} />
         </button>
       }
-      className="border-b border-neutral-50 px-6"
+      className="shrink-0 border-b border-neutral-50 px-6"
     />
   );
 }

@@ -36,8 +36,11 @@ function InputField({
   id,
   ...props
 }: React.ComponentProps<'input'> & {
-  /** 주 라벨*/
-  label: React.ReactNode;
+  /**
+   * 주 라벨. 라벨 없이 placeholder만 두는 시안(예: 닉네임 수정 Drawer)에서는 생략한다.
+   * 생략하면 접근 가능한 이름이 사라지므로 호출부가 `aria-label`을 준다.
+   */
+  label?: React.ReactNode;
   /** 보조 힌트 라벨 */
   hint?: React.ReactNode;
   /** 입력창 오른쪽에 표시할 보조 동작. */
@@ -64,14 +67,16 @@ function InputField({
         data-invalid={isInvalid || undefined}
         className={cn(inputFieldClasses, className)}
       >
-        <label
-          htmlFor={inputId}
-          data-slot="input-field-label"
-          className="text-medium-12 text-neutral-500 group-has-[input:disabled]/input-field:text-neutral-400"
-        >
-          {label}
-          {hint ? <span className="ml-1 text-neutral-400">{hint}</span> : null}
-        </label>
+        {label ? (
+          <label
+            htmlFor={inputId}
+            data-slot="input-field-label"
+            className="text-medium-12 text-neutral-500 group-has-[input:disabled]/input-field:text-neutral-400"
+          >
+            {label}
+            {hint ? <span className="ml-1 text-neutral-400">{hint}</span> : null}
+          </label>
+        ) : null}
         <input
           id={inputId}
           data-slot="input"

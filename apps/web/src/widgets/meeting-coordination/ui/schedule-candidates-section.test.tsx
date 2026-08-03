@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -13,7 +13,78 @@ vi.mock('@/entities/schedule', async (importOriginal) => {
   return { ...actual, useScheduleViewQuery: useScheduleViewQueryMock };
 });
 
+const { useMeetingHostMock, useViewerIdentityMock } = vi.hoisted(() => ({
+  useMeetingHostMock: vi.fn(),
+  useViewerIdentityMock: vi.fn(),
+}));
+vi.mock('../model/use-meeting-host', () => ({ useMeetingHost: useMeetingHostMock }));
+vi.mock('../model/use-viewer-identity', () => ({ useViewerIdentity: useViewerIdentityMock }));
+
+/** 소미(모임장)·린이 가능한 후보 하나. */
+const CANDIDATE = {
+  candidateDate: '2026-07-18',
+  startTime: '14:00:00',
+  endTime: '18:00:00',
+  availableParticipantCount: 2,
+  availableParticipants: [
+    { participantId: 1, userId: 10, nickname: '소미' },
+    { participantId: 2, userId: 20, nickname: '린' },
+  ],
+};
+
+function mockScheduleView() {
+  useScheduleViewQueryMock.mockReturnValue({
+    data: { participantCount: 7, candidates: [CANDIDATE] },
+    isLoading: false,
+    isError: false,
+  });
+}
+
 describe('ScheduleCandidatesSection', () => {
+  beforeEach(() => {
+    useViewerIdentityMock.mockReturnValue({ userId: null, guestNickname: null });
+    useMeetingHostMock.mockReturnValue({ participantId: 1, isViewerHost: false });
+  });
+
+  it('후보를 누르면 참여 가능자 목록 dialog가 열린다', async () => {
+    const user = userEvent.setup();
+    mockScheduleView();
+
+    render(<ScheduleCandidatesSection inviteCode="29NRVBGXGP" />);
+    await user.click(screen.getByText('7.18'));
+
+    expect(await screen.findByText('7월 18일 토요일')).toBeInTheDocument();
+    expect(screen.getByText('14:00~18:00 (4시간)')).toBeInTheDocument();
+    expect(screen.getByText('린')).toBeInTheDocument();
+    // 모임장은 현황 응답의 participantId와 대조해 찾는다.
+    expect(screen.getByText('모임장')).toBeInTheDocument();
+  });
+
+  it('모임장으로 보면 dialog에 일정 확정하기 버튼이 있다', async () => {
+    const user = userEvent.setup();
+    mockScheduleView();
+    useMeetingHostMock.mockReturnValue({ participantId: 1, isViewerHost: true });
+
+    render(<ScheduleCandidatesSection inviteCode="29NRVBGXGP" />);
+    await user.click(screen.getByText('7.18'));
+
+    expect(await screen.findByRole('button', { name: '일정 확정하기' })).toBeInTheDocument();
+  });
+
+  it('참여자로 보면 dialog에 일정 확정하기 버튼이 없다', async () => {
+    const user = userEvent.setup();
+    mockScheduleView();
+    useViewerIdentityMock.mockReturnValue({ userId: 20, guestNickname: null });
+
+    render(<ScheduleCandidatesSection inviteCode="29NRVBGXGP" />);
+    await user.click(screen.getByText('7.18'));
+
+    await screen.findByText('7월 18일 토요일');
+    expect(screen.queryByRole('button', { name: '일정 확정하기' })).not.toBeInTheDocument();
+    // 본인 줄에는 (나)가 붙는다.
+    expect(screen.getByText('린').parentElement).toHaveTextContent('린(나)');
+  });
+
   it('후보가 있으면 타이틀에 개수가 표시되고 후보 목록이 렌더된다', () => {
     useScheduleViewQueryMock.mockReturnValue({
       data: {

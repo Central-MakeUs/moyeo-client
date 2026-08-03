@@ -32,13 +32,15 @@ export default async function RespondSchedulePage({ params }: InvitePageProps) {
     );
   }
 
+  const candidateDates = (invitation.scheduleCandidateDates ?? [])
+    .map((candidate) => candidate.candidateDate)
+    .filter((date): date is string => date !== undefined);
+
   return (
     <GuestSchedulePage
       inviteToken={inviteToken}
       planningType={invitation.planningType}
-      candidateDates={(invitation.scheduleCandidateDates ?? []).flatMap((candidate) =>
-        candidate.candidateDate ? [candidate.candidateDate] : []
-      )}
+      candidateDates={candidateDates}
       serverToday={serverToday}
     />
   );

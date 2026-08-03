@@ -34,6 +34,7 @@ export function useScheduleViewQuery(
             availableParticipantCount: candidate.availableParticipantCount ?? 0,
             availableParticipants: (candidate.availableParticipants ?? []).map((participant) => ({
               participantId: participant.participantId ?? 0,
+              userId: participant.userId ?? null,
               nickname: participant.nickname ?? '',
             })),
           })),

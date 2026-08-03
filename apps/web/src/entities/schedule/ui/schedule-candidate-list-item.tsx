@@ -15,6 +15,8 @@ export interface ScheduleCandidateListItemProps {
   availableParticipantCount: number;
   /** 모임 전체 참여 인원 */
   participantCount: number;
+  /** 후보 상세를 여는 동작. 생략하면 눌러도 아무 일도 하지 않는다. */
+  onClick?: () => void;
 }
 
 export function ScheduleCandidateListItem({
@@ -23,12 +25,17 @@ export function ScheduleCandidateListItem({
   endTime,
   availableParticipantCount,
   participantCount,
+  onClick,
 }: ScheduleCandidateListItemProps): React.JSX.Element {
   const date = parseISO(candidateDate);
   const weekdayLabel = date.toLocaleDateString('ko', { weekday: 'short' });
 
   return (
-    <div className="flex items-center gap-[14px] rounded-12 px-2 py-2.5">
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center gap-[14px] rounded-12 px-2 py-2.5 text-left outline-none"
+    >
       <div className="flex h-[58px] w-[51px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-8 bg-neutral-20">
         <span className="text-extrabold-14 text-neutral-700">{format(date, 'M.d')}</span>
         <span className="text-bold-14 text-neutral-500">{weekdayLabel}</span>
@@ -54,6 +61,6 @@ export function ScheduleCandidateListItem({
       </div>
 
       <Icon name="chevron-right" size={24} className="shrink-0 text-neutral-70" />
-    </div>
+    </button>
   );
 }
