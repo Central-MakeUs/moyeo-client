@@ -20,9 +20,5 @@
     ".next/types/**/*.ts",
     "global.d.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "src/shared/api/generated/**/*.faker.ts",
-    "src/shared/api/generated/**/*.msw.ts"
-  ]
+  "exclude": ["node_modules"]
 }
