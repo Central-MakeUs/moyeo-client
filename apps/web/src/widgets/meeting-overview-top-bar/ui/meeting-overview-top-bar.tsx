@@ -11,7 +11,7 @@ import {
   useEditMeetingNickname,
   useMyMeetingNickname,
 } from '@/features/meeting/edit-meeting-nickname';
-import { useInviteShare } from '@/features/meeting/invite-share';
+import { toInviteShareUrl, useInviteShare } from '@/features/meeting/invite-share';
 import { LeaveMeetingDialog, useLeaveMeeting } from '@/features/meeting/leave-meeting';
 import { useGetMeetingView } from '@/shared/api';
 import { toast } from '@/shared/ui';
@@ -19,7 +19,6 @@ import { IconButton } from '@/shared/ui/icon-button';
 import { TopAppBar } from '@/shared/ui/top-app-bar';
 
 import { toLeaveMeetingTarget } from '../model/to-leave-meeting-target';
-import { toMeetingOverviewUrl } from '../model/to-meeting-overview-url';
 import { useMeetingViewerRole } from '../model/use-meeting-viewer-role';
 import { MeetingMenuDrawer, type MeetingMenuItem } from './meeting-menu-drawer';
 
@@ -89,8 +88,8 @@ export function MeetingOverviewTopBar({
   }, []);
 
   const { copyLink } = useInviteShare({
-    // 지금 보고 있는 현황 화면의 주소를 복사한다.
-    shareUrl: toMeetingOverviewUrl(inviteCode, origin),
+    // 초대 링크를 복사한다. 받은 사람이 참여까지 이어갈 수 있어야 한다.
+    shareUrl: toInviteShareUrl(inviteCode, origin),
     // 복사는 보내는 사람 이름을 쓰지 않는다. 문자·카카오 공유에만 필요한 값이다.
     senderNickname: null,
     onNotify: (message) => toast.add({ description: message }),
