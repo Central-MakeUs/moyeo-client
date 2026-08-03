@@ -1,4 +1,6 @@
 export type { MeetingSummary } from './model/meeting-summary';
+export { toConfirmationOutcome } from './model/meeting-confirmation';
+export type { ConfirmationOutcome } from './model/meeting-confirmation';
 export { availabilityTimeRangesToCellKeys } from './model/availability-time-ranges-to-cell-keys';
 export { cellKeysToAvailabilityTimeRanges } from './model/cell-keys-to-availability-time-ranges';
 export { useMeetingsQuery } from './model/use-meetings-query';

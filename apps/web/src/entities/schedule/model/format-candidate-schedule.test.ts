@@ -4,7 +4,20 @@ import {
   formatCandidateDate,
   formatCandidateDuration,
   formatCandidateTimeRange,
+  formatConfirmedSchedule,
 } from './format-candidate-schedule';
+
+describe('formatConfirmedSchedule', () => {
+  it('날짜와 시간 범위를 한 줄로 합친다', () => {
+    expect(formatConfirmedSchedule('2026-07-18', '14:00:00', '18:00:00')).toBe(
+      '7/18 (토) 14:00~18:00'
+    );
+  });
+
+  it('DATE_ONLY 모임은 날짜까지만 보여준다', () => {
+    expect(formatConfirmedSchedule('2026-07-18')).toBe('7/18 (토)');
+  });
+});
 
 describe('formatCandidateDate', () => {
   it('ISO 날짜를 "월 일 요일"로 바꾼다', () => {

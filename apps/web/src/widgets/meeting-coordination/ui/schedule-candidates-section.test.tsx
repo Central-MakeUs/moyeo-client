@@ -20,6 +20,14 @@ const { useMeetingHostMock, useViewerIdentityMock } = vi.hoisted(() => ({
 vi.mock('../model/use-meeting-host', () => ({ useMeetingHost: useMeetingHostMock }));
 vi.mock('../model/use-viewer-identity', () => ({ useViewerIdentity: useViewerIdentityMock }));
 
+// 확정 요청은 이 화면의 검증 대상이 아니다. meetingId 조회와 함께 실제 호출을 끊는다.
+const { confirmMock } = vi.hoisted(() => ({ confirmMock: vi.fn() }));
+vi.mock('@/features/meeting/confirm-schedule', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/meeting/confirm-schedule')>()),
+  useConfirmSchedule: () => ({ confirm: confirmMock, isConfirming: false }),
+}));
+vi.mock('@/shared/api', () => ({ useGetMeetingView: () => ({ data: { meetingId: 7 } }) }));
+
 /** 소미(모임장)·린이 가능한 후보 하나. */
 const CANDIDATE = {
   candidateDate: '2026-07-18',
@@ -69,6 +77,21 @@ describe('ScheduleCandidatesSection', () => {
     await user.click(screen.getByText('7.18'));
 
     expect(await screen.findByRole('button', { name: '일정 확정하기' })).toBeInTheDocument();
+  });
+
+  it('모임장이 일정 확정하기를 누르면 상세가 닫히고 확인 팝업이 뜬다', async () => {
+    const user = userEvent.setup();
+    mockScheduleView();
+    useMeetingHostMock.mockReturnValue({ participantId: 1, isViewerHost: true });
+
+    render(<ScheduleCandidatesSection inviteCode="29NRVBGXGP" />);
+    await user.click(screen.getByText('7.18'));
+    await user.click(await screen.findByRole('button', { name: '일정 확정하기' }));
+
+    expect(await screen.findByText('모임 일정을 확정할까요?')).toBeInTheDocument();
+    expect(screen.getByText('확정된 일정은 변경할 수 없어요')).toBeInTheDocument();
+    // 상세는 닫힌다 — 시안에서 둘이 겹쳐 보이지 않는다.
+    expect(screen.queryByText('7월 18일 토요일')).not.toBeInTheDocument();
   });
 
   it('참여자로 보면 dialog에 일정 확정하기 버튼이 없다', async () => {

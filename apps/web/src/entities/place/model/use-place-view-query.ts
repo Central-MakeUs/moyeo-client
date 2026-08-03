@@ -24,6 +24,7 @@ export function usePlaceViewQuery(inviteCode: string): UsePlaceViewQueryResult {
           participantCount: data.participantCount ?? 0,
           recommendations: (data.recommendations ?? []).map((recommendation) => ({
             rank: recommendation.rank ?? 0,
+            areaCode: recommendation.areaCode ?? '',
             areaName: recommendation.areaName ?? '',
             guName: recommendation.guName ?? undefined,
             dongName: recommendation.dongName ?? undefined,

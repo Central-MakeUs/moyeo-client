@@ -10,6 +10,8 @@ export interface PlaceStation {
 
 export interface PlaceRecommendation {
   rank: number;
+  /** 상권 코드. 장소 확정 요청(`commercialAreaCode`)에 쓴다. */
+  areaCode: string;
   /** 상권명 */
   areaName: string;
   /** 자치구명. 없으면 undefined */

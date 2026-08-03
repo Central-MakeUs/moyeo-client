@@ -35,6 +35,8 @@ export interface ScheduleCandidateDialogProps {
   participants: ScheduleCandidateDialogParticipant[];
   /** 일정 확정하기 버튼 노출 여부. 모임장만 확정할 수 있다. */
   canConfirm: boolean;
+  /** 일정 확정하기를 눌렀을 때. 확인 팝업은 호출부가 띄운다. */
+  onConfirm?: () => void;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -51,6 +53,7 @@ export function ScheduleCandidateDialog({
   endTime,
   participants,
   canConfirm,
+  onConfirm,
   open,
   onOpenChange,
 }: ScheduleCandidateDialogProps): React.JSX.Element {
@@ -84,8 +87,7 @@ export function ScheduleCandidateDialog({
 
         {canConfirm && (
           <DialogFooter>
-            {/* 확정 동작은 후속 작업이다. 지금은 모임장에게 자리만 보여준다. */}
-            <DialogAction>일정 확정하기</DialogAction>
+            <DialogAction onClick={onConfirm}>일정 확정하기</DialogAction>
           </DialogFooter>
         )}
       </DialogContent>

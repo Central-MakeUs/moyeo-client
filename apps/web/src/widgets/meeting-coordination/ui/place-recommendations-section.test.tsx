@@ -1,5 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import { PlaceRecommendationsSection } from './place-recommendations-section';
 
@@ -12,7 +13,23 @@ vi.mock('@/entities/place', async (importOriginal) => {
   return { ...actual, usePlaceViewQuery: usePlaceViewQueryMock };
 });
 
+const { useMeetingHostMock } = vi.hoisted(() => ({ useMeetingHostMock: vi.fn() }));
+vi.mock('../model/use-meeting-host', () => ({ useMeetingHost: useMeetingHostMock }));
+
+// 확정 요청은 이 화면의 검증 대상이 아니다. meetingId 조회와 함께 실제 호출을 끊는다.
+const { confirmMock } = vi.hoisted(() => ({ confirmMock: vi.fn() }));
+vi.mock('@/features/meeting/confirm-place', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/meeting/confirm-place')>()),
+  useConfirmPlace: () => ({ confirm: confirmMock, isConfirming: false }),
+}));
+vi.mock('@/shared/api', () => ({ useGetMeetingView: () => ({ data: { meetingId: 7 } }) }));
+
 describe('PlaceRecommendationsSection', () => {
+  beforeEach(() => {
+    // 기본은 참여자 시점. 모임장만 후보를 고를 수 있다.
+    useMeetingHostMock.mockReturnValue({ participantId: 1, isViewerHost: false });
+  });
+
   it('추천 후보가 있으면 타이틀에 개수가 표시되고 목록이 렌더된다', () => {
     usePlaceViewQueryMock.mockReturnValue({
       data: {
@@ -68,5 +85,41 @@ describe('PlaceRecommendationsSection', () => {
     render(<PlaceRecommendationsSection inviteCode="29NRVBGXGP" />);
 
     expect(screen.getByText('위치 정보를 불러오지 못했어요')).toBeInTheDocument();
+  });
+
+  it('모임장이 후보를 고르면 위치 확정 확인 팝업이 뜬다', async () => {
+    const user = userEvent.setup();
+    useMeetingHostMock.mockReturnValue({ participantId: 1, isViewerHost: true });
+    usePlaceViewQueryMock.mockReturnValue({
+      data: {
+        participantCount: 5,
+        recommendations: [{ rank: 1, areaCode: 'A01', areaName: '합정동' }],
+        participants: [],
+      },
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<PlaceRecommendationsSection inviteCode="29NRVBGXGP" />);
+    await user.click(screen.getByText('합정동'));
+
+    expect(await screen.findByText('모임 위치를 확정할까요?')).toBeInTheDocument();
+    expect(screen.getByText('확정된 위치는 변경할 수 없어요')).toBeInTheDocument();
+  });
+
+  it('참여자에게는 후보가 눌리지 않는다', () => {
+    usePlaceViewQueryMock.mockReturnValue({
+      data: {
+        participantCount: 5,
+        recommendations: [{ rank: 1, areaCode: 'A01', areaName: '합정동' }],
+        participants: [],
+      },
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<PlaceRecommendationsSection inviteCode="29NRVBGXGP" />);
+
+    expect(screen.queryByRole('button', { name: /합정동/ })).not.toBeInTheDocument();
   });
 });

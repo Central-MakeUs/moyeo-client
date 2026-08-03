@@ -10,7 +10,9 @@ import {
   type ScheduleCandidate,
   type ScheduleSort,
 } from '@/entities/schedule';
+import { ConfirmScheduleDialog, useConfirmSchedule } from '@/features/meeting/confirm-schedule';
 import { EditResponseButton } from '@/features/meeting/edit-response';
+import { useGetMeetingView } from '@/shared/api';
 import { RadioGroup, RadioGroupChip } from '@/shared/ui';
 import { Icon } from '@/shared/ui/icon';
 
@@ -40,6 +42,19 @@ export function ScheduleCandidatesSection({
    * 다른 후보의 상세를 보게 된다.
    */
   const [selected, setSelected] = React.useState<ScheduleCandidate | null>(null);
+  /** 확정 확인 팝업을 띄운 후보. 상세를 닫고 이쪽으로 넘긴다. */
+  const [confirmTarget, setConfirmTarget] = React.useState<ScheduleCandidate | null>(null);
+
+  // 현황 화면이 이미 읽은 조회다. 확정 요청에 필요한 meetingId만 가져다 쓴다.
+  const { data: meeting } = useGetMeetingView(inviteCode, {
+    query: { enabled: inviteCode.length > 0 },
+  });
+
+  const { confirm } = useConfirmSchedule({
+    meetingId: meeting?.meetingId,
+    inviteCode,
+    onPartialConfirm: () => setConfirmTarget(null),
+  });
 
   return (
     <section className="flex flex-col gap-4">
@@ -114,6 +129,24 @@ export function ScheduleCandidatesSection({
           onOpenChange={(open) => {
             if (!open) setSelected(null);
           }}
+          onConfirm={() => {
+            // 상세를 닫고 확인 팝업으로 넘긴다. 시안에서 둘이 겹쳐 보이지 않는다.
+            setSelected(null);
+            setConfirmTarget(selected);
+          }}
+        />
+      )}
+
+      {confirmTarget && (
+        <ConfirmScheduleDialog
+          candidateDate={confirmTarget.candidateDate}
+          startTime={confirmTarget.startTime}
+          endTime={confirmTarget.endTime}
+          open
+          onOpenChange={(open) => {
+            if (!open) setConfirmTarget(null);
+          }}
+          onConfirm={() => void confirm(confirmTarget)}
         />
       )}
     </section>
