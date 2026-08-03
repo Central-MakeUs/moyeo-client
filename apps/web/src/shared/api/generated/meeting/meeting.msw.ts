@@ -461,6 +461,23 @@ export const getGetMyParticipationResponseMock = (
   ...overrideResponse,
 });
 
+export const getGetGuestParticipationResponseMock = (
+  overrideResponse: Partial<Extract<MyParticipationResponse, object>> = {}
+): MyParticipationResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  participantType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['HOST', 'MEMBER', 'GUEST'] as const),
+    undefined,
+  ]),
+  scheduleInputType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['DATE_ONLY', 'DATE_AND_TIME', 'NONE'] as const),
+    undefined,
+  ]),
+  scheduleResponse: faker.helpers.arrayElement([{ ...getScheduleResponseMock() }, undefined]),
+  departure: faker.helpers.arrayElement([{ ...getDepartureMock() }, undefined]),
+  ...overrideResponse,
+});
+
 export const getGetCoverImageResponseMock = (): string => faker.word.sample();
 
 export const getReplaceCoverImageMockHandler = (
@@ -952,6 +969,30 @@ export const getGetMyParticipationMockHandler = (
   );
 };
 
+export const getGetGuestParticipationMockHandler = (
+  overrideResponse?:
+    | MyParticipationResponse
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0]
+      ) => Promise<MyParticipationResponse> | MyParticipationResponse),
+  options?: RequestHandlerOptions
+) => {
+  return http.get(
+    '*/api/meetings/invitations/:inviteCode/guests/:nickname/participation',
+    async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+      return HttpResponse.json(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getGetGuestParticipationResponseMock(),
+        { status: 200 }
+      );
+    },
+    options
+  );
+};
+
 export const getGetCoverImageMockHandler = (
   overrideResponse?:
     | string
@@ -1033,6 +1074,7 @@ export const getMeetingMock = () => [
   getGetScheduleViewMockHandler(),
   getGetPlaceViewMockHandler(),
   getGetMyParticipationMockHandler(),
+  getGetGuestParticipationMockHandler(),
   getGetCoverImageMockHandler(),
   getLeaveMeetingMockHandler(),
   getLeaveGuestMockHandler(),

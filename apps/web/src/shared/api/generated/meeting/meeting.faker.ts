@@ -458,4 +458,21 @@ export const getGetMyParticipationResponseMock = (
   ...overrideResponse,
 });
 
+export const getGetGuestParticipationResponseMock = (
+  overrideResponse: Partial<Extract<MyParticipationResponse, object>> = {}
+): MyParticipationResponse => ({
+  meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  participantType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['HOST', 'MEMBER', 'GUEST'] as const),
+    undefined,
+  ]),
+  scheduleInputType: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['DATE_ONLY', 'DATE_AND_TIME', 'NONE'] as const),
+    undefined,
+  ]),
+  scheduleResponse: faker.helpers.arrayElement([{ ...getScheduleResponseMock() }, undefined]),
+  departure: faker.helpers.arrayElement([{ ...getDepartureMock() }, undefined]),
+  ...overrideResponse,
+});
+
 export const getGetCoverImageResponseMock = (): string => faker.word.sample();

@@ -2216,6 +2216,154 @@ export function useGetMyParticipation<
 }
 
 /**
+ * 초대 코드와 게스트 닉네임으로 식별한 게스트의 일정 가능 응답과 출발지 응답을 조회합니다. 현재 게스트 참여 응답 수정 API와 동일하게 비밀번호나 토큰을 다시 확인하지 않습니다.
+ * @summary 게스트 모임 참여 응답 조회
+ */
+export const getGuestParticipation = (
+  inviteCode: string,
+  nickname: string,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<MyParticipationResponse>(
+    {
+      url: `/api/meetings/invitations/${inviteCode}/guests/${nickname}/participation`,
+      method: 'GET',
+      signal,
+    },
+    options
+  );
+};
+
+export const getGetGuestParticipationQueryKey = (inviteCode: string, nickname: string) => {
+  return [`/api/meetings/invitations/${inviteCode}/guests/${nickname}/participation`] as const;
+};
+
+export const getGetGuestParticipationQueryOptions = <
+  TData = Awaited<ReturnType<typeof getGuestParticipation>>,
+  TError = ErrorType<MyParticipationResponse>,
+>(
+  inviteCode: string,
+  nickname: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getGuestParticipation>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetGuestParticipationQueryKey(inviteCode, nickname);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getGuestParticipation>>> = ({ signal }) =>
+    getGuestParticipation(inviteCode, nickname, requestOptions, signal);
+
+  return {
+    queryKey,
+    queryFn,
+    enabled:
+      inviteCode !== null &&
+      inviteCode !== undefined &&
+      nickname !== null &&
+      nickname !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getGuestParticipation>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type GetGuestParticipationQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getGuestParticipation>>
+>;
+export type GetGuestParticipationQueryError = ErrorType<MyParticipationResponse>;
+
+export function useGetGuestParticipation<
+  TData = Awaited<ReturnType<typeof getGuestParticipation>>,
+  TError = ErrorType<MyParticipationResponse>,
+>(
+  inviteCode: string,
+  nickname: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getGuestParticipation>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getGuestParticipation>>,
+          TError,
+          Awaited<ReturnType<typeof getGuestParticipation>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetGuestParticipation<
+  TData = Awaited<ReturnType<typeof getGuestParticipation>>,
+  TError = ErrorType<MyParticipationResponse>,
+>(
+  inviteCode: string,
+  nickname: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getGuestParticipation>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getGuestParticipation>>,
+          TError,
+          Awaited<ReturnType<typeof getGuestParticipation>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetGuestParticipation<
+  TData = Awaited<ReturnType<typeof getGuestParticipation>>,
+  TError = ErrorType<MyParticipationResponse>,
+>(
+  inviteCode: string,
+  nickname: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getGuestParticipation>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary 게스트 모임 참여 응답 조회
+ */
+
+export function useGetGuestParticipation<
+  TData = Awaited<ReturnType<typeof getGuestParticipation>>,
+  TError = ErrorType<MyParticipationResponse>,
+>(
+  inviteCode: string,
+  nickname: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getGuestParticipation>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetGuestParticipationQueryOptions(inviteCode, nickname, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+/**
  * 초대 조회·모임 조회 응답의 coverImageUrl을 그대로 사용해 <img src>에 넣는 이미지 바이너리 API입니다. 상대 경로이므로 프론트 API 서버 주소를 앞에 붙입니다. v 쿼리는 브라우저 캐시 갱신 전용이며 변경하거나 제거하지 않습니다. 응답은 1년 immutable 캐시 정책을 사용합니다.
  * @summary 초대 링크 모임 커버 사진 조회
  */
