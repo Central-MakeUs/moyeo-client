@@ -18,4 +18,16 @@ describe('PlaceParticipantListItem', () => {
 
     expect(screen.getByText('모임장')).toBeInTheDocument();
   });
+
+  it('본인 줄이면 닉네임 옆에 "(나)"를 붙인다', () => {
+    render(<PlaceParticipantListItem nickname="소미" isHost={false} departureName="회사" isMe />);
+
+    expect(screen.getByText('(나)')).toBeInTheDocument();
+  });
+
+  it('본인이 아니면 "(나)"를 붙이지 않는다', () => {
+    render(<PlaceParticipantListItem nickname="린" isHost={false} departureName="회사" />);
+
+    expect(screen.queryByText('(나)')).not.toBeInTheDocument();
+  });
 });
