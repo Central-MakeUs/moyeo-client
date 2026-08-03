@@ -18,6 +18,8 @@ export interface ScheduleViewResponse {
   meetingId?: number;
   /** 일정 참여 입력 유형 */
   scheduleInputType?: ScheduleViewResponseScheduleInputType;
+  /** 일정의 확정 여부입니다. 확정 일정이 선택되면 true입니다. */
+  scheduleConfirmed?: boolean;
   /** 적용된 정렬 방식 */
   sort?: ScheduleViewResponseSort;
   /** 현재 참여 인원. 방장을 포함합니다. */

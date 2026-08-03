@@ -27,8 +27,14 @@ export interface ParticipantDepartureResponse {
   withdrawn?: boolean;
   /** 출발지 표시 이름입니다. 요청에서 name을 생략하면 출발지 주소를 반환합니다. */
   departureName?: string;
-  /** 출발지 주소. 입력하지 않았으면 null입니다. */
-  departureAddress?: string;
-  /** 이동 수단입니다. 입력하지 않았으면 null입니다. */
+  /**
+   * 출발지 주소. 입력하지 않았으면 null입니다.
+   * @nullable
+   */
+  departureAddress?: string | null;
+  /**
+   * 이동 수단입니다. 입력하지 않았으면 null입니다.
+   * @nullable
+   */
   transportationMode?: ParticipantDepartureResponseTransportationMode;
 }

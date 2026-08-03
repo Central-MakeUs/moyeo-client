@@ -18,8 +18,11 @@ export interface Item {
   inviteCode?: string;
   /** 모임명 */
   name?: string;
-  /** 커버 이미지 조회 API 경로. 없으면 null */
-  coverImageUrl?: string;
+  /**
+   * 커버 이미지 조회 API 경로. 없으면 null입니다.
+   * @nullable
+   */
+  coverImageUrl?: string | null;
   /** 모임장 닉네임 */
   hostNickname?: string;
   /** 나의 역할 */
@@ -30,14 +33,29 @@ export interface Item {
   maxParticipants?: number;
   /** 참여·응답 마감 상태 */
   deadlineStatus?: ItemDeadlineStatus;
-  /** 마감 시각. 마감이 없으면 null */
-  deadlineAt?: string;
-  /** 확정 일정 날짜. 미확정 또는 장소 전용 모임이면 null */
-  confirmedScheduleDate?: string;
-  /** 확정 시작 시간. DATE_ONLY 또는 장소 전용 모임이면 null */
-  confirmedStartTime?: string;
-  /** 확정 종료 시간. DATE_ONLY 또는 장소 전용 모임이면 null */
-  confirmedEndTime?: string;
-  /** 확정 장소명. 미확정 또는 일정 전용 모임이면 null */
-  confirmedPlaceName?: string;
+  /**
+   * 마감 시각. 마감이 없으면 null입니다.
+   * @nullable
+   */
+  deadlineAt?: string | null;
+  /**
+   * 확정 일정 날짜. 미확정 또는 장소 전용 모임이면 null입니다.
+   * @nullable
+   */
+  confirmedScheduleDate?: string | null;
+  /**
+   * 확정 시작 시간. DATE_ONLY 또는 장소 전용 모임이면 null입니다.
+   * @nullable
+   */
+  confirmedStartTime?: string | null;
+  /**
+   * 확정 종료 시간. DATE_ONLY 또는 장소 전용 모임이면 null입니다.
+   * @nullable
+   */
+  confirmedEndTime?: string | null;
+  /**
+   * 확정 장소명. 미확정 또는 일정 전용 모임이면 null입니다.
+   * @nullable
+   */
+  confirmedPlaceName?: string | null;
 }

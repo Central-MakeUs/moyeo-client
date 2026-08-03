@@ -8,9 +8,11 @@
 
 /**
  * 장소 추천 방식입니다. 장소 조율 모임이 아니면 null입니다.
+ * @nullable
  */
 export type PlaceViewResponsePlaceRecommendationStrategy =
-  (typeof PlaceViewResponsePlaceRecommendationStrategy)[keyof typeof PlaceViewResponsePlaceRecommendationStrategy];
+  | (typeof PlaceViewResponsePlaceRecommendationStrategy)[keyof typeof PlaceViewResponsePlaceRecommendationStrategy]
+  | null;
 
 export const PlaceViewResponsePlaceRecommendationStrategy = {
   MIDDLE_POINT: 'MIDDLE_POINT',

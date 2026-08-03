@@ -15,14 +15,29 @@ export interface MeetingConfirmationResponse {
   meetingId?: number;
   /** 현재 모임 상태 */
   status?: MeetingConfirmationResponseStatus;
-  /** 일정과 장소가 모두 확정된 최종 확정 시각. 아직 한 항목만 확정됐으면 null */
-  confirmedAt?: string;
-  /** 확정 일정 날짜. 아직 일정 확정 전이면 null */
-  scheduleDate?: string;
-  /** 확정 시작 시간. DATE_ONLY면 null */
-  startTime?: string;
-  /** 확정 종료 시간. DATE_ONLY면 null */
-  endTime?: string;
-  /** 확정 장소명. 아직 장소 확정 전이면 null */
-  placeName?: string;
+  /**
+   * 일정과 장소가 모두 확정된 최종 확정 시각. 아직 한 항목만 확정됐으면 null입니다.
+   * @nullable
+   */
+  confirmedAt?: string | null;
+  /**
+   * 확정 일정 날짜. 아직 일정 확정 전이면 null입니다.
+   * @nullable
+   */
+  scheduleDate?: string | null;
+  /**
+   * 확정 시작 시간. DATE_ONLY면 null입니다.
+   * @nullable
+   */
+  startTime?: string | null;
+  /**
+   * 확정 종료 시간. DATE_ONLY면 null입니다.
+   * @nullable
+   */
+  endTime?: string | null;
+  /**
+   * 확정 장소명. 아직 장소 확정 전이면 null입니다.
+   * @nullable
+   */
+  placeName?: string | null;
 }

@@ -16,7 +16,7 @@ export interface MeetingInvitation {
 }
 
 /** 공백만 있는 문자열은 값이 없는 것으로 본다. */
-function toText(value: string | undefined): string | null {
+function toText(value: string | null | undefined): string | null {
   const trimmed = value?.trim();
   return trimmed !== undefined && trimmed.length > 0 ? trimmed : null;
 }

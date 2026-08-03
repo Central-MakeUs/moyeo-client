@@ -70,23 +70,23 @@ export const getConfirmScheduleResponseMock = (
     undefined,
   ]),
   confirmedAt: faker.helpers.arrayElement([
-    faker.date.past().toISOString().slice(0, 19) + 'Z',
+    faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]),
     undefined,
   ]),
   scheduleDate: faker.helpers.arrayElement([
-    faker.date.past().toISOString().slice(0, 10),
+    faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]),
     undefined,
   ]),
   startTime: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
   endTime: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
   placeName: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
   ...overrideResponse,
@@ -101,23 +101,23 @@ export const getConfirmPlaceResponseMock = (
     undefined,
   ]),
   confirmedAt: faker.helpers.arrayElement([
-    faker.date.past().toISOString().slice(0, 19) + 'Z',
+    faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]),
     undefined,
   ]),
   scheduleDate: faker.helpers.arrayElement([
-    faker.date.past().toISOString().slice(0, 10),
+    faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]),
     undefined,
   ]),
   startTime: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
   endTime: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
   placeName: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
   ...overrideResponse,
@@ -256,11 +256,11 @@ export const getGetMyMeetingDetailResponseMock = (
     undefined,
   ]),
   description: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
   coverImageUrl: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
   hostNickname: faker.helpers.arrayElement([
@@ -268,19 +268,19 @@ export const getGetMyMeetingDetailResponseMock = (
     undefined,
   ]),
   confirmedScheduleDate: faker.helpers.arrayElement([
-    faker.date.past().toISOString().slice(0, 10),
+    faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]),
     undefined,
   ]),
   confirmedStartTime: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
   confirmedEndTime: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
   confirmedPlaceName: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
   participants: faker.helpers.arrayElement([
@@ -319,16 +319,20 @@ export const getGetInvitationResponseMock = (
     undefined,
   ]),
   description: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
   coverImageUrl: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
   maxParticipants: faker.helpers.arrayElement([faker.number.int(), undefined]),
   planningType: faker.helpers.arrayElement([
     faker.helpers.arrayElement(['SCHEDULE_ONLY', 'PLACE_ONLY', 'SCHEDULE_AND_PLACE'] as const),
+    undefined,
+  ]),
+  status: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['PLANNING', 'CONFIRMED'] as const),
     undefined,
   ]),
   scheduleMode: faker.helpers.arrayElement([
@@ -350,11 +354,14 @@ export const getGetInvitationResponseMock = (
     undefined,
   ]),
   placeRecommendationStrategy: faker.helpers.arrayElement([
-    faker.helpers.arrayElement(['MIDDLE_POINT', 'RANDOM'] as const),
+    faker.helpers.arrayElement([
+      faker.helpers.arrayElement(['MIDDLE_POINT', 'RANDOM'] as const),
+      null,
+    ]),
     undefined,
   ]),
   deadlineAt: faker.helpers.arrayElement([
-    faker.date.past().toISOString().slice(0, 19) + 'Z',
+    faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]),
     undefined,
   ]),
   participantCount: faker.helpers.arrayElement([faker.number.int(), undefined]),
@@ -378,17 +385,18 @@ export const getGetMeetingViewResponseMock = (
     undefined,
   ]),
   description: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
   coverImageUrl: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
   planningType: faker.helpers.arrayElement([
     faker.helpers.arrayElement(['SCHEDULE_ONLY', 'PLACE_ONLY', 'SCHEDULE_AND_PLACE'] as const),
     undefined,
   ]),
+  meetingConfirmed: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
   scheduleMode: faker.helpers.arrayElement([
     faker.helpers.arrayElement(['VOTE', 'NONE'] as const),
     undefined,
@@ -402,16 +410,22 @@ export const getGetMeetingViewResponseMock = (
     undefined,
   ]),
   placeRecommendationStrategy: faker.helpers.arrayElement([
-    faker.helpers.arrayElement(['MIDDLE_POINT', 'RANDOM'] as const),
+    faker.helpers.arrayElement([
+      faker.helpers.arrayElement(['MIDDLE_POINT', 'RANDOM'] as const),
+      null,
+    ]),
     undefined,
   ]),
   maxParticipants: faker.helpers.arrayElement([faker.number.int(), undefined]),
   participantCount: faker.helpers.arrayElement([faker.number.int(), undefined]),
   deadlineAt: faker.helpers.arrayElement([
-    faker.date.past().toISOString().slice(0, 19) + 'Z',
+    faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]),
     undefined,
   ]),
-  remainingMinutes: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  remainingMinutes: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.number.int(), null]),
+    undefined,
+  ]),
   participants: faker.helpers.arrayElement([
     Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
       ...getParticipantResponseMock(),
@@ -429,6 +443,7 @@ export const getGetScheduleViewResponseMock = (
     faker.helpers.arrayElement(['DATE_ONLY', 'DATE_AND_TIME', 'NONE'] as const),
     undefined,
   ]),
+  scheduleConfirmed: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
   sort: faker.helpers.arrayElement([
     faker.helpers.arrayElement(['LONGEST_MEETING', 'EARLIEST_DATE'] as const),
     undefined,
@@ -453,16 +468,23 @@ export const getGetPlaceViewResponseMock = (
   overrideResponse: Partial<Extract<PlaceViewResponse, object>> = {}
 ): PlaceViewResponse => ({
   meetingId: faker.helpers.arrayElement([faker.number.int(), undefined]),
+  placeConfirmed: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
   placeRecommendationStrategy: faker.helpers.arrayElement([
-    faker.helpers.arrayElement(['MIDDLE_POINT', 'RANDOM'] as const),
+    faker.helpers.arrayElement([
+      faker.helpers.arrayElement(['MIDDLE_POINT', 'RANDOM'] as const),
+      null,
+    ]),
     undefined,
   ]),
   recommendationBasis: faker.helpers.arrayElement([
     faker.helpers.arrayElement([
-      'STRAIGHT_LINE_PREVIEW',
-      'COORDINATES_PENDING',
-      'RANDOM_CATALOG_PREVIEW',
-    ] as const),
+      faker.helpers.arrayElement([
+        'STRAIGHT_LINE_PREVIEW',
+        'COORDINATES_PENDING',
+        'RANDOM_CATALOG_PREVIEW',
+      ] as const),
+      null,
+    ]),
     undefined,
   ]),
   center: faker.helpers.arrayElement([{ ...getCoordinateResponseMock() }, undefined]),

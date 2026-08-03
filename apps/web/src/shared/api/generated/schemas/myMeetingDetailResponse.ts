@@ -15,20 +15,38 @@ export interface MyMeetingDetailResponse {
   meetingId?: number;
   /** 모임명 */
   name?: string;
-  /** 모임 설명. 입력하지 않은 경우 null */
-  description?: string;
-  /** 커버 이미지 조회 API 경로. 없으면 null */
-  coverImageUrl?: string;
+  /**
+   * 모임 설명. 입력하지 않은 경우 null입니다.
+   * @nullable
+   */
+  description?: string | null;
+  /**
+   * 커버 이미지 조회 API 경로. 없으면 null입니다.
+   * @nullable
+   */
+  coverImageUrl?: string | null;
   /** 모임장 닉네임 */
   hostNickname?: string;
-  /** 확정 일정 날짜. 장소 전용 모임이면 null */
-  confirmedScheduleDate?: string;
-  /** 확정 시작 시간. DATE_ONLY 또는 장소 전용 모임이면 null */
-  confirmedStartTime?: string;
-  /** 확정 종료 시간. DATE_ONLY 또는 장소 전용 모임이면 null */
-  confirmedEndTime?: string;
-  /** 확정 장소명. 일정 전용 또는 미확정이면 null */
-  confirmedPlaceName?: string;
+  /**
+   * 확정 일정 날짜. 장소 전용 모임이면 null입니다.
+   * @nullable
+   */
+  confirmedScheduleDate?: string | null;
+  /**
+   * 확정 시작 시간. DATE_ONLY 또는 장소 전용 모임이면 null입니다.
+   * @nullable
+   */
+  confirmedStartTime?: string | null;
+  /**
+   * 확정 종료 시간. DATE_ONLY 또는 장소 전용 모임이면 null입니다.
+   * @nullable
+   */
+  confirmedEndTime?: string | null;
+  /**
+   * 확정 장소명. 일정 전용 또는 미확정이면 null입니다.
+   * @nullable
+   */
+  confirmedPlaceName?: string | null;
   /** 참여자 목록 */
   participants?: Participant[];
 }

@@ -8,9 +8,11 @@
 
 /**
  * 이동 수단입니다. 입력하지 않았으면 null입니다.
+ * @nullable
  */
 export type ParticipantDepartureResponseTransportationMode =
-  (typeof ParticipantDepartureResponseTransportationMode)[keyof typeof ParticipantDepartureResponseTransportationMode];
+  | (typeof ParticipantDepartureResponseTransportationMode)[keyof typeof ParticipantDepartureResponseTransportationMode]
+  | null;
 
 export const ParticipantDepartureResponseTransportationMode = {
   PUBLIC_TRANSIT: 'PUBLIC_TRANSIT',

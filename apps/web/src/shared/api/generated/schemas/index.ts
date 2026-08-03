@@ -53,6 +53,7 @@ export * from './meetingInvitationResponsePlaceRecommendationStrategy';
 export * from './meetingInvitationResponsePlanningType';
 export * from './meetingInvitationResponseScheduleInputType';
 export * from './meetingInvitationResponseScheduleMode';
+export * from './meetingInvitationResponseStatus';
 export * from './meetingParticipantNicknameResponse';
 export * from './meetingViewResponse';
 export * from './meetingViewResponsePlaceMode';

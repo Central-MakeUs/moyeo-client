@@ -10,6 +10,7 @@ import type { MeetingInvitationResponsePlaceRecommendationStrategy } from './mee
 import type { MeetingInvitationResponsePlanningType } from './meetingInvitationResponsePlanningType';
 import type { MeetingInvitationResponseScheduleInputType } from './meetingInvitationResponseScheduleInputType';
 import type { MeetingInvitationResponseScheduleMode } from './meetingInvitationResponseScheduleMode';
+import type { MeetingInvitationResponseStatus } from './meetingInvitationResponseStatus';
 import type { ParticipationStatusResponse } from './participationStatusResponse';
 import type { ScheduleCandidateResponse } from './scheduleCandidateResponse';
 
@@ -21,10 +22,16 @@ export interface MeetingInvitationResponse {
   meetingId?: number;
   /** 초대 링크 진입 화면에 표시할 모임 이름 */
   name?: string;
-  /** 초대 링크 진입 화면에 표시할 모임 설명. 입력하지 않은 경우 null입니다. */
-  description?: string;
-  /** 이미 저장된 커버 이미지를 <img src>에 표시할 때 쓰는 상대 API 경로입니다. API 서버 주소를 앞에 붙여 사용하며, v 값은 캐시 갱신용이므로 변경하지 않습니다. 커버가 없으면 null입니다. */
-  coverImageUrl?: string;
+  /**
+   * 초대 링크 진입 화면에 표시할 모임 설명. 입력하지 않은 경우 null입니다.
+   * @nullable
+   */
+  description?: string | null;
+  /**
+   * 이미 저장된 커버 이미지를 <img src>에 표시할 때 쓰는 상대 API 경로입니다. API 서버 주소를 앞에 붙여 사용하며, v 값은 캐시 갱신용이므로 변경하지 않습니다. 커버가 없으면 null입니다.
+   * @nullable
+   */
+  coverImageUrl?: string | null;
   /** 최대 참여 인원. 방장을 포함합니다. */
   maxParticipants?: number;
   /**
@@ -36,6 +43,8 @@ export interface MeetingInvitationResponse {
    * </ul>
    */
   planningType?: MeetingInvitationResponsePlanningType;
+  /** 모임의 최종 확정 상태입니다. PLANNING은 아직 최종 확정 전, CONFIRMED는 필요한 일정·장소 선택이 모두 확정된 상태입니다. */
+  status?: MeetingInvitationResponseStatus;
   /**
    * 일정 설정 방식입니다.
    * <ul>
@@ -59,16 +68,20 @@ export interface MeetingInvitationResponse {
    */
   placeMode?: MeetingInvitationResponsePlaceMode;
   /**
-   * 생성 시 선택한 장소 추천 방식입니다. placeMode=RECOMMEND일 때만 값이 있습니다.
+   * 생성 시 선택한 장소 추천 방식입니다. placeMode=RECOMMEND가 아니면 null입니다.
    * 1차 MVP에서는 생성 후 변경하지 않으며, 생성 시점에는 추천 결과나 확정 장소를 만들지 않습니다.
    * <ul>
    *   <li>MIDDLE_POINT: 참여자 출발지를 기준으로 추후 중간지점 추천 진행</li>
    *   <li>RANDOM: 추후 랜덤 방식으로 장소 추천 진행</li>
    * </ul>
+   * @nullable
    */
   placeRecommendationStrategy?: MeetingInvitationResponsePlaceRecommendationStrategy;
-  /** 서버가 계산한 모임 참여/응답 마감 일시입니다. 마감 없는 모임에서는 반환하지 않습니다. */
-  deadlineAt?: string;
+  /**
+   * 서버가 계산한 모임 참여/응답 마감 일시입니다. 마감 없는 모임에서는 null입니다.
+   * @nullable
+   */
+  deadlineAt?: string | null;
   /** 현재 참여 인원. 방장을 포함합니다. */
   participantCount?: number;
   /** 방장으로 표시할 닉네임 */
