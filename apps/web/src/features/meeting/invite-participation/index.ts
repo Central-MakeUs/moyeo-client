@@ -11,3 +11,4 @@ export {
   buildGuestScheduleTimeGrid,
   type GuestScheduleTimeGrid,
 } from './model/build-guest-schedule-time-grid';
+export { useGuestScheduleStep } from './model/use-guest-schedule-step';

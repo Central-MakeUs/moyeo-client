@@ -1,15 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
-
-import { useRouter } from 'next/navigation';
-
-import {
-  getGuestScheduleNextPath,
-  isDraftUsableFor,
-  useGuestJoinDraft,
-  useSubmitGuestJoin,
-} from '@/features/meeting/invite-participation';
+import { useGuestScheduleStep } from '@/features/meeting/invite-participation';
 import type { MeetingInvitationResponsePlanningType } from '@/shared/api';
 import { Button } from '@/shared/ui/button';
 import {
@@ -32,49 +23,25 @@ export interface GuestSchedulePageProps {
 /**
  * 게스트가 후보 날짜 중 가능한 날을 고르는 화면.
  *
- * `DATE_ONLY` 모임에서만 쓴다. `DATE_AND_TIME`은 시간표를 쓰며 #171에서 만든다.
+ * `DATE_ONLY` 모임에서만 쓴다. `DATE_AND_TIME`은 시간표를 쓰며 `GuestScheduleTimesPage`가 맡는다.
  */
 export function GuestSchedulePage({
   inviteToken,
   planningType,
   candidateDates,
 }: GuestSchedulePageProps) {
-  const router = useRouter();
+  const { scheduleResponse, setScheduleResponse, isSubmitting, proceed } = useGuestScheduleStep({
+    inviteToken,
+    planningType,
+    candidateDates,
+  });
 
-  const identity = useGuestJoinDraft((state) => state.identity);
-  const scheduleResponse = useGuestJoinDraft((state) => state.scheduleResponse);
-  const setScheduleResponse = useGuestJoinDraft((state) => state.setScheduleResponse);
-  const syncCandidateDates = useGuestJoinDraft((state) => state.syncCandidateDates);
-
-  const { submit, isSubmitting } = useSubmitGuestJoin({ inviteCode: inviteToken });
-
-  const isDraftUsable = isDraftUsableFor(identity, inviteToken);
   const selectedDates = scheduleResponse?.availableDates ?? [];
 
   // 후보의 첫 날짜가 속한 달부터 보여준다. 후보가 없으면 캘린더 기본값에 맡긴다.
   const [firstCandidateDate] = candidateDates;
   const initialMonth =
     firstCandidateDate === undefined ? undefined : toLocalDate(firstCandidateDate);
-
-  // 초안이 없거나 다른 모임 것이면 쓸 수 없다. 신원부터 다시 받는다(prd.md ADR-2).
-  useEffect(() => {
-    if (!isDraftUsable) router.replace(`/i/${inviteToken}/guest`);
-  }, [isDraftUsable, inviteToken, router]);
-
-  // 모임장이 후보 날짜를 바꿨을 수 있다. 서버 값으로 무효한 선택을 걷어낸다(prd.md ADR-4).
-  useEffect(() => {
-    syncCandidateDates(candidateDates);
-  }, [syncCandidateDates, candidateDates]);
-
-  const handleSubmit = async () => {
-    const nextPath = getGuestScheduleNextPath(inviteToken, planningType);
-    if (nextPath !== null) {
-      router.push(nextPath);
-      return;
-    }
-
-    await submit();
-  };
 
   return (
     <div className="flex min-h-dvh flex-col bg-white">
@@ -98,11 +65,7 @@ export function GuestSchedulePage({
 
       <CTASection
         primaryAction={
-          <Button
-            fullWidth
-            disabled={selectedDates.length === 0 || isSubmitting}
-            onClick={handleSubmit}
-          >
+          <Button fullWidth disabled={selectedDates.length === 0 || isSubmitting} onClick={proceed}>
             참여하기
           </Button>
         }
