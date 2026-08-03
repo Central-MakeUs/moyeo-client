@@ -18,6 +18,8 @@ export interface GuestSchedulePageProps {
   planningType: MeetingInvitationResponsePlanningType;
   /** 서버가 준 후보 날짜. 'yyyy-MM-dd' */
   candidateDates: string[];
+  /** 서비스 기준 오늘 'yyyy-MM-dd'. 라우트가 서버에서 받아 내려준다. */
+  serverToday: string;
 }
 
 /**
@@ -29,6 +31,7 @@ export function GuestSchedulePage({
   inviteToken,
   planningType,
   candidateDates,
+  serverToday,
 }: GuestSchedulePageProps) {
   const { scheduleResponse, setScheduleResponse, isSubmitting, proceed } = useGuestScheduleStep({
     inviteToken,
@@ -58,7 +61,13 @@ export function GuestSchedulePage({
           onChange={(next) =>
             setScheduleResponse({ availableDates: formatScheduleCandidateDates(next) })
           }
-          isDateDisabled={(date) => !candidateDates.includes(toIsoDate(date))}
+          // 후보 밖이거나 이미 지난 날. 모임장이 만든 링크를 며칠 뒤에 여는 게 정상이라
+          // 후보 날짜가 통째로 과거인 상황이 생긴다. 날짜가 'yyyy-MM-dd'라 사전순 비교로 족하다.
+          isDateDisabled={(date) => {
+            const isoDate = toIsoDate(date);
+
+            return !candidateDates.includes(isoDate) || isoDate < serverToday;
+          }}
           month={initialMonth}
         />
       </main>
