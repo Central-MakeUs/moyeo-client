@@ -31,7 +31,13 @@ function MeetingConfirmedContent(): React.JSX.Element {
   const session = useSession();
   const searchParams = useSearchParams();
   const inviteCode = searchParams.get(INVITE_CODE_PARAM) ?? '';
-  const { data, isLoading, isError } = useMeetingDetailQuery(inviteCode);
+  /*
+   * 확정 직후에 도착하므로 캐시를 그대로 믿을 수 없다. 전역 staleTime이 60초라 확정 전
+   * 모임이 담긴 캐시를 그릴 수 있어, 이 화면만 마운트할 때 다시 읽는다.
+   */
+  const { data, isLoading, isFetching, isError } = useMeetingDetailQuery(inviteCode, {
+    fresh: true,
+  });
   const { nickname: guestNickname } = useGuestSession(inviteCode);
   const [isDetailOpen, setDetailOpen] = React.useState(false);
 
@@ -41,7 +47,12 @@ function MeetingConfirmedContent(): React.JSX.Element {
     guestNickname,
   };
 
-  if (isLoading) {
+  /*
+   * 캐시에 확정 전 모임이 남아 있으면 값이 빈 카드를 잠깐 그리게 된다. 다시 읽는 중이면서
+   * 아직 확정으로 보이지 않을 때는 기다린다. 다 읽고도 확정이 아니면 그대로 그린다 —
+   * 확정되지 않은 모임의 주소를 직접 연 경우다.
+   */
+  if (isLoading || (isFetching && data?.isConfirmed === false)) {
     return (
       <main className="flex h-dvh items-center justify-center bg-celebration">
         <Spinner label="모임 정보를 불러오는 중" />

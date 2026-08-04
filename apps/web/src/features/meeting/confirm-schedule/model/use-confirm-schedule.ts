@@ -74,25 +74,32 @@ export function useConfirmSchedule({
         endTime: target.endTime,
       });
 
-      // 확정 화면도 같은 조회를 쓴다. 응답으로 캐시를 먼저 맞춰 재조회를 기다리지 않는다.
+      if (toConfirmationOutcome(response) === 'final') {
+        /*
+         * 현황 캐시를 건드리지 않고 떠난다. 이동은 즉시 끝나지 않아 이 화면이 잠시 더 붙어
+         * 있는데, 그사이 캐시를 고치면 확정 카드가 한 번 그려졌다 사라진다. 확정 화면은
+         * 도착해서 스스로 다시 읽는다(useMeetingDetailQuery의 fresh 옵션).
+         */
+        router.replace(`/meetings/confirmed?code=${inviteCode}`);
+        void queryClient.invalidateQueries({ queryKey: getGetMyMeetingsQueryKey() });
+        return;
+      }
+
+      // 화면에 머무르므로 확정 카드가 바로 뜨도록 응답으로 캐시를 맞춘다.
       queryClient.setQueryData<MeetingViewResponse>(
         getGetMeetingViewQueryKey(inviteCode),
         (previous) => applyConfirmationToMeetingView(previous, response)
       );
 
       /*
-       * 서버 값과 맞추는 재조회는 기다리지 않는다. 기다리면 현재 화면이 먼저 갱신돼, 확정
-       * 카드가 그려지는 것을 보고 나서야 확정 화면으로 넘어간다.
+       * 서버 값과 맞추는 재조회는 기다리지 않는다. 기다리면 확정 카드가 뜨기까지 왕복을
+       * 한 번 더 기다리게 된다.
        *
        * 정렬을 바꿔 담아 둔 후보 캐시까지 함께 지우려고 params 없는 키로 무효화한다.
        */
       void queryClient.invalidateQueries({ queryKey: getGetScheduleViewQueryKey(inviteCode) });
+      void queryClient.invalidateQueries({ queryKey: getGetMeetingViewQueryKey(inviteCode) });
       void queryClient.invalidateQueries({ queryKey: getGetMyMeetingsQueryKey() });
-
-      if (toConfirmationOutcome(response) === 'final') {
-        router.replace(`/meetings/confirmed?code=${inviteCode}`);
-        return;
-      }
 
       toast.add({ description: SUCCESS_MESSAGE });
       onPartialConfirm?.();
