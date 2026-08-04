@@ -7,7 +7,14 @@ export {
   type GuestParticipationIdentity,
   type MemberParticipationIdentity,
 } from './model/participation-identity';
-export { isParticipationDraftComplete } from './model/is-participation-draft-complete';
+export {
+  isParticipationDraftComplete,
+  hasScheduleResponse,
+} from './model/is-participation-draft-complete';
+export {
+  useParticipationStepGuard,
+  type UseParticipationStepGuardParams,
+} from './model/use-participation-step-guard';
 export { getGuestJoinNextPath, getGuestScheduleNextPath } from './model/guest-join-next-path';
 export { pruneScheduleResponse } from './model/prune-schedule-response';
 export { toGuestJoinRequest, type GuestJoinDraftSnapshot } from './model/to-guest-join-request';

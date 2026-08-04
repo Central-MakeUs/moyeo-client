@@ -119,20 +119,14 @@ describe('DeparturePage', () => {
     expect(body.departure).toEqual({ ...GANGNAM, transportationMode: 'CAR' });
   });
 
-  it('SCHEDULE_AND_PLACE에서 뒤로가기를 탭하면 일정 화면으로 이동한다', async () => {
+  // 뒤로가기는 참여 상단바(ParticipationTopBar)가 맡는다. 화면은 상단바를 그리지 않는다.
+
+  it('일정+장소 모임인데 일정을 아직 안 골랐으면 일정 화면으로 돌려보낸다', () => {
+    useParticipationDraft.setState({ scheduleResponse: null });
+
     renderPage('SCHEDULE_AND_PLACE');
 
-    await userEvent.click(screen.getByRole('button', { name: '뒤로가기' }));
-
-    expect(push).toHaveBeenCalledWith('/i/ABC123/respond/schedule');
-  });
-
-  it('PLACE_ONLY에서 뒤로가기를 탭하면 게스트 진입 화면으로 이동한다', async () => {
-    renderPage('PLACE_ONLY');
-
-    await userEvent.click(screen.getByRole('button', { name: '뒤로가기' }));
-
-    expect(push).toHaveBeenCalledWith('/i/ABC123/guest');
+    expect(replace).toHaveBeenCalledWith('/i/ABC123/respond/schedule');
   });
 
   it('초안이 없으면 게스트 진입 화면으로 돌려보낸다', () => {

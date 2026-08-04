@@ -8,8 +8,7 @@ import type { MeetingInvitationResponsePlanningType, ScheduleResponseRequest } f
 
 import { getGuestScheduleNextPath } from './guest-join-next-path';
 import { useParticipationDraft } from './participation-draft';
-import { isDraftUsableFor } from './participation-identity';
-import { participationEntryPath } from './participation-path';
+import { useParticipationStepGuard } from './use-participation-step-guard';
 import { useSubmitParticipation } from './use-submit-participation';
 
 export interface UseParticipationScheduleStepParams {
@@ -44,7 +43,6 @@ export function useParticipationScheduleStep({
 }: UseParticipationScheduleStepParams): UseParticipationScheduleStepReturn {
   const router = useRouter();
 
-  const identity = useParticipationDraft((state) => state.identity);
   const scheduleResponse = useParticipationDraft((state) => state.scheduleResponse);
   const setScheduleResponse = useParticipationDraft((state) => state.setScheduleResponse);
   const syncCandidateDates = useParticipationDraft((state) => state.syncCandidateDates);
@@ -54,12 +52,7 @@ export function useParticipationScheduleStep({
     planningType,
   });
 
-  const isDraftUsable = isDraftUsableFor(identity, inviteToken);
-
-  // 초안이 없거나 다른 모임 것이면 쓸 수 없다. 신원부터 다시 받는다(prd.md ADR-2).
-  useEffect(() => {
-    if (!isDraftUsable) router.replace(participationEntryPath(inviteToken, 'guest'));
-  }, [isDraftUsable, inviteToken, router]);
+  useParticipationStepGuard('schedule', { inviteToken, planningType });
 
   // 모임장이 후보 날짜를 바꿨을 수 있다. 서버 값으로 무효한 선택을 걷어낸다(prd.md ADR-4).
   useEffect(() => {
