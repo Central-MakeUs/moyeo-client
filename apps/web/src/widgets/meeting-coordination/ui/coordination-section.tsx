@@ -8,6 +8,7 @@ import { EditResponseButton } from '@/features/meeting/edit-response';
 import { useGetMeetingView } from '@/shared/api';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui';
 
+import { useCoordinationTab } from '../model/use-coordination-tab';
 import { useEditResponseAvailability } from '../model/use-edit-response-availability';
 import { ConfirmedNoticeCard } from './confirmed-notice-card';
 import { ParticipantDeparturesSection } from './participant-departures-section';
@@ -65,6 +66,8 @@ export function CoordinationSection({
   planningType,
   capacity,
 }: CoordinationSectionProps): React.JSX.Element {
+  const { tab, selectTab } = useCoordinationTab();
+
   // 현황 화면이 이미 읽은 조회다. 확정 여부와 확정된 값을 함께 준다.
   const { data: meeting } = useGetMeetingView(inviteCode, {
     query: { enabled: inviteCode.length > 0 },
@@ -116,8 +119,13 @@ export function CoordinationSection({
   }
 
   return (
-    // 탭과 본문 간격이 탭마다 다르다(카드 유무). 그래서 TabsContent가 각자 정한다.
-    <Tabs defaultValue="schedule" className="gap-0">
+    /*
+     * 탭과 본문 간격이 탭마다 다르다(카드 유무). 그래서 TabsContent가 각자 정한다.
+     *
+     * 시작 탭은 URL에서 읽고, 바뀌면 URL에 적는다. 완전 제어(value)로 두면 탭 표시가 주소
+     * 갱신이 끝나기를 기다리게 된다 — 누르자마자 바뀌어야 하는 UI다.
+     */
+    <Tabs defaultValue={tab} onValueChange={selectTab} className="gap-0">
       <TabsList>
         <TabsTrigger value="schedule">일정 조율 현황</TabsTrigger>
         <TabsTrigger value="place">위치 조율 현황</TabsTrigger>

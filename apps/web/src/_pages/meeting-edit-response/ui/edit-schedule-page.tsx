@@ -54,7 +54,7 @@ function EditScheduleContent(): React.JSX.Element {
     query: { enabled: inviteCode.length > 0 },
   });
 
-  const close = useCloseEditScreen(inviteCode);
+  const close = useCloseEditScreen(inviteCode, 'schedule');
   const { saveSchedule, isSaving } = useSaveMyResponse(inviteCode, { onSaved: close });
 
   /** 화면에서 고친 값. 아직 손대지 않았으면 `null`이고 서버 값을 그대로 보여준다. */

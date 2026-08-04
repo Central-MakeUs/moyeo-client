@@ -37,7 +37,7 @@ function EditDepartureContent(): React.JSX.Element {
   const router = useRouter();
   const inviteCode = useInviteCodeParam();
   const { data, isLoading, isError } = useMyParticipation(inviteCode);
-  const close = useCloseEditScreen(inviteCode);
+  const close = useCloseEditScreen(inviteCode, 'place');
   const { saveDeparture, isSaving } = useSaveMyResponse(inviteCode, { onSaved: close });
 
   const departure = useEditDepartureDraft((state) => state.departure);
