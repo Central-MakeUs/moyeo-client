@@ -13,7 +13,7 @@ import {
 import { CTASection } from '@/shared/ui/cta-section';
 import { PageHeader } from '@/shared/ui/page-header';
 
-export interface GuestSchedulePageProps {
+export interface SchedulePageProps {
   inviteToken: string;
   planningType: MeetingInvitationResponsePlanningType;
   /** 서버가 준 후보 날짜. 'yyyy-MM-dd' */
@@ -27,12 +27,12 @@ export interface GuestSchedulePageProps {
  *
  * `DATE_ONLY` 모임에서만 쓴다. `DATE_AND_TIME`은 시간표를 쓰며 `GuestScheduleTimesPage`가 맡는다.
  */
-export function GuestSchedulePage({
+export function SchedulePage({
   inviteToken,
   planningType,
   candidateDates,
   serverToday,
-}: GuestSchedulePageProps) {
+}: SchedulePageProps) {
   const { scheduleResponse, setScheduleResponse, isSubmitting, proceed } = useGuestScheduleStep({
     inviteToken,
     planningType,

@@ -16,3 +16,7 @@ export { useGuestScheduleStep } from './model/use-guest-schedule-step';
 export { getGuestEntryNextPath } from './model/guest-entry-next-path';
 export { toGuestEntryType } from './model/to-guest-entry-type';
 export { useGuestEntry, type GuestEntryError } from './model/use-guest-entry';
+export { useMemberJoinDraft, type MemberIdentity } from './model/member-join-draft';
+export { toMemberJoinRequest, type MemberJoinDraftSnapshot } from './model/to-member-join-request';
+export { useSubmitMemberJoin } from './model/use-submit-member-join';
+export { useDepartureStep } from './model/use-departure-step';

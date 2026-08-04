@@ -8,7 +8,9 @@ import type { MeetingInvitationResponsePlanningType, ScheduleResponseRequest } f
 
 import { useGuestJoinDraft } from './guest-join-draft';
 import { getGuestScheduleNextPath } from './guest-join-next-path';
+import { useMemberJoinDraft } from './member-join-draft';
 import { useSubmitGuestJoin } from './use-submit-guest-join';
+import { useSubmitMemberJoin } from './use-submit-member-join';
 import { isDraftUsableFor } from './validate-guest-identity';
 
 export interface UseGuestScheduleStepParams {
@@ -45,23 +47,30 @@ export function useGuestScheduleStep({
   const scheduleResponse = useGuestJoinDraft((state) => state.scheduleResponse);
   const setScheduleResponse = useGuestJoinDraft((state) => state.setScheduleResponse);
   const syncCandidateDates = useGuestJoinDraft((state) => state.syncCandidateDates);
+  const memberIdentity = useMemberJoinDraft((state) => state.identity);
+  const memberScheduleResponse = useMemberJoinDraft((state) => state.scheduleResponse);
+  const setMemberScheduleResponse = useMemberJoinDraft((state) => state.setScheduleResponse);
+  const syncMemberCandidateDates = useMemberJoinDraft((state) => state.syncCandidateDates);
 
-  const { submit, isSubmitting } = useSubmitGuestJoin({
+  const guestSubmit = useSubmitGuestJoin({
     inviteCode: inviteToken,
     planningType,
   });
+  const memberSubmit = useSubmitMemberJoin({ inviteCode: inviteToken, planningType });
 
   const isDraftUsable = isDraftUsableFor(identity, inviteToken);
+  const isMemberDraftUsable = isDraftUsableFor(memberIdentity, inviteToken);
 
   // 초안이 없거나 다른 모임 것이면 쓸 수 없다. 신원부터 다시 받는다(prd.md ADR-2).
   useEffect(() => {
-    if (!isDraftUsable) router.replace(`/i/${inviteToken}/guest`);
-  }, [isDraftUsable, inviteToken, router]);
+    if (!isDraftUsable && !isMemberDraftUsable) router.replace(`/i/${inviteToken}/guest`);
+  }, [isDraftUsable, isMemberDraftUsable, inviteToken, router]);
 
   // 모임장이 후보 날짜를 바꿨을 수 있다. 서버 값으로 무효한 선택을 걷어낸다(prd.md ADR-4).
   useEffect(() => {
-    syncCandidateDates(candidateDates);
-  }, [syncCandidateDates, candidateDates]);
+    if (isMemberDraftUsable) syncMemberCandidateDates(candidateDates);
+    else syncCandidateDates(candidateDates);
+  }, [isMemberDraftUsable, syncCandidateDates, syncMemberCandidateDates, candidateDates]);
 
   const proceed = async () => {
     const nextPath = getGuestScheduleNextPath(inviteToken, planningType);
@@ -70,8 +79,14 @@ export function useGuestScheduleStep({
       return;
     }
 
-    await submit();
+    if (isMemberDraftUsable) await memberSubmit.submit();
+    else await guestSubmit.submit();
   };
 
-  return { scheduleResponse, setScheduleResponse, isSubmitting, proceed };
+  return {
+    scheduleResponse: isMemberDraftUsable ? memberScheduleResponse : scheduleResponse,
+    setScheduleResponse: isMemberDraftUsable ? setMemberScheduleResponse : setScheduleResponse,
+    isSubmitting: isMemberDraftUsable ? memberSubmit.isSubmitting : guestSubmit.isSubmitting,
+    proceed,
+  };
 }

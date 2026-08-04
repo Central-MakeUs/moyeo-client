@@ -1,16 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
-
 import { useRouter } from 'next/navigation';
 
 import { DepartureRadioGroup } from '@/features/meeting/create-meeting';
-import {
-  isDraftUsableFor,
-  isGuestJoinDraftComplete,
-  useGuestJoinDraft,
-  useSubmitGuestJoin,
-} from '@/features/meeting/invite-participation';
+import { useDepartureStep } from '@/features/meeting/invite-participation';
 import type { MeetingInvitationResponsePlanningType } from '@/shared/api';
 import { Button } from '@/shared/ui/button';
 import { CTASection } from '@/shared/ui/cta-section';
@@ -19,44 +12,27 @@ import { InputButton } from '@/shared/ui/input-button';
 import { PageHeader } from '@/shared/ui/page-header';
 import { TopAppBar } from '@/shared/ui/top-app-bar';
 
-export interface GuestDeparturePageProps {
+export interface DeparturePageProps {
   inviteToken: string;
   planningType: MeetingInvitationResponsePlanningType;
 }
 
 /**
- * 게스트가 출발지와 이동수단을 고르고 참여를 제출하는 화면.
+ * 참여자가 출발지와 이동수단을 고르고 참여를 제출하는 화면.
  *
  * `PLACE_ONLY`·`SCHEDULE_AND_PLACE` 모임의 마지막 입력 단계라 여기서 제출까지 끝난다.
  */
-export function GuestDeparturePage({ inviteToken, planningType }: GuestDeparturePageProps) {
+export function DeparturePage({ inviteToken, planningType }: DeparturePageProps) {
   const router = useRouter();
-
-  const identity = useGuestJoinDraft((state) => state.identity);
-  const scheduleResponse = useGuestJoinDraft((state) => state.scheduleResponse);
-  const departure = useGuestJoinDraft((state) => state.departure);
-  const transportationMode = useGuestJoinDraft((state) => state.transportationMode);
-  const setTransportationMode = useGuestJoinDraft((state) => state.setTransportationMode);
-
-  const { submit, isSubmitting } = useSubmitGuestJoin({ inviteCode: inviteToken, planningType });
-
-  const isDraftUsable = isDraftUsableFor(identity, inviteToken);
-
-  // 초안이 없거나 다른 모임 것이면 쓸 수 없다. 신원부터 다시 받는다(prd.md ADR-2).
-  useEffect(() => {
-    if (!isDraftUsable) router.replace(`/i/${inviteToken}/guest`);
-  }, [isDraftUsable, inviteToken, router]);
-
-  // 일정을 거쳐 왔으면 일정 화면으로, 아니면 진입 화면으로 되돌아간다.
-  const backPath =
-    planningType === 'SCHEDULE_AND_PLACE'
-      ? `/i/${inviteToken}/respond/schedule`
-      : `/i/${inviteToken}/guest`;
-
-  const isComplete = isGuestJoinDraftComplete(
-    { scheduleResponse, departure, transportationMode },
-    planningType
-  );
+  const {
+    backPath,
+    departure,
+    transportationMode,
+    setTransportationMode,
+    isComplete,
+    isSubmitting,
+    submit,
+  } = useDepartureStep({ inviteToken, planningType });
 
   return (
     <div className="flex min-h-dvh flex-col bg-white">
@@ -81,7 +57,7 @@ export function GuestDeparturePage({ inviteToken, planningType }: GuestDeparture
           <InputButton
             label="출발지"
             value={departure?.name}
-            placeholder="서울·경기 내 출발지를 검색해주세요"
+            placeholder="출발지를 입력해주세요"
             onClick={() => router.push(`/i/${inviteToken}/respond/departure/search`)}
           />
 

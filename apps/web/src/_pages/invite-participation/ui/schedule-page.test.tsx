@@ -2,14 +2,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { useGuestJoinDraft } from '@/features/meeting/invite-participation';
+import { useGuestJoinDraft, useMemberJoinDraft } from '@/features/meeting/invite-participation';
 
-import { GuestSchedulePage } from './guest-schedule-page';
+import { SchedulePage } from './schedule-page';
 
-const { push, replace, joinGuest, writeGuestSession } = vi.hoisted(() => ({
+const { push, replace, joinGuest, joinMember, writeGuestSession } = vi.hoisted(() => ({
   push: vi.fn(),
   replace: vi.fn(),
   joinGuest: vi.fn(),
+  joinMember: vi.fn(),
   writeGuestSession: vi.fn(),
 }));
 
@@ -20,6 +21,7 @@ vi.mock('next/navigation', () => ({
 vi.mock('@/shared/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/shared/api')>()),
   joinGuest,
+  joinMember,
 }));
 
 vi.mock('@/entities/guest-session', async (importOriginal) => ({
@@ -35,7 +37,7 @@ const SERVER_TODAY = '2026-08-01';
 
 const renderPage = (candidateDates: string[] = CANDIDATE_DATES, serverToday = SERVER_TODAY) =>
   render(
-    <GuestSchedulePage
+    <SchedulePage
       inviteToken="ABC123"
       planningType="SCHEDULE_ONLY"
       candidateDates={candidateDates}
@@ -55,11 +57,14 @@ beforeEach(() => {
   replace.mockReset();
   joinGuest.mockReset();
   joinGuest.mockResolvedValue({});
+  joinMember.mockReset();
+  joinMember.mockResolvedValue({});
   writeGuestSession.mockReset();
   useGuestJoinDraft.setState({ identity: IDENTITY, scheduleResponse: null });
+  useMemberJoinDraft.getState().reset();
 });
 
-describe('GuestSchedulePage', () => {
+describe('SchedulePage', () => {
   it('후보 날짜가 두 개면 두 날짜가 선택 가능한 상태로 보인다', () => {
     renderPage();
 
@@ -104,6 +109,40 @@ describe('GuestSchedulePage', () => {
       password: '1234',
       scheduleResponse: { availableDates: ['2026-08-15'] },
     });
+  });
+
+  it('회원 초안이면 일정 선택을 회원 초안에 저장한다', async () => {
+    useGuestJoinDraft.getState().reset();
+    useMemberJoinDraft.setState({
+      identity: { inviteToken: 'ABC123', nickname: '소미' },
+      scheduleResponse: null,
+    });
+    renderPage();
+
+    await userEvent.click(dateCell('2026-08-15'));
+
+    expect(useMemberJoinDraft.getState().scheduleResponse).toEqual({
+      availableDates: ['2026-08-15'],
+    });
+  });
+
+  it('일정만 조율하는 회원은 joinMember를 호출하고 참여 완료 화면으로 이동한다', async () => {
+    useGuestJoinDraft.getState().reset();
+    useMemberJoinDraft.setState({
+      identity: { inviteToken: 'ABC123', nickname: '소미' },
+      scheduleResponse: null,
+    });
+    renderPage();
+
+    await userEvent.click(dateCell('2026-08-15'));
+    await userEvent.click(screen.getByRole('button', { name: '참여하기' }));
+
+    expect(joinMember).toHaveBeenCalledTimes(1);
+    expect(joinMember).toHaveBeenCalledWith('ABC123', {
+      nickname: '소미',
+      scheduleResponse: { availableDates: ['2026-08-15'] },
+    });
+    expect(replace).toHaveBeenCalledWith('/i/ABC123/complete');
   });
 
   it('제출이 성공하면 초안을 유지한 채 참여 완료 화면으로 이동한다', async () => {

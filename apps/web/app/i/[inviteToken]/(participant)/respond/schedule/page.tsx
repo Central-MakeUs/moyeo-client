@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 
 import { fetchInvitationForPage, type InvitePageProps } from '@/_pages/invite';
-import { GuestSchedulePage, GuestScheduleTimesPage } from '@/_pages/invite-guest';
+import { GuestScheduleTimesPage } from '@/_pages/invite-guest';
+import { SchedulePage } from '@/_pages/invite-participation';
 import { fetchServerToday } from '@/shared/api';
 
 export default async function RespondSchedulePage({ params }: InvitePageProps) {
@@ -37,7 +38,7 @@ export default async function RespondSchedulePage({ params }: InvitePageProps) {
     .filter((date): date is string => date !== undefined);
 
   return (
-    <GuestSchedulePage
+    <SchedulePage
       inviteToken={inviteToken}
       planningType={invitation.planningType}
       candidateDates={candidateDates}

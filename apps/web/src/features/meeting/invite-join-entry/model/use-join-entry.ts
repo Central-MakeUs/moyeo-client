@@ -20,6 +20,8 @@ export interface UseJoinEntryParams {
 export interface UseJoinEntryReturn {
   /** 참여하기를 누를 수 없는 상태. 버튼 `disabled`에 그대로 쓴다. */
   isBlocked: boolean;
+  /** 참여하기를 눌러 인증 조회 중인 상태. 버튼 `loading`에 그대로 쓴다. */
+  isChecking: boolean;
   /** 로그인 Drawer 열림 상태. */
   isDrawerOpen: boolean;
   /** 로그인 Drawer 구성(prd.md ADR-5). WebView 안이면 `member`. */
@@ -130,7 +132,8 @@ export function useJoinEntry({ inviteCode, canJoin }: UseJoinEntryParams): UseJo
   };
 
   return {
-    isBlocked: destination.type === 'blocked' || isChecking,
+    isBlocked: destination.type === 'blocked',
+    isChecking,
     isDrawerOpen,
     // 앱 WebView 안에서는 게스트 참여를 제공하지 않는다(prd.md ADR-5).
     drawerType: isNativeContext() ? 'member' : 'guest',

@@ -10,6 +10,7 @@ import { PageHeader } from '@/shared/ui/page-header';
 import { LoginDrawer, type LoginDrawerProps } from '@/widgets/login-drawer';
 
 import { toParticipationGuide } from '../config/participation-guide';
+import Link from 'next/link';
 
 export interface InviteLandingPageProps {
   /** 경로의 초대 코드. 참여 경로 조립에 쓴다. */
@@ -29,6 +30,7 @@ export function InviteLandingPage({
 
   const {
     isBlocked,
+    isChecking,
     isDrawerOpen,
     drawerType,
     participate,
@@ -91,18 +93,20 @@ export function InviteLandingPage({
                   fullWidth
                   variant="ghost"
                   className="text-neutral-500 hover:text-neutral-400"
-                  // VIEW-01(/meetings/[meetingId])이 아직 없어 갈 곳이 없다.
-                  // 화면이 생기면 #146 이후 이슈에서 활성 조건을 붙인다(prd.md §4).
+                  asChild
                   disabled
                 >
-                  <span className="text-bold-14 underline underline-offset-3">
+                  <Link
+                    href={`/meetings?code=${inviteCode}`}
+                    className="text-bold-14 underline underline-offset-3"
+                  >
                     진행상황 확인하기
-                  </span>
+                  </Link>
                 </Button>
               )
             }
             primaryAction={
-              <Button fullWidth onClick={participate} disabled={isBlocked}>
+              <Button fullWidth onClick={participate} disabled={isBlocked} isLoading={isChecking}>
                 모임 참여하기
               </Button>
             }

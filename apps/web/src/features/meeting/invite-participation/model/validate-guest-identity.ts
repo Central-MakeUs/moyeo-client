@@ -14,6 +14,9 @@ export function isValidGuestPassword(value: string): boolean {
  * 초대 링크에 도달하면 남아 있을 수 있습니다. 그대로 쓰면 다른 모임에 잘못된 닉네임·일정이
  * 제출됩니다(prd.md ADR-2).
  */
-export function isDraftUsableFor(identity: GuestIdentity | null, inviteToken: string): boolean {
+export function isDraftUsableFor(
+  identity: Pick<GuestIdentity, 'inviteToken'> | null,
+  inviteToken: string
+): boolean {
   return identity !== null && identity.inviteToken === inviteToken;
 }
