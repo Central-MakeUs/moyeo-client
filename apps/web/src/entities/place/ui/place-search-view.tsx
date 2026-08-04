@@ -13,7 +13,7 @@ import type { DepartureDraft } from '../model/departure-draft';
 import { toPlaceLabel } from '../model/to-place-label';
 import { usePlaceSearch } from '../model/use-place-search';
 
-const SEARCH_IDLE = '출발지를 검색해 주세요';
+const SEARCH_IDLE = '서울·경기 내 출발지를 검색해주세요';
 const SEARCH_EMPTY = '에 대한 검색 결과가 없어요';
 const SEARCH_ERROR = '검색 결과를 불러오지 못했어요';
 
@@ -71,7 +71,7 @@ export function PlaceSearchView({
           <SearchField
             aria-label="출발지 검색"
             autoFocus
-            placeholder="출발지를 입력해주세요"
+            placeholder="서울·경기 내 출발지를 검색해주세요"
             value={inputValue}
             onChange={(event) => setInputValue(event.target.value)}
             onClear={() => setInputValue('')}

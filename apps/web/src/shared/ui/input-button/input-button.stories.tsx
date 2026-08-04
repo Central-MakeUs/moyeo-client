@@ -63,7 +63,7 @@ const meta = {
   },
   args: {
     label: '내 출발지',
-    placeholder: '출발지를 입력해주세요',
+    placeholder: '서울·경기 내 출발지를 검색해주세요',
     trailingIcon: 'chevron-right',
     rotateIconOnOpen: false,
     disabled: false,
