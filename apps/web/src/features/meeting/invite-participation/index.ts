@@ -19,3 +19,4 @@ export { useGuestEntry, type GuestEntryError } from './model/use-guest-entry';
 export { useMemberJoinDraft, type MemberIdentity } from './model/member-join-draft';
 export { toMemberJoinRequest, type MemberJoinDraftSnapshot } from './model/to-member-join-request';
 export { useSubmitMemberJoin } from './model/use-submit-member-join';
+export { useDepartureStep } from './model/use-departure-step';
