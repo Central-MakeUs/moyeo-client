@@ -8,6 +8,7 @@ import { EditResponseButton } from '@/features/meeting/edit-response';
 import { useGetMeetingView } from '@/shared/api';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui';
 
+import { useEditResponseAvailability } from '../model/use-edit-response-availability';
 import { ConfirmedNoticeCard } from './confirmed-notice-card';
 import { ParticipantDeparturesSection } from './participant-departures-section';
 import { PlaceRecommendationsSection } from './place-recommendations-section';
@@ -33,13 +34,21 @@ function PlaceTabContent({
   capacity: number;
   isConfirmed: boolean;
 }): React.JSX.Element {
+  const editResponse = useEditResponseAvailability(inviteCode, isConfirmed);
+
   return (
     <div className="flex flex-col gap-6">
       <PlaceRecommendationsSection inviteCode={inviteCode} isConfirmed={isConfirmed} />
       <ParticipantDeparturesSection inviteCode={inviteCode} capacity={capacity} />
-      <div className="flex justify-center">
-        <EditResponseButton inviteCode={inviteCode} target="departure" />
-      </div>
+      {editResponse.isVisible && (
+        <div className="flex justify-center">
+          <EditResponseButton
+            inviteCode={inviteCode}
+            target="departure"
+            disabled={editResponse.isDisabled}
+          />
+        </div>
+      )}
     </div>
   );
 }

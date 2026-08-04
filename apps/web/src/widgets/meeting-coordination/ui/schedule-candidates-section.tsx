@@ -18,6 +18,7 @@ import { Icon } from '@/shared/ui/icon';
 
 import { useMeetingHost } from '../model/use-meeting-host';
 import { useViewerIdentity } from '../model/use-viewer-identity';
+import { useEditResponseAvailability } from '../model/use-edit-response-availability';
 
 const SORT_DESCRIPTIONS: Record<ScheduleSort, string> = {
   EARLIEST_DATE: '가장 많은 인원이 가장 빨리 만날 수 있는 순서로 보여드려요',
@@ -39,6 +40,8 @@ export function ScheduleCandidatesSection({
 
   const viewer = useViewerIdentity(inviteCode);
   const { participantId: hostParticipantId, isViewerHost } = useMeetingHost(inviteCode);
+
+  const editResponse = useEditResponseAvailability(inviteCode, isConfirmed);
 
   /**
    * 상세를 열어 둔 후보. 후보 자체를 담는다 — 인덱스로 들고 있으면 정렬을 바꾸는 순간
@@ -93,7 +96,13 @@ export function ScheduleCandidatesSection({
           <div className="flex flex-col items-center gap-3 rounded-12 bg-neutral-10 px-4 py-[30px]">
             <Icon name="calendar-neutral" size={30} />
             <span className="text-bold-14 text-neutral-400">겹치는 일정이 없어요</span>
-            <EditResponseButton inviteCode={inviteCode} target="schedule" />
+            {editResponse.isVisible && (
+              <EditResponseButton
+                inviteCode={inviteCode}
+                target="schedule"
+                disabled={editResponse.isDisabled}
+              />
+            )}
           </div>
         ) : (
           <div className="flex flex-col gap-6">
@@ -110,9 +119,15 @@ export function ScheduleCandidatesSection({
                 />
               ))}
             </div>
-            <div className="flex justify-center">
-              <EditResponseButton inviteCode={inviteCode} target="schedule" />
-            </div>
+            {editResponse.isVisible && (
+              <div className="flex justify-center">
+                <EditResponseButton
+                  inviteCode={inviteCode}
+                  target="schedule"
+                  disabled={editResponse.isDisabled}
+                />
+              </div>
+            )}
           </div>
         ))}
 
