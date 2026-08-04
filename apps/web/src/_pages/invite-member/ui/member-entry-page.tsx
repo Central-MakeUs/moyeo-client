@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { isValidNickname } from '@/entities/nickname';
@@ -11,6 +11,7 @@ import {
 import type { MeetingInvitationResponsePlanningType } from '@/shared/api';
 import { PageHeader } from '@/shared/ui/page-header';
 import { ParticipantIdentityForm } from '@/shared/ui/participant-identity-form';
+import { useSession } from '@/entities/session';
 
 const NICKNAME_HINT = '* 2~10자로 공백없이 한글과 영어만 입력해주세요';
 
@@ -25,6 +26,19 @@ export function MemberEntryPage({ inviteToken, planningType }: MemberEntryPagePr
   const [nickname, setNickname] = useState('');
   const isNicknameValid = isValidNickname(nickname);
   const showNicknameError = nickname.length > 0 && !isNicknameValid;
+
+  const session = useSession();
+
+  const hasPrefilledRef = useRef(false);
+
+  const savedNickname = session.status === 'authenticated' ? session.viewer.nickname : null;
+
+  useEffect(() => {
+    if (hasPrefilledRef.current || !savedNickname) return;
+
+    hasPrefilledRef.current = true;
+    setNickname(savedNickname);
+  }, [savedNickname]);
 
   const handleSubmit = () => {
     if (!isNicknameValid) return;
