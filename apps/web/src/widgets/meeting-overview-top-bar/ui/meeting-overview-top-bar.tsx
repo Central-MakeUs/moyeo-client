@@ -125,7 +125,7 @@ export function MeetingOverviewTopBar({
   // 커버 위에서는 흰색, 본문에 가려진 뒤에는 어둡게.
   const iconColorClass = cn(
     'transition-colors duration-200',
-    isScrolled ? 'text-neutral-950' : 'text-white'
+    isScrolled ? 'text-neutral-950 hover:bg-neutral-20' : 'text-white hover:bg-white/20'
   );
 
   /** 그 항목을 지금 실행할 수 있는지. 필요한 식별자가 아직 없으면 열지 않는다. */
