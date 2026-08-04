@@ -1,4 +1,4 @@
-import type { MeetingConfirmationResponse } from '@/shared/api';
+import type { MeetingConfirmationResponse, MeetingViewResponse } from '@/shared/api';
 
 /**
  * 일정·장소 확정 요청의 결과. 확정 후 어디로 갈지가 여기서 갈린다.
@@ -21,4 +21,29 @@ export type ConfirmationOutcome =
  */
 export function toConfirmationOutcome(response: MeetingConfirmationResponse): ConfirmationOutcome {
   return response.status === 'CONFIRMED' ? 'final' : 'partial';
+}
+
+/**
+ * 확정 결과를 모임 현황 캐시에 얹는다.
+ *
+ * 확정 응답이 확정된 일정·장소를 그대로 주므로 서버를 다시 읽지 않아도 화면을 맞출 수 있다.
+ * 재조회를 기다렸다 움직이면 확정 카드가 그려지는 것을 본 뒤에야 확정 화면으로 넘어간다.
+ *
+ * 아직 읽은 적 없는 캐시는 건드리지 않는다 — 지어낸 값으로 채우면 나머지 필드가 비어 있는
+ * 모임이 잠깐 보인다.
+ */
+export function applyConfirmationToMeetingView(
+  previous: MeetingViewResponse | undefined,
+  response: MeetingConfirmationResponse
+): MeetingViewResponse | undefined {
+  if (!previous) return previous;
+
+  return {
+    ...previous,
+    confirmedScheduleDate: response.scheduleDate ?? null,
+    confirmedStartTime: response.startTime ?? null,
+    confirmedEndTime: response.endTime ?? null,
+    confirmedPlaceName: response.placeName ?? null,
+    meetingConfirmed: response.status === 'CONFIRMED',
+  };
 }

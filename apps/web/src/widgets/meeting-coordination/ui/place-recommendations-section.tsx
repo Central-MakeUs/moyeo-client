@@ -12,12 +12,18 @@ import { useGetMeetingView } from '@/shared/api';
 
 import { useMeetingHost } from '../model/use-meeting-host';
 
+/** 서버가 확정을 받아주는 최소 인원(MEETING_CONFIRMATION_NOT_READY). */
+const MIN_PARTICIPANTS_TO_CONFIRM = 2;
+
 export interface PlaceRecommendationsSectionProps {
   inviteCode: string;
+  /** 장소가 이미 확정됐는지. 확정 후에는 다시 확정할 수 없다. */
+  isConfirmed?: boolean;
 }
 
 export function PlaceRecommendationsSection({
   inviteCode,
+  isConfirmed = false,
 }: PlaceRecommendationsSectionProps): React.JSX.Element {
   const { data, isLoading, isError } = usePlaceViewQuery(inviteCode);
   const { isViewerHost } = useMeetingHost(inviteCode);
@@ -35,6 +41,16 @@ export function PlaceRecommendationsSection({
     inviteCode,
     onPartialConfirm: () => setConfirmTarget(null),
   });
+
+  /*
+   * 확정은 활성 참여자가 둘 이상이어야 한다. 모임장 혼자인 모임에서도 추천은 나오므로,
+   * 막지 않으면 눌러 놓고 서버에서 409(MEETING_CONFIRMATION_NOT_READY)를 받는다.
+   *
+   * 일정 쪽은 같은 제약이 있어도 드러나지 않는다. 후보 자체가 둘 이상 가능할 때만 생겨
+   * 혼자인 모임에는 누를 대상이 없다.
+   */
+  const hasEnoughParticipants = (data?.participantCount ?? 0) >= MIN_PARTICIPANTS_TO_CONFIRM;
+  const canConfirm = isViewerHost && !isConfirmed && hasEnoughParticipants;
 
   return (
     <section className="flex flex-col gap-4 px-0.5">
@@ -69,8 +85,7 @@ export function PlaceRecommendationsSection({
                 dongName={recommendation.dongName}
                 averageTravelTimeSeconds={recommendation.averageTravelTimeSeconds}
                 station={recommendation.station}
-                // 장소를 확정할 수 있는 모임장에게만 고를 수 있게 한다.
-                onClick={isViewerHost ? () => setConfirmTarget(recommendation) : undefined}
+                onClick={canConfirm ? () => setConfirmTarget(recommendation) : undefined}
               />
             ))}
           </div>

@@ -8,9 +8,11 @@
 
 /**
  * 추천 산출 방식입니다. MIDDLE_POINT는 좌표가 있으면 STRAIGHT_LINE_PREVIEW를, 좌표가 하나도 없으면 COORDINATES_PENDING을 반환합니다. RANDOM은 RANDOM_CATALOG_PREVIEW를 반환하고, 장소 조율 모임이 아니면 null입니다.
+ * @nullable
  */
 export type PlaceViewResponseRecommendationBasis =
-  (typeof PlaceViewResponseRecommendationBasis)[keyof typeof PlaceViewResponseRecommendationBasis];
+  | (typeof PlaceViewResponseRecommendationBasis)[keyof typeof PlaceViewResponseRecommendationBasis]
+  | null;
 
 export const PlaceViewResponseRecommendationBasis = {
   STRAIGHT_LINE_PREVIEW: 'STRAIGHT_LINE_PREVIEW',

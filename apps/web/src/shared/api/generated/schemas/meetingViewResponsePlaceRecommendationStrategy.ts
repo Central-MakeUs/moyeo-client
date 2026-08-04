@@ -7,10 +7,12 @@
  */
 
 /**
- * 장소 추천 방식입니다. placeMode가 RECOMMEND일 때만 반환하고, 그 외에는 null입니다.
+ * 장소 추천 방식입니다. placeMode가 RECOMMEND가 아닌 경우 null입니다.
+ * @nullable
  */
 export type MeetingViewResponsePlaceRecommendationStrategy =
-  (typeof MeetingViewResponsePlaceRecommendationStrategy)[keyof typeof MeetingViewResponsePlaceRecommendationStrategy];
+  | (typeof MeetingViewResponsePlaceRecommendationStrategy)[keyof typeof MeetingViewResponsePlaceRecommendationStrategy]
+  | null;
 
 export const MeetingViewResponsePlaceRecommendationStrategy = {
   MIDDLE_POINT: 'MIDDLE_POINT',

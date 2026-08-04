@@ -4,8 +4,23 @@ import {
   formatCandidateDate,
   formatCandidateDuration,
   formatCandidateTimeRange,
+  formatConfirmedMeetingDate,
   formatConfirmedSchedule,
 } from './format-candidate-schedule';
+
+describe('formatConfirmedMeetingDate', () => {
+  it('연도까지 적고 시작 시각을 시 단위로 붙인다', () => {
+    expect(formatConfirmedMeetingDate('2026-07-18', '14:00:00')).toBe('2026년 7월 18일 14시');
+  });
+
+  it('DATE_ONLY 모임은 날짜까지만 보여준다', () => {
+    expect(formatConfirmedMeetingDate('2026-07-18')).toBe('2026년 7월 18일');
+  });
+
+  it('한 자리 시각의 0을 떼고 보여준다', () => {
+    expect(formatConfirmedMeetingDate('2026-03-05', '09:00:00')).toBe('2026년 3월 5일 9시');
+  });
+});
 
 describe('formatConfirmedSchedule', () => {
   it('날짜와 시간 범위를 한 줄로 합친다', () => {

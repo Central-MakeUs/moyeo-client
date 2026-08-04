@@ -18,13 +18,13 @@ function toMeetingSummary(item: Item): MeetingSummary {
     meetingId: item.meetingId ?? 0,
     inviteCode: item.inviteCode ?? '',
     name: item.name ?? '',
-    coverImageUrl: item.coverImageUrl,
+    coverImageUrl: item.coverImageUrl ?? undefined,
     capacity: item.maxParticipants ?? 0,
     joinedCount: item.participantCount ?? 0,
-    confirmedScheduleDate: item.confirmedScheduleDate,
-    confirmedStartTime: item.confirmedStartTime,
-    confirmedEndTime: item.confirmedEndTime,
-    confirmedPlaceName: item.confirmedPlaceName,
+    confirmedScheduleDate: item.confirmedScheduleDate ?? undefined,
+    confirmedStartTime: item.confirmedStartTime ?? undefined,
+    confirmedEndTime: item.confirmedEndTime ?? undefined,
+    confirmedPlaceName: item.confirmedPlaceName ?? undefined,
   };
 }
 

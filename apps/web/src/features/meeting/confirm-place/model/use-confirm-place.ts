@@ -6,12 +6,13 @@ import { useRouter } from 'next/navigation';
 
 import { useQueryClient } from '@tanstack/react-query';
 
-import { toConfirmationOutcome } from '@/entities/meeting';
+import { applyConfirmationToMeetingView, toConfirmationOutcome } from '@/entities/meeting';
 import {
   confirmPlace,
   getGetMeetingViewQueryKey,
   getGetMyMeetingsQueryKey,
   getGetPlaceViewQueryKey,
+  type MeetingViewResponse,
 } from '@/shared/api';
 import { toast } from '@/shared/ui';
 
@@ -60,15 +61,26 @@ export function useConfirmPlace({
       const response = await confirmPlace(meetingId, { commercialAreaCode: areaCode });
 
       if (toConfirmationOutcome(response) === 'final') {
+        /*
+         * 현황 캐시를 건드리지 않고 떠난다. 이동은 즉시 끝나지 않아 이 화면이 잠시 더 붙어
+         * 있는데, 그사이 캐시를 고치면 확정 카드가 한 번 그려졌다 사라진다. 확정 화면은
+         * 도착해서 스스로 다시 읽는다(useMeetingDetailQuery의 fresh 옵션).
+         */
         router.replace(`/meetings/confirmed?code=${inviteCode}`);
+        void queryClient.invalidateQueries({ queryKey: getGetMyMeetingsQueryKey() });
         return;
       }
 
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: getGetPlaceViewQueryKey(inviteCode) }),
-        queryClient.invalidateQueries({ queryKey: getGetMeetingViewQueryKey(inviteCode) }),
-        queryClient.invalidateQueries({ queryKey: getGetMyMeetingsQueryKey() }),
-      ]);
+      // 화면에 머무르므로 확정 카드가 바로 뜨도록 응답으로 캐시를 맞춘다.
+      queryClient.setQueryData<MeetingViewResponse>(
+        getGetMeetingViewQueryKey(inviteCode),
+        (previous) => applyConfirmationToMeetingView(previous, response)
+      );
+
+      // 서버 값과 맞추는 재조회는 기다리지 않는다. 확정 카드는 위 캐시 갱신으로 이미 뜬다.
+      void queryClient.invalidateQueries({ queryKey: getGetPlaceViewQueryKey(inviteCode) });
+      void queryClient.invalidateQueries({ queryKey: getGetMeetingViewQueryKey(inviteCode) });
+      void queryClient.invalidateQueries({ queryKey: getGetMyMeetingsQueryKey() });
 
       toast.add({ description: SUCCESS_MESSAGE });
       onPartialConfirm?.();

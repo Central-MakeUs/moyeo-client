@@ -46,6 +46,21 @@ export function formatConfirmedSchedule(
   return `${date} ${startTime.slice(0, 5)}~${endTime.slice(0, 5)}`;
 }
 
+/**
+ * "2026년 7월 18일 14시". 모임 확정 화면의 카드에 쓴다.
+ *
+ * 후보 상세·확인 팝업보다 길게 적는다 — 확정된 약속이라 연도까지 밝힌다.
+ * DATE_ONLY 모임은 시간이 없어 날짜까지만 나온다.
+ */
+export function formatConfirmedMeetingDate(scheduleDate: string, startTime?: string): string {
+  const date = format(parseISO(scheduleDate), 'yyyy년 M월 d일', { locale: ko });
+  if (!startTime) return date;
+
+  // "14:00:00" → 14. 분은 시안에 없다.
+  const hour = Number(startTime.slice(0, 2));
+  return `${date} ${hour}시`;
+}
+
 /** "14:00~18:00 (4시간)". 후보 상세 부제목에 쓴다. */
 export function formatCandidateTimeRange(startTime: string, endTime: string): string {
   const range = `${startTime.slice(0, 5)}~${endTime.slice(0, 5)}`;

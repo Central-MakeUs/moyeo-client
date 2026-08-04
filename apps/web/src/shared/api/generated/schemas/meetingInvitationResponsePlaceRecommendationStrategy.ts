@@ -7,15 +7,17 @@
  */
 
 /**
- * 생성 시 선택한 장소 추천 방식입니다. placeMode=RECOMMEND일 때만 값이 있습니다.
+ * 생성 시 선택한 장소 추천 방식입니다. placeMode=RECOMMEND가 아니면 null입니다.
  * 1차 MVP에서는 생성 후 변경하지 않으며, 생성 시점에는 추천 결과나 확정 장소를 만들지 않습니다.
  * <ul>
  *   <li>MIDDLE_POINT: 참여자 출발지를 기준으로 추후 중간지점 추천 진행</li>
  *   <li>RANDOM: 추후 랜덤 방식으로 장소 추천 진행</li>
  * </ul>
+ * @nullable
  */
 export type MeetingInvitationResponsePlaceRecommendationStrategy =
-  (typeof MeetingInvitationResponsePlaceRecommendationStrategy)[keyof typeof MeetingInvitationResponsePlaceRecommendationStrategy];
+  | (typeof MeetingInvitationResponsePlaceRecommendationStrategy)[keyof typeof MeetingInvitationResponsePlaceRecommendationStrategy]
+  | null;
 
 export const MeetingInvitationResponsePlaceRecommendationStrategy = {
   MIDDLE_POINT: 'MIDDLE_POINT',
