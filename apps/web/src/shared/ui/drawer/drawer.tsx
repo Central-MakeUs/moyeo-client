@@ -141,6 +141,19 @@ function DrawerTitle({ className, ...props }: React.ComponentProps<typeof Drawer
   );
 }
 
+function DrawerDescription({
+  className,
+  ...props
+}: React.ComponentProps<typeof DrawerPrimitive.Title>) {
+  return (
+    <DrawerPrimitive.Description
+      data-slot="drawer-description"
+      className={cn('text-bold-14 text-neutral-600', className)}
+      {...props}
+    />
+  );
+}
+
 export {
   Drawer,
   DrawerPortal,
@@ -152,4 +165,5 @@ export {
   DrawerBody,
   DrawerFooter,
   DrawerTitle,
+  DrawerDescription,
 };

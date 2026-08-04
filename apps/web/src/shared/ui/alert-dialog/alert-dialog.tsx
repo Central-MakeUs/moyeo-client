@@ -120,20 +120,27 @@ function AlertDialogFooter({ className, ...props }: React.ComponentProps<'div'>)
   );
 }
 
+/**
+ * Button을 `asChild`로 감싸지 않고 Action이 Button을 감싼다.
+ *
+ * `Button`은 `!asChild && isLoading`일 때만 스피너를 렌더한다(단일 child만 받는 Slot에
+ * 스피너를 끼워 넣을 수 없기 때문). Button이 바깥이면 `isLoading`이 항상 무시되므로
+ * 방향을 뒤집어 Action이 실제 `<button>`인 Button 위로 props를 합치게 한다.
+ */
 function AlertDialogAction({
   className,
   variant = 'default',
+  isLoading,
+  children,
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Action> &
-  Pick<React.ComponentProps<typeof Button>, 'variant'>) {
+  Pick<React.ComponentProps<typeof Button>, 'variant'> & { isLoading?: boolean }) {
   return (
-    <Button variant={variant} fullWidth asChild>
-      <AlertDialogPrimitive.Action
-        data-slot="alert-dialog-action"
-        className={className}
-        {...props}
-      />
-    </Button>
+    <AlertDialogPrimitive.Action data-slot="alert-dialog-action" asChild {...props}>
+      <Button variant={variant} fullWidth isLoading={isLoading} className={className}>
+        {children}
+      </Button>
+    </AlertDialogPrimitive.Action>
   );
 }
 

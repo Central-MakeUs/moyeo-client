@@ -9,4 +9,5 @@ export {
   DrawerPortal,
   DrawerTitle,
   DrawerTrigger,
+  DrawerDescription,
 } from './drawer';
