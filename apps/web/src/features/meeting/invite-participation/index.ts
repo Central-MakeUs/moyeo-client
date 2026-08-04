@@ -29,9 +29,10 @@ export {
   participationProgressPercent,
   previousParticipationStep,
   nextParticipationStep,
-  firstParticipationStep,
+  firstParticipationInputStep,
   lastParticipationStep,
   type ParticipationStep,
+  type ParticipationInputStep,
   type ParticipationFlowInput,
 } from './model/step-config';
 export { resolveParticipationStepRedirect, type ParticipationStepGuardInput } from './model/guard';

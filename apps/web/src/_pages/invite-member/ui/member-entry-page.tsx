@@ -9,10 +9,8 @@ import {
   useParticipationDraft,
 } from '@/features/meeting/invite-participation';
 import type { MeetingInvitationResponsePlanningType } from '@/shared/api';
-import { IconButton } from '@/shared/ui/icon-button';
 import { PageHeader } from '@/shared/ui/page-header';
 import { ParticipantIdentityForm } from '@/shared/ui/participant-identity-form';
-import { TopAppBar } from '@/shared/ui/top-app-bar';
 
 const NICKNAME_HINT = '* 2~10자로 공백없이 한글과 영어만 입력해주세요';
 
@@ -36,39 +34,28 @@ export function MemberEntryPage({ inviteToken, planningType }: MemberEntryPagePr
   };
 
   return (
-    <div className="flex min-h-dvh flex-col bg-white">
-      <TopAppBar
-        leading={
-          <IconButton
-            icon="chevron-left"
-            aria-label="초대장으로 돌아가기"
-            onClick={() => router.push(`/i/${inviteToken}`)}
-          />
+    <div className="flex flex-1 flex-col gap-12">
+      <PageHeader
+        className="px-5 pt-10"
+        title={
+          <>
+            모임에서 사용할 <br />
+            닉네임을 정해주세요
+          </>
         }
+        description="닉네임은 나중에 변경할 수 있어요"
       />
-      <main className="flex flex-1 flex-col gap-12">
-        <PageHeader
-          className="px-5 pt-10"
-          title={
-            <>
-              모임에서 사용할 <br />
-              닉네임을 정해주세요
-            </>
-          }
-          description="닉네임은 나중에 변경할 수 있어요"
-        />
-        <ParticipantIdentityForm
-          nickname={nickname}
-          nicknameLabel="내 닉네임"
-          nicknamePlaceholder="모임에서 사용할 닉네임을 입력해주세요"
-          nicknameDescription={NICKNAME_HINT}
-          nicknameErrorMessage={showNicknameError ? NICKNAME_HINT : undefined}
-          submitLabel="다음"
-          isSubmitDisabled={!isNicknameValid}
-          onNicknameChange={setNickname}
-          onSubmit={handleSubmit}
-        />
-      </main>
+      <ParticipantIdentityForm
+        nickname={nickname}
+        nicknameLabel="내 닉네임"
+        nicknamePlaceholder="모임에서 사용할 닉네임을 입력해주세요"
+        nicknameDescription={NICKNAME_HINT}
+        nicknameErrorMessage={showNicknameError ? NICKNAME_HINT : undefined}
+        submitLabel="다음"
+        isSubmitDisabled={!isNicknameValid}
+        onNicknameChange={setNickname}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 }

@@ -6,7 +6,8 @@ import type { MeetingInvitationResponsePlanningType } from '@/shared/api';
 import { Progress, TopAppBar } from '@/shared/ui';
 import { IconButton } from '@/shared/ui/icon-button';
 
-import { invitationPath } from '../model/participation-path';
+import { useParticipationDraft } from '../model/participation-draft';
+import { invitationPath, participationEntryPath } from '../model/participation-path';
 import {
   participationProgressPercent,
   participationStepFromPath,
@@ -22,8 +23,8 @@ export interface ParticipationTopBarProps {
 /**
  * 참여 입력 화면의 상단바 — 뒤로가기와 진행률을 함께 담는다.
  *
- * 게스트와 회원이 거치는 입력 단계가 같으므로 참여자 종류를 알 필요가 없다.
- * 필요한 것은 `planningType`뿐이다.
+ * 게스트와 회원이 거치는 단계가 같으므로 참여자 종류는 진행률에 영향을 주지 않는다.
+ * `kind`를 보는 곳은 신원 화면의 경로가 `/guest`와 `/nickname`으로 갈리는 지점 하나뿐이다.
  *
  * **스텝 경로가 아니면 아무것도 렌더하지 않는다.** 완료 화면과 출발지 검색 화면은
  * 자기 상단바를 가지고 있어, 여기서도 그리면 상단바가 두 개가 된다.
@@ -31,6 +32,7 @@ export interface ParticipationTopBarProps {
 export function ParticipationTopBar({ inviteToken, planningType }: ParticipationTopBarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const participantKind = useParticipationDraft((state) => state.identity?.kind);
 
   const step = participationStepFromPath(pathname);
   const progress = step === null ? null : participationProgressPercent(step, { planningType });
@@ -50,6 +52,11 @@ export function ParticipationTopBar({ inviteToken, planningType }: Participation
 
     // push가 아니라 replace다. push하면 히스토리가 [.., 이전, 현재, 이전]이 되어
     // 그 다음 시스템 back이 방금 떠난 스텝으로 되돌아간다.
+    if (previous === 'identity') {
+      router.replace(participationEntryPath(inviteToken, participantKind ?? 'guest'));
+      return;
+    }
+
     router.replace(participationStepToPath(inviteToken, previous));
   };
 

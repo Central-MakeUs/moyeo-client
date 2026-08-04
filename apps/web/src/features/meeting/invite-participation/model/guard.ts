@@ -1,7 +1,7 @@
 import type { MeetingInvitationResponsePlanningType } from '@/shared/api';
 
 import {
-  firstParticipationStep,
+  firstParticipationInputStep,
   getParticipationSteps,
   participationStepToPath,
   type ParticipationStep,
@@ -45,6 +45,9 @@ export function resolveParticipationStepRedirect(
     isScheduleComplete,
   }: ParticipationStepGuardInput
 ): string | null {
+  // 신원 입력 화면 자체는 신원이 없어야 정상이다.
+  if (currentStep === 'identity') return null;
+
   if (!hasUsableIdentity) {
     return entryPath;
   }
@@ -54,7 +57,7 @@ export function resolveParticipationStepRedirect(
 
   // 현재 planningType에 존재하지 않는 스텝으로 직접 접근한 경우
   if (!steps.includes(currentStep)) {
-    return participationStepToPath(inviteToken, firstParticipationStep(flow));
+    return participationStepToPath(inviteToken, firstParticipationInputStep(flow));
   }
 
   // 일정+장소 흐름에서 일정 입력 없이 출발지로 직접 접근한 경우

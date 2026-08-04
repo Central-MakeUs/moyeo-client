@@ -156,14 +156,7 @@ describe('GuestEntryPage', () => {
     expect(screen.getByRole('button', { name: '이번에만 게스트로 참여하기' })).toBeDisabled();
   });
 
-  it('뒤로가기를 누르면 현재 초대장 경로로 이동한다', async () => {
-    const user = userEvent.setup();
-    render(<GuestEntryPage inviteToken="ABC123" planningType="SCHEDULE_ONLY" />);
-
-    await user.click(screen.getByRole('button', { name: '초대장으로 돌아가기' }));
-
-    expect(pushMock).toHaveBeenCalledWith('/i/ABC123');
-  });
+  // 뒤로가기는 참여 상단바(ParticipationTopBar)가 맡는다. 화면은 더 이상 상단바를 그리지 않는다.
 
   it('CTA를 탭하면 checkGuestEntry가 초대 코드와 입력한 신원으로 한 번 호출된다', async () => {
     const user = userEvent.setup();
