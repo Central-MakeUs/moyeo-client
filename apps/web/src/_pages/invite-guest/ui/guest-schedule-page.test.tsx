@@ -106,16 +106,16 @@ describe('GuestSchedulePage', () => {
     });
   });
 
-  it('제출이 성공하면 참여 완료 화면으로 이동한다', async () => {
+  it('제출이 성공하면 초안을 유지한 채 참여 완료 화면으로 이동한다', async () => {
     renderPage();
 
     await userEvent.click(dateCell('2026-08-15'));
     await userEvent.click(screen.getByRole('button', { name: '참여하기' }));
 
-    expect(replace).toHaveBeenCalledWith('/i/ABC123/complete');
+    expect(replace).toHaveBeenLastCalledWith('/i/ABC123/complete');
     expect(useGuestJoinDraft.getState()).toMatchObject({
-      identity: null,
-      scheduleResponse: null,
+      identity: IDENTITY,
+      scheduleResponse: { availableDates: ['2026-08-15'] },
     });
   });
 
@@ -131,6 +131,10 @@ describe('GuestSchedulePage', () => {
     await userEvent.click(dateCell('2026-08-15'));
     const submit = screen.getByRole('button', { name: '참여하기' });
     await userEvent.click(submit);
+
+    expect(submit).toHaveAttribute('aria-busy', 'true');
+    expect(submit).toBeDisabled();
+
     await userEvent.click(submit);
     await userEvent.click(submit);
 

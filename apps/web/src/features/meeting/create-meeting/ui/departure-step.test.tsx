@@ -2,7 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { useCreateMeetingDraft, type DepartureDraft } from '../model/create-meeting-draft';
+import type { DepartureDraft } from '@/entities/place';
+
+import { useCreateMeetingDraft } from '../model/create-meeting-draft';
 import { DepartureStep } from './departure-step';
 
 const DEPARTURE: DepartureDraft = {

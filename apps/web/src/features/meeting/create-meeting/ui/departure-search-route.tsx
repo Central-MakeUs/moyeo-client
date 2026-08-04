@@ -3,7 +3,7 @@
 import * as React from 'react';
 
 import { useCreateMeetingDraft } from '../model/create-meeting-draft';
-import { DepartureSearchStep } from './departure-search-step';
+import { PlaceSearchView } from '@/entities/place';
 
 export interface DepartureSearchRouteProps {
   /**
@@ -26,7 +26,7 @@ export function DepartureSearchRoute({ onClose }: DepartureSearchRouteProps): Re
   const setDeparture = useCreateMeetingDraft((s) => s.setDeparture);
 
   return (
-    <DepartureSearchStep
+    <PlaceSearchView
       onBack={onClose}
       onSelect={(place) => {
         // 이동수단은 독립 필드라 출발지를 바꿔도 그대로 유지된다.

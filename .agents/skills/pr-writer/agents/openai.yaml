@@ -1,0 +1,4 @@
+interface:
+  display_name: 'PR Writer'
+  short_description: '브랜치 변경 근거로 PR 제목과 본문 초안을 작성합니다'
+  default_prompt: 'Use $pr-writer to draft a pull request from the current branch changes.'

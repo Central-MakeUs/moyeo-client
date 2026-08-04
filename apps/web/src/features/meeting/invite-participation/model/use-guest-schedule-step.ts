@@ -46,7 +46,10 @@ export function useGuestScheduleStep({
   const setScheduleResponse = useGuestJoinDraft((state) => state.setScheduleResponse);
   const syncCandidateDates = useGuestJoinDraft((state) => state.syncCandidateDates);
 
-  const { submit, isSubmitting } = useSubmitGuestJoin({ inviteCode: inviteToken });
+  const { submit, isSubmitting } = useSubmitGuestJoin({
+    inviteCode: inviteToken,
+    planningType,
+  });
 
   const isDraftUsable = isDraftUsableFor(identity, inviteToken);
 

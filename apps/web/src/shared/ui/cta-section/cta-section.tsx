@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import { cn } from '@/shared/lib/cn';
+import { ToastOffsetBoundary } from '../toast';
 
 export interface CTASectionProps {
   /** 영역 하단의 주요 행동. 보통 fullWidth Primary Button을 전달한다. */
@@ -12,14 +13,16 @@ export interface CTASectionProps {
 
 export function CTASection({ primaryAction, secondaryAction, className }: CTASectionProps) {
   return (
-    <section
-      className={cn(
-        'flex w-full flex-col items-center gap-1 rounded-t-12 bg-transparent px-5 pt-5 pb-11',
-        className
-      )}
-    >
-      {secondaryAction}
-      {primaryAction}
-    </section>
+    <ToastOffsetBoundary>
+      <section
+        className={cn(
+          'flex w-full flex-col items-center gap-1 rounded-t-12 bg-transparent px-5 pt-5 pb-11',
+          className
+        )}
+      >
+        {secondaryAction}
+        {primaryAction}
+      </section>
+    </ToastOffsetBoundary>
   );
 }

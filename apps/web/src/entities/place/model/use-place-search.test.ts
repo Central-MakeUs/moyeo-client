@@ -75,4 +75,25 @@ describe('usePlaceSearch', () => {
     await options.queryFn({ signal });
     expect(search).toHaveBeenCalledWith({ keyword: '강남' }, undefined, undefined, signal);
   });
+
+  it('게스트 검색이면 inviteCode를 API 검색 파라미터로 전달한다', async () => {
+    const signal = new AbortController().signal;
+    search.mockResolvedValue({ results: [] });
+
+    renderHook(() => usePlaceSearch('강남', 'ABC123'));
+
+    const options = useQuery.mock.calls[0]?.[0];
+    expect(options.queryKey).toEqual([
+      'departure-place-search',
+      { keyword: '강남', inviteCode: 'ABC123' },
+    ]);
+
+    await options.queryFn({ signal });
+    expect(search).toHaveBeenCalledWith(
+      { keyword: '강남' },
+      { inviteCode: 'ABC123' },
+      undefined,
+      signal
+    );
+  });
 });

@@ -1,4 +1,5 @@
 export { useGuestJoinDraft } from './model/guest-join-draft';
+export { isGuestJoinDraftComplete } from './model/is-guest-join-draft-complete';
 export { getGuestJoinNextPath } from './model/guest-join-next-path';
 export { isValidGuestPassword } from './model/validate-guest-identity';
 export { getGuestScheduleNextPath } from './model/guest-join-next-path';

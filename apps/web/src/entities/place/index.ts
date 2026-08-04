@@ -1,3 +1,7 @@
+export type { DepartureDraft } from './model/departure-draft';
+export { toPlaceLabel } from './model/to-place-label';
+export { usePlaceSearch, normalizeSearchQuery } from './model/use-place-search';
+export { PlaceSearchView, type PlaceSearchViewProps } from './ui/place-search-view';
 export type {
   PlaceCategoryName,
   PlaceRecommendation,

@@ -9,27 +9,30 @@ import { IconButton } from '@/shared/ui/icon-button';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { TopAppBar } from '@/shared/ui/top-app-bar';
 
-import type { DepartureDraft } from '../model/create-meeting-draft';
+import type { DepartureDraft } from '../model/departure-draft';
 import { toPlaceLabel } from '../model/to-place-label';
 import { usePlaceSearch } from '../model/use-place-search';
 
-const SEARCH_IDLE = '출발지를 검색해 주세요';
+const SEARCH_IDLE = '서울·경기 내 출발지를 검색해주세요';
 const SEARCH_EMPTY = '에 대한 검색 결과가 없어요';
 const SEARCH_ERROR = '검색 결과를 불러오지 못했어요';
 
-export interface DepartureSearchStepProps {
+export interface PlaceSearchViewProps {
+  /** Access Token이 없는 게스트 검색에 사용하는 모임 초대 코드. */
+  inviteCode?: string;
   /** 장소를 고르면 호출된다. 호출부가 draft 반영과 복귀를 담당한다. */
   onSelect: (place: DepartureDraft) => void;
   /** 선택 없이 뒤로가기. */
   onBack: () => void;
 }
 
-export function DepartureSearchStep({
+export function PlaceSearchView({
+  inviteCode,
   onSelect,
   onBack,
-}: DepartureSearchStepProps): React.JSX.Element {
+}: PlaceSearchViewProps): React.JSX.Element {
   const [inputValue, setInputValue] = React.useState('');
-  const search = usePlaceSearch(inputValue);
+  const search = usePlaceSearch(inputValue, inviteCode);
 
   const isShowingPreviousResults = search.isDebouncing || search.query.isPlaceholderData;
 
@@ -68,7 +71,7 @@ export function DepartureSearchStep({
           <SearchField
             aria-label="출발지 검색"
             autoFocus
-            placeholder="출발지를 입력해주세요"
+            placeholder="서울·경기 내 출발지를 검색해주세요"
             value={inputValue}
             onChange={(event) => setInputValue(event.target.value)}
             onClear={() => setInputValue('')}

@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 
-import { ToastOffsetBoundary } from '@/shared/ui/toast';
 import { cn } from '@/shared/lib/cn';
 
 export interface WizardStepLayoutProps {
@@ -26,7 +25,7 @@ export function WizardStepLayout({ header, footer, children, className }: Wizard
         {header}
         {children}
       </div>
-      <ToastOffsetBoundary>{footer}</ToastOffsetBoundary>
+      {footer}
     </div>
   );
 }

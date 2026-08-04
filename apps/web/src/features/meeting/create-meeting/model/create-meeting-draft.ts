@@ -1,20 +1,12 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import type { DepartureDraft } from '@/entities/place';
 import type { ScheduleResponseRequest } from '@/shared/api';
 
 export type PlanningType = 'SCHEDULE_ONLY' | 'PLACE_ONLY' | 'SCHEDULE_AND_PLACE';
 export type ScheduleInputType = 'DATE_ONLY' | 'DATE_AND_TIME';
 export type TransportationMode = 'PUBLIC_TRANSIT' | 'CAR';
-
-/** 화면이 고른 출발지. 최종 요청에서 transportationMode와 합쳐 DepartureRequest가 된다. */
-export interface DepartureDraft {
-  /** 표시명. 목록·필드에 보여줄 이름이며 요청의 name으로도 쓴다. */
-  name: string;
-  address: string;
-  latitude?: number;
-  longitude?: number;
-}
 
 export interface CreateMeetingDraftState {
   name: string;

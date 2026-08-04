@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 
+import type { DepartureDraft } from '@/entities/place';
+
 import type {
   CreateMeetingDraftState,
-  DepartureDraft,
   PlanningType,
   ScheduleInputType,
 } from './create-meeting-draft';
