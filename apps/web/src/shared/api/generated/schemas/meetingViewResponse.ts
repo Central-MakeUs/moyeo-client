@@ -59,6 +59,26 @@ export interface MeetingViewResponse {
    * @nullable
    */
   remainingMinutes?: number | null;
+  /**
+   * 확정 일정 날짜. 일정이 아직 확정되지 않았거나 장소 전용 모임이면 null입니다.
+   * @nullable
+   */
+  confirmedScheduleDate?: string | null;
+  /**
+   * 확정 시작 시간. 일정이 아직 확정되지 않았거나 DATE_ONLY 또는 장소 전용 모임이면 null입니다.
+   * @nullable
+   */
+  confirmedStartTime?: string | null;
+  /**
+   * 확정 종료 시간. 일정이 아직 확정되지 않았거나 DATE_ONLY 또는 장소 전용 모임이면 null입니다.
+   * @nullable
+   */
+  confirmedEndTime?: string | null;
+  /**
+   * 확정 장소명. 장소가 아직 확정되지 않았거나 일정 전용 모임이면 null입니다.
+   * @nullable
+   */
+  confirmedPlaceName?: string | null;
   /** 참여자 목록. 방장이 먼저 오고 이후 참여 순서로 정렬됩니다. */
   participants?: ParticipantResponse[];
 }
