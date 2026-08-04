@@ -14,6 +14,7 @@ import { toast } from '@/shared/ui';
 
 import { getGuestEntryNextPath } from './guest-entry-next-path';
 import { useGuestJoinDraft } from './guest-join-draft';
+import { useMemberJoinDraft } from './member-join-draft';
 import { toGuestEntryType } from './to-guest-entry-type';
 
 const ENTRY_ERROR_TOAST_ID = 'guest-entry-failed';
@@ -80,6 +81,7 @@ export function useGuestEntry({
 
       // 제출로 이어지는 쪽만 초안이 필요하다. EXISTING_GUEST는 제출하지 않는다.
       if (entryType === 'NEW_GUEST') {
+        useMemberJoinDraft.getState().reset();
         setIdentity({ inviteToken, ...request });
       }
 
