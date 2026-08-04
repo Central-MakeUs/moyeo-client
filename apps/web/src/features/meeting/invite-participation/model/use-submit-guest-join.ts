@@ -40,14 +40,18 @@ export function useSubmitGuestJoin({
   const isSubmittingRef = useRef(false);
 
   const submit = async () => {
-    const { identity, scheduleResponse } = useGuestJoinDraft.getState();
+    const { identity, scheduleResponse, departure, transportationMode } =
+      useGuestJoinDraft.getState();
     if (identity === null || isSubmittingRef.current) return;
 
     isSubmittingRef.current = true;
     setIsSubmitting(true);
 
     try {
-      await joinGuest(inviteCode, toGuestJoinRequest({ identity, scheduleResponse }));
+      await joinGuest(
+        inviteCode,
+        toGuestJoinRequest({ identity, scheduleResponse, departure, transportationMode })
+      );
 
       // 참여가 확정된 시점이다. 초안은 비워지므로, 현황 화면이 신원을 알아볼 수 있도록
       // 모임 닉네임만 게스트 세션에 남긴다.

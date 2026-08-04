@@ -1,10 +1,9 @@
-import type { GuestJoinRequest, ScheduleResponseRequest } from '@/shared/api';
+import type { GuestJoinRequest } from '@/shared/api';
 
-import type { GuestIdentity } from './guest-join-draft';
+import type { GuestIdentity, GuestJoinDraftInput } from './guest-join-draft';
 
-export interface GuestJoinDraftSnapshot {
+export interface GuestJoinDraftSnapshot extends GuestJoinDraftInput {
   identity: GuestIdentity;
-  scheduleResponse: ScheduleResponseRequest | null;
 }
 
 /**
@@ -16,10 +15,16 @@ export interface GuestJoinDraftSnapshot {
 export function toGuestJoinRequest({
   identity,
   scheduleResponse,
+  departure,
+  transportationMode,
 }: GuestJoinDraftSnapshot): GuestJoinRequest {
+  // 이동수단이 DepartureRequest의 필수 필드라 둘 다 있어야 departure를 구성할 수 있다.
+  const hasDeparture = departure !== null && transportationMode !== null;
+
   return {
     nickname: identity.nickname,
     password: identity.password,
     ...(scheduleResponse === null ? {} : { scheduleResponse }),
+    ...(hasDeparture ? { departure: { ...departure, transportationMode } } : {}),
   };
 }
