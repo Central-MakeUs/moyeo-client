@@ -1,9 +1,10 @@
 import type { GuestJoinRequest } from '@/shared/api';
 
-import type { GuestIdentity, GuestJoinDraftInput } from './guest-join-draft';
+import type { ParticipationDraftInput } from './participation-draft';
+import type { GuestParticipationIdentity } from './participation-identity';
 
-export interface GuestJoinDraftSnapshot extends GuestJoinDraftInput {
-  identity: GuestIdentity;
+export interface GuestJoinDraftSnapshot extends ParticipationDraftInput {
+  identity: GuestParticipationIdentity;
 }
 
 /**

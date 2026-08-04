@@ -1,6 +1,6 @@
 'use client';
 
-import { useGuestScheduleStep } from '@/features/meeting/invite-participation';
+import { useParticipationScheduleStep } from '@/features/meeting/invite-participation';
 import type { MeetingInvitationResponsePlanningType } from '@/shared/api';
 import { Button } from '@/shared/ui/button';
 import {
@@ -34,11 +34,12 @@ export function SchedulePage({
   candidateDates,
   serverToday,
 }: SchedulePageProps) {
-  const { scheduleResponse, setScheduleResponse, isSubmitting, proceed } = useGuestScheduleStep({
-    inviteToken,
-    planningType,
-    candidateDates,
-  });
+  const { scheduleResponse, setScheduleResponse, isSubmitting, proceed } =
+    useParticipationScheduleStep({
+      inviteToken,
+      planningType,
+      candidateDates,
+    });
 
   const selectedDates = scheduleResponse?.availableDates ?? [];
 

@@ -1,6 +1,6 @@
 import type { MeetingInvitationResponsePlanningType } from '@/shared/api';
 
-import type { GuestJoinDraftInput } from './guest-join-draft';
+import type { ParticipationDraftInput } from './participation-draft';
 
 /**
  * 이 모임 유형에 필요한 입력이 모두 채워졌는지 판단한다. 각 화면의 CTA `disabled`가 쓴다.
@@ -11,8 +11,8 @@ import type { GuestJoinDraftInput } from './guest-join-draft';
  *
  * `identity`는 보지 않는다. 신원 유효성은 `isDraftUsableFor`가 담당한다.
  */
-export function isGuestJoinDraftComplete(
-  input: GuestJoinDraftInput,
+export function isParticipationDraftComplete(
+  input: ParticipationDraftInput,
   planningType: MeetingInvitationResponsePlanningType
 ): boolean {
   const { scheduleResponse, departure, transportationMode } = input;

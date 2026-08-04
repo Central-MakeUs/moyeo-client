@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { useGuestJoinDraft } from '@/features/meeting/invite-participation';
+import { useParticipationDraft } from '@/features/meeting/invite-participation';
 
 import { GuestScheduleTimesPage } from './guest-schedule-times-page';
 
@@ -21,7 +21,12 @@ vi.mock('@/shared/api', async (importOriginal) => ({
   joinGuest,
 }));
 
-const IDENTITY = { inviteToken: 'ABC123', nickname: '소미', password: '1234' };
+const IDENTITY = {
+  kind: 'guest',
+  inviteToken: 'ABC123',
+  nickname: '소미',
+  password: '1234',
+} as const;
 const CANDIDATES = [
   {
     candidateDate: '2026-08-15',
@@ -51,7 +56,7 @@ beforeEach(() => {
   replace.mockReset();
   joinGuest.mockReset();
   joinGuest.mockResolvedValue({});
-  useGuestJoinDraft.setState({ identity: IDENTITY, scheduleResponse: null });
+  useParticipationDraft.setState({ identity: IDENTITY, scheduleResponse: null });
 });
 
 describe('GuestScheduleTimesPage', () => {
@@ -148,7 +153,7 @@ describe('GuestScheduleTimesPage', () => {
   });
 
   it('초안이 없으면 게스트 신원 화면으로 돌려보낸다', () => {
-    useGuestJoinDraft.setState({ identity: null, scheduleResponse: null });
+    useParticipationDraft.setState({ identity: null, scheduleResponse: null });
 
     renderPage();
 

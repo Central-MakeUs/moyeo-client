@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { useGuestJoinDraft, useMemberJoinDraft } from '@/features/meeting/invite-participation';
+import { useParticipationDraft } from '@/features/meeting/invite-participation';
 
 import { SchedulePage } from './schedule-page';
 
@@ -29,7 +29,12 @@ vi.mock('@/entities/guest-session', async (importOriginal) => ({
   writeGuestSession,
 }));
 
-const IDENTITY = { inviteToken: 'ABC123', nickname: '소미', password: '1234' };
+const IDENTITY = {
+  kind: 'guest',
+  inviteToken: 'ABC123',
+  nickname: '소미',
+  password: '1234',
+} as const;
 const CANDIDATE_DATES = ['2026-08-15', '2026-08-20'];
 
 /** 후보 날짜가 전부 미래라 지난 날짜 비활성화가 끼어들지 않는 기준일. */
@@ -60,8 +65,12 @@ beforeEach(() => {
   joinMember.mockReset();
   joinMember.mockResolvedValue({});
   writeGuestSession.mockReset();
-  useGuestJoinDraft.setState({ identity: IDENTITY, scheduleResponse: null });
-  useMemberJoinDraft.getState().reset();
+  useParticipationDraft.setState({
+    identity: IDENTITY,
+    scheduleResponse: null,
+    departure: null,
+    transportationMode: null,
+  });
 });
 
 describe('SchedulePage', () => {
@@ -87,14 +96,14 @@ describe('SchedulePage', () => {
   });
 
   it('스토어에 후보 밖 날짜가 남아 있으면 렌더 직후 비워진다', () => {
-    useGuestJoinDraft.setState({
+    useParticipationDraft.setState({
       identity: IDENTITY,
       scheduleResponse: { availableDates: ['2026-08-25'] },
     });
 
     renderPage();
 
-    expect(useGuestJoinDraft.getState().scheduleResponse?.availableDates).toEqual([]);
+    expect(useParticipationDraft.getState().scheduleResponse?.availableDates).toEqual([]);
   });
 
   it('날짜를 고르고 참여하기를 탭하면 게스트 참여 요청이 한 번 나간다', async () => {
@@ -112,24 +121,24 @@ describe('SchedulePage', () => {
   });
 
   it('회원 초안이면 일정 선택을 회원 초안에 저장한다', async () => {
-    useGuestJoinDraft.getState().reset();
-    useMemberJoinDraft.setState({
-      identity: { inviteToken: 'ABC123', nickname: '소미' },
+    useParticipationDraft.getState().reset();
+    useParticipationDraft.setState({
+      identity: { kind: 'member', inviteToken: 'ABC123', nickname: '소미' },
       scheduleResponse: null,
     });
     renderPage();
 
     await userEvent.click(dateCell('2026-08-15'));
 
-    expect(useMemberJoinDraft.getState().scheduleResponse).toEqual({
+    expect(useParticipationDraft.getState().scheduleResponse).toEqual({
       availableDates: ['2026-08-15'],
     });
   });
 
   it('일정만 조율하는 회원은 joinMember를 호출하고 참여 완료 화면으로 이동한다', async () => {
-    useGuestJoinDraft.getState().reset();
-    useMemberJoinDraft.setState({
-      identity: { inviteToken: 'ABC123', nickname: '소미' },
+    useParticipationDraft.getState().reset();
+    useParticipationDraft.setState({
+      identity: { kind: 'member', inviteToken: 'ABC123', nickname: '소미' },
       scheduleResponse: null,
     });
     renderPage();
@@ -152,7 +161,7 @@ describe('SchedulePage', () => {
     await userEvent.click(screen.getByRole('button', { name: '참여하기' }));
 
     expect(replace).toHaveBeenLastCalledWith('/i/ABC123/complete');
-    expect(useGuestJoinDraft.getState()).toMatchObject({
+    expect(useParticipationDraft.getState()).toMatchObject({
       identity: IDENTITY,
       scheduleResponse: { availableDates: ['2026-08-15'] },
     });
@@ -189,12 +198,14 @@ describe('SchedulePage', () => {
     await userEvent.click(screen.getByRole('button', { name: '참여하기' }));
 
     expect(replace).not.toHaveBeenCalled();
-    expect(useGuestJoinDraft.getState().scheduleResponse?.availableDates).toEqual(['2026-08-15']);
+    expect(useParticipationDraft.getState().scheduleResponse?.availableDates).toEqual([
+      '2026-08-15',
+    ]);
     expect(screen.getByRole('button', { name: '참여하기' })).toBeEnabled();
   });
 
   it('초안이 다른 모임 것이면 게스트 신원 화면으로 돌려보낸다', () => {
-    useGuestJoinDraft.setState({
+    useParticipationDraft.setState({
       identity: { ...IDENTITY, inviteToken: 'OLD123' },
       scheduleResponse: null,
     });
@@ -205,7 +216,7 @@ describe('SchedulePage', () => {
   });
 
   it('초안이 없으면 게스트 신원 화면으로 돌려보낸다', () => {
-    useGuestJoinDraft.setState({ identity: null, scheduleResponse: null });
+    useParticipationDraft.setState({ identity: null, scheduleResponse: null });
 
     renderPage();
 

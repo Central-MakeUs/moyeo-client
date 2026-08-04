@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { useGuestJoinDraft, useMemberJoinDraft } from '@/features/meeting/invite-participation';
+import { useParticipationDraft } from '@/features/meeting/invite-participation';
 
 import { DeparturePage } from './departure-page';
 
@@ -23,7 +23,12 @@ vi.mock('@/shared/api', async (importOriginal) => ({
   joinMember,
 }));
 
-const IDENTITY = { inviteToken: 'ABC123', nickname: '소미', password: '1234' };
+const IDENTITY = {
+  kind: 'guest',
+  inviteToken: 'ABC123',
+  nickname: '소미',
+  password: '1234',
+} as const;
 
 const GANGNAM = {
   name: '강남역',
@@ -42,8 +47,8 @@ beforeEach(() => {
   joinGuest.mockResolvedValue({});
   joinMember.mockReset();
   joinMember.mockResolvedValue({});
-  useMemberJoinDraft.getState().reset();
-  useGuestJoinDraft.setState({
+  useParticipationDraft.getState().reset();
+  useParticipationDraft.setState({
     identity: IDENTITY,
     scheduleResponse: null,
     departure: null,
@@ -61,14 +66,14 @@ describe('DeparturePage', () => {
   });
 
   it('출발지를 고르지 않으면 참여하기 버튼이 disabled다', () => {
-    useGuestJoinDraft.setState({ transportationMode: 'PUBLIC_TRANSIT' });
+    useParticipationDraft.setState({ transportationMode: 'PUBLIC_TRANSIT' });
     renderPage();
 
     expect(screen.getByRole('button', { name: '참여하기' })).toBeDisabled();
   });
 
   it('PLACE_ONLY에서 참여하기를 탭하면 departure를 포함하고 scheduleResponse가 없는 본문으로 제출한다', async () => {
-    useGuestJoinDraft.setState({ departure: GANGNAM, transportationMode: 'PUBLIC_TRANSIT' });
+    useParticipationDraft.setState({ departure: GANGNAM, transportationMode: 'PUBLIC_TRANSIT' });
     renderPage('PLACE_ONLY');
 
     await userEvent.click(screen.getByRole('button', { name: '참여하기' }));
@@ -80,9 +85,9 @@ describe('DeparturePage', () => {
   });
 
   it('PLACE_ONLY 회원은 일정 없이 departure를 담아 joinMember를 호출한다', async () => {
-    useGuestJoinDraft.getState().reset();
-    useMemberJoinDraft.setState({
-      identity: { inviteToken: 'ABC123', nickname: '소미' },
+    useParticipationDraft.getState().reset();
+    useParticipationDraft.setState({
+      identity: { kind: 'member', inviteToken: 'ABC123', nickname: '소미' },
       scheduleResponse: null,
       departure: GANGNAM,
       transportationMode: 'PUBLIC_TRANSIT',
@@ -99,7 +104,7 @@ describe('DeparturePage', () => {
   });
 
   it('SCHEDULE_AND_PLACE에서 참여하기를 탭하면 scheduleResponse와 departure가 모두 실린 본문으로 제출한다', async () => {
-    useGuestJoinDraft.setState({
+    useParticipationDraft.setState({
       scheduleResponse: { availableDates: ['2026-08-15'] },
       departure: GANGNAM,
       transportationMode: 'CAR',
@@ -131,7 +136,7 @@ describe('DeparturePage', () => {
   });
 
   it('초안이 없으면 게스트 진입 화면으로 돌려보낸다', () => {
-    useGuestJoinDraft.setState({ identity: null });
+    useParticipationDraft.setState({ identity: null });
 
     renderPage();
 

@@ -8,7 +8,7 @@ import {
 } from '@/entities/meeting';
 import {
   buildGuestScheduleTimeGrid,
-  useGuestScheduleStep,
+  useParticipationScheduleStep,
 } from '@/features/meeting/invite-participation';
 import type {
   MeetingInvitationResponsePlanningType,
@@ -50,11 +50,12 @@ export function GuestScheduleTimesPage({
     [disabledKeys, columns, rows, serverToday]
   );
 
-  const { scheduleResponse, setScheduleResponse, isSubmitting, proceed } = useGuestScheduleStep({
-    inviteToken,
-    planningType,
-    candidateDates: columns,
-  });
+  const { scheduleResponse, setScheduleResponse, isSubmitting, proceed } =
+    useParticipationScheduleStep({
+      inviteToken,
+      planningType,
+      candidateDates: columns,
+    });
 
   const selectedCellKeys = availabilityTimeRangesToCellKeys(
     scheduleResponse?.availableTimeRanges ?? []

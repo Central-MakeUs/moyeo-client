@@ -6,8 +6,7 @@ import { useRouter } from 'next/navigation';
 import { isValidNickname } from '@/entities/nickname';
 import {
   getGuestJoinNextPath,
-  useGuestJoinDraft,
-  useMemberJoinDraft,
+  useParticipationDraft,
 } from '@/features/meeting/invite-participation';
 import type { MeetingInvitationResponsePlanningType } from '@/shared/api';
 import { IconButton } from '@/shared/ui/icon-button';
@@ -24,15 +23,15 @@ export interface MemberEntryPageProps {
 
 export function MemberEntryPage({ inviteToken, planningType }: MemberEntryPageProps) {
   const router = useRouter();
-  const setIdentity = useMemberJoinDraft((state) => state.setIdentity);
+  const setIdentity = useParticipationDraft((state) => state.setIdentity);
   const [nickname, setNickname] = useState('');
   const isNicknameValid = isValidNickname(nickname);
   const showNicknameError = nickname.length > 0 && !isNicknameValid;
 
   const handleSubmit = () => {
     if (!isNicknameValid) return;
-    useGuestJoinDraft.getState().reset();
-    setIdentity({ inviteToken, nickname });
+    // 직전에 게스트로 입력하던 값이 있으면 `setIdentity`가 함께 비운다.
+    setIdentity({ kind: 'member', inviteToken, nickname });
     router.push(getGuestJoinNextPath(inviteToken, planningType));
   };
 

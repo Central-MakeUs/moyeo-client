@@ -1,14 +1,14 @@
-import { describe, expect, it } from 'vitest';
+﻿import { describe, expect, it } from 'vitest';
 import { render } from '@testing-library/react';
 
-import { useGuestJoinDraft } from '@/features/meeting/invite-participation';
+import { useParticipationDraft } from '@/features/meeting/invite-participation';
 
 import { GuestJoinDraftCleanup } from './guest-join-draft-cleanup';
 
 describe('GuestJoinDraftCleanup', () => {
   it('완료 화면에 도착하면 게스트 참여 초안을 초기화한다', () => {
-    useGuestJoinDraft.setState({
-      identity: { inviteToken: 'ABC123', nickname: '소미', password: '1234' },
+    useParticipationDraft.setState({
+      identity: { kind: 'guest', inviteToken: 'ABC123', nickname: '소미', password: '1234' },
       scheduleResponse: { availableDates: ['2026-08-15'] },
       departure: {
         name: '강남역',
@@ -21,7 +21,7 @@ describe('GuestJoinDraftCleanup', () => {
 
     render(<GuestJoinDraftCleanup />);
 
-    expect(useGuestJoinDraft.getState()).toMatchObject({
+    expect(useParticipationDraft.getState()).toMatchObject({
       identity: null,
       scheduleResponse: null,
       departure: null,

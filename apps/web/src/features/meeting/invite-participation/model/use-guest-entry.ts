@@ -13,8 +13,7 @@ import {
 import { toast } from '@/shared/ui';
 
 import { getGuestEntryNextPath } from './guest-entry-next-path';
-import { useGuestJoinDraft } from './guest-join-draft';
-import { useMemberJoinDraft } from './member-join-draft';
+import { useParticipationDraft } from './participation-draft';
 import { toGuestEntryType } from './to-guest-entry-type';
 
 const ENTRY_ERROR_TOAST_ID = 'guest-entry-failed';
@@ -57,7 +56,7 @@ export function useGuestEntry({
   planningType,
 }: UseGuestEntryParams): UseGuestEntryReturn {
   const router = useRouter();
-  const setIdentity = useGuestJoinDraft((state) => state.setIdentity);
+  const setIdentity = useParticipationDraft((state) => state.setIdentity);
 
   const [isEntering, setIsEntering] = useState(false);
   const [error, setError] = useState<GuestEntryError | null>(null);
@@ -80,9 +79,9 @@ export function useGuestEntry({
       }
 
       // 제출로 이어지는 쪽만 초안이 필요하다. EXISTING_GUEST는 제출하지 않는다.
+      // 직전에 회원으로 입력하던 값이 있으면 `setIdentity`가 함께 비운다.
       if (entryType === 'NEW_GUEST') {
-        useMemberJoinDraft.getState().reset();
-        setIdentity({ inviteToken, ...request });
+        setIdentity({ kind: 'guest', inviteToken, ...request });
       }
 
       // 서버가 이 모임의 게스트임을 확인해준 시점이다. 현황 화면이 신원을 알아볼 수 있도록

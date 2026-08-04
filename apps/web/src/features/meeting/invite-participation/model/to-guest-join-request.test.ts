@@ -1,10 +1,15 @@
 import { describe, it, expect } from 'vitest';
 
-import { useGuestJoinDraft } from './guest-join-draft';
+import { useParticipationDraft } from './participation-draft';
 
 import { toGuestJoinRequest } from './to-guest-join-request';
 
-const IDENTITY = { inviteToken: 'ABC123', nickname: '소미', password: '1234' };
+const IDENTITY = {
+  kind: 'guest',
+  inviteToken: 'ABC123',
+  nickname: '소미',
+  password: '1234',
+} as const;
 
 const GANGNAM = {
   name: '강남역',
@@ -44,7 +49,7 @@ describe('toGuestJoinRequest', () => {
   });
 
   it('후보 날짜가 바뀌면 후보 밖 시간 범위가 요청에 실리지 않는다', () => {
-    useGuestJoinDraft.setState({
+    useParticipationDraft.setState({
       identity: IDENTITY,
       scheduleResponse: {
         availableTimeRanges: [
@@ -53,11 +58,10 @@ describe('toGuestJoinRequest', () => {
       },
     });
 
-    useGuestJoinDraft.getState().syncCandidateDates(['2026-08-01', '2026-08-02', '2026-08-03']);
-    const { identity, scheduleResponse, departure, transportationMode } =
-      useGuestJoinDraft.getState();
+    useParticipationDraft.getState().syncCandidateDates(['2026-08-01', '2026-08-02', '2026-08-03']);
+    const { scheduleResponse, departure, transportationMode } = useParticipationDraft.getState();
     const request = toGuestJoinRequest({
-      identity: identity!,
+      identity: IDENTITY,
       scheduleResponse,
       departure,
       transportationMode,

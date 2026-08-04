@@ -1,4 +1,4 @@
-export type ParticipantKind = 'guest' | 'member';
+import type { ParticipantKind } from './participation-identity';
 
 /** 참여자 종류에 따른 최초 정보 입력 경로. */
 export function participationEntryPath(
