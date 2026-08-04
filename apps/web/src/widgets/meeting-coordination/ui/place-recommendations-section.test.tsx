@@ -34,6 +34,23 @@ describe('PlaceRecommendationsSection', () => {
     useMeetingHostMock.mockReturnValue({ participantId: 1, isViewerHost: false });
   });
 
+  it('모임장 혼자면 후보가 눌리지 않는다 — 서버가 두 명 이상일 때만 확정을 받는다', () => {
+    useMeetingHostMock.mockReturnValue({ participantId: 1, isViewerHost: true });
+    usePlaceViewQueryMock.mockReturnValue({
+      data: {
+        participantCount: 1,
+        recommendations: [{ rank: 1, areaCode: 'A01', areaName: '합정동' }],
+        participants: [],
+      },
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<PlaceRecommendationsSection inviteCode="29NRVBGXGP" />);
+
+    expect(screen.queryByRole('button', { name: /합정동/ })).not.toBeInTheDocument();
+  });
+
   it('이미 확정됐으면 모임장에게도 후보가 눌리지 않는다', () => {
     useMeetingHostMock.mockReturnValue({ participantId: 1, isViewerHost: true });
     usePlaceViewQueryMock.mockReturnValue({
