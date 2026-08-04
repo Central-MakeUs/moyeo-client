@@ -78,7 +78,7 @@ describe('PlaceSearchView', () => {
   it('검색어가 비어 있으면 검색 안내를 표시한다', () => {
     renderStep();
 
-    expect(screen.getByText('출발지를 검색해 주세요')).toBeInTheDocument();
+    expect(screen.getByText('서울·경기 내 출발지를 검색해주세요')).toBeInTheDocument();
     expect(screen.queryByText(/검색 결과가 없어요/)).not.toBeInTheDocument();
   });
 
