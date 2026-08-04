@@ -21,7 +21,7 @@ import { InputButton } from '@/shared/ui/input-button';
 import { PageHeader } from '@/shared/ui/page-header';
 import { TopAppBar } from '@/shared/ui/top-app-bar';
 
-export interface GuestDeparturePageProps {
+export interface DeparturePageProps {
   inviteToken: string;
   planningType: MeetingInvitationResponsePlanningType;
 }
@@ -31,7 +31,7 @@ export interface GuestDeparturePageProps {
  *
  * `PLACE_ONLY`·`SCHEDULE_AND_PLACE` 모임의 마지막 입력 단계라 여기서 제출까지 끝난다.
  */
-export function GuestDeparturePage({ inviteToken, planningType }: GuestDeparturePageProps) {
+export function DeparturePage({ inviteToken, planningType }: DeparturePageProps) {
   const router = useRouter();
 
   const identity = useGuestJoinDraft((state) => state.identity);

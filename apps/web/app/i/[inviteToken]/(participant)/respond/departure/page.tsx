@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 
 import { fetchInvitationForPage, type InvitePageProps } from '@/_pages/invite';
-import { GuestDeparturePage } from '@/_pages/invite-guest';
+import { DeparturePage } from '@/_pages/invite-participation';
 
 export default async function RespondDeparturePage({ params }: InvitePageProps) {
   const { inviteToken } = await params;
@@ -11,5 +11,5 @@ export default async function RespondDeparturePage({ params }: InvitePageProps) 
     redirect(`/i/${inviteToken}`);
   }
 
-  return <GuestDeparturePage inviteToken={inviteToken} planningType={invitation.planningType} />;
+  return <DeparturePage inviteToken={inviteToken} planningType={invitation.planningType} />;
 }

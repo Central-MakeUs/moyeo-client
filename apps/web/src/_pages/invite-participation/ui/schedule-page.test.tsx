@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 
 import { useGuestJoinDraft, useMemberJoinDraft } from '@/features/meeting/invite-participation';
 
-import { GuestSchedulePage } from './guest-schedule-page';
+import { SchedulePage } from './schedule-page';
 
 const { push, replace, joinGuest, joinMember, writeGuestSession } = vi.hoisted(() => ({
   push: vi.fn(),
@@ -37,7 +37,7 @@ const SERVER_TODAY = '2026-08-01';
 
 const renderPage = (candidateDates: string[] = CANDIDATE_DATES, serverToday = SERVER_TODAY) =>
   render(
-    <GuestSchedulePage
+    <SchedulePage
       inviteToken="ABC123"
       planningType="SCHEDULE_ONLY"
       candidateDates={candidateDates}
@@ -64,7 +64,7 @@ beforeEach(() => {
   useMemberJoinDraft.getState().reset();
 });
 
-describe('GuestSchedulePage', () => {
+describe('SchedulePage', () => {
   it('후보 날짜가 두 개면 두 날짜가 선택 가능한 상태로 보인다', () => {
     renderPage();
 

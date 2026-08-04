@@ -31,7 +31,7 @@ export interface GuestScheduleTimesPageProps {
 /**
  * 게스트가 후보 날짜 × 시간 블록에서 가능한 시간대를 고르는 화면.
  *
- * `DATE_AND_TIME` 모임에서만 쓴다. `DATE_ONLY`는 캘린더를 쓰며 `GuestSchedulePage`가 맡는다.
+ * `DATE_AND_TIME` 모임에서만 쓴다. `DATE_ONLY`는 캘린더를 쓰며 `SchedulePage`가 맡는다.
  */
 export function GuestScheduleTimesPage({
   inviteToken,

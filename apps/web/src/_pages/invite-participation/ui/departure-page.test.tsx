@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 
 import { useGuestJoinDraft, useMemberJoinDraft } from '@/features/meeting/invite-participation';
 
-import { GuestDeparturePage } from './guest-departure-page';
+import { DeparturePage } from './departure-page';
 
 const { push, replace, joinGuest, joinMember } = vi.hoisted(() => ({
   push: vi.fn(),
@@ -33,7 +33,7 @@ const GANGNAM = {
 };
 
 const renderPage = (planningType: 'PLACE_ONLY' | 'SCHEDULE_AND_PLACE' = 'PLACE_ONLY') =>
-  render(<GuestDeparturePage inviteToken="ABC123" planningType={planningType} />);
+  render(<DeparturePage inviteToken="ABC123" planningType={planningType} />);
 
 beforeEach(() => {
   push.mockReset();
@@ -51,7 +51,7 @@ beforeEach(() => {
   });
 });
 
-describe('GuestDeparturePage', () => {
+describe('DeparturePage', () => {
   it('출발지 입력을 탭하면 출발지 검색 화면으로 이동한다', async () => {
     renderPage();
 
