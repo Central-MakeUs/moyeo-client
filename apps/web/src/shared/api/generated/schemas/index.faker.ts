@@ -270,7 +270,7 @@ export const getConfirmPlaceRequestMock = (
 export const getMemberJoinRequestMock = (
   overrideResponse: Partial<MemberJoinRequest> = {}
 ): MemberJoinRequest => ({
-  nickname: faker.string.alpha({ length: { min: 1, max: 30 } }),
+  nickname: faker.helpers.fromRegExp('^[가-힣A-Za-z]{2,10}$'),
   scheduleResponse: faker.helpers.arrayElement([
     { ...getScheduleResponseRequestMock() },
     undefined,
