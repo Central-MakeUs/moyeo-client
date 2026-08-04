@@ -81,10 +81,6 @@ export function MeetingConfirmedView({
           />
         }
       >
-        {/*
-          폭죽과 카드 사이는 93px다(시안). CompletionLayout이 요소 간격으로 gap-16(64px)을
-          주므로 모자란 29px만 더한다.
-        */}
         <section className="flex w-full flex-col gap-5 rounded-12 border border-accessible-100 bg-accessible-10 px-5 py-7">
           <h2 className="text-center text-bold-18 text-accessible-900">{meetingName}</h2>
 
