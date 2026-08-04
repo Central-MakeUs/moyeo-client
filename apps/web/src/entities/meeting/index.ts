@@ -13,6 +13,11 @@ export type {
   MeetingParticipant,
   MeetingPlanningType,
 } from './model/meeting-detail';
+export { ConfirmedMeetingDialog } from './ui/confirmed-meeting-dialog';
+export type {
+  ConfirmedMeetingDialogProps,
+  ConfirmedMeetingDialogParticipant,
+} from './ui/confirmed-meeting-dialog';
 export { useMeetingDetailQuery } from './model/use-meeting-detail-query';
 export type { UseMeetingDetailQueryResult } from './model/use-meeting-detail-query';
 export { MeetingCard } from './ui/meeting-card';

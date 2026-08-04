@@ -40,6 +40,20 @@ describe('ConfirmedMeetingListItem', () => {
     expect(screen.queryByText('2026년 7월 18일 14시')).not.toBeInTheDocument();
   });
 
+  it('장소만 조율한 모임(확정 일정 없음)도 터지지 않고 위치만 표시한다', () => {
+    render(<ConfirmedMeetingListItem title="CMC UT데이 (모여조)" place="공덕역" />);
+
+    expect(screen.getByText('공덕역')).toBeInTheDocument();
+    expect(screen.queryByText(/년/)).not.toBeInTheDocument();
+  });
+
+  it('일정만 조율한 모임(확정 위치 없음)은 일정만 표시한다', () => {
+    render(<ConfirmedMeetingListItem title="CMC UT데이 (모여조)" confirmedDate="2026-07-18" />);
+
+    expect(screen.getByText('2026년 7월 18일')).toBeInTheDocument();
+    expect(screen.queryByText('공덕역')).not.toBeInTheDocument();
+  });
+
   it('카드를 클릭해도 router.push가 호출되지 않는다(탭 핸들러 없음)', async () => {
     push.mockClear();
     const { container } = render(

@@ -69,7 +69,7 @@ function DialogContent({
         {...props}
       >
         {showCloseButton && (
-          <DialogPrimitive.Close asChild className="p-0">
+          <DialogPrimitive.Close asChild className="p-0 hover:bg-transparent">
             <IconButton
               icon="close"
               aria-label="닫기"
