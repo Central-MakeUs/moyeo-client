@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 
 import { cn } from '../../lib/cn';
-import { ToastOffsetBoundary } from '../toast';
 
 export interface CompletionLayoutProps {
   /** 상단 제목 영역. 보통 `PageHeader align="center"`. */
@@ -84,7 +83,7 @@ export function CompletionLayout({
         <div aria-hidden="true" style={bottomSpacerStyle} />
       </main>
 
-      {footer !== undefined && <ToastOffsetBoundary>{footer}</ToastOffsetBoundary>}
+      {footer}
     </div>
   );
 }
