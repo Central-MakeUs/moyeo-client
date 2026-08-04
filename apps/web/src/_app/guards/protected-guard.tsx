@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -21,6 +21,9 @@ export function ProtectedGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  // 로그아웃·탈퇴로 익명이 된 경우를 "로그인이 필요해 막힌 경우"와 구분하기 위한 표시.
+  const hasBeenAuthenticatedRef = useRef(false);
+
   const needsOnboarding =
     session.status === 'authenticated' &&
     !session.viewer.onboardingCompleted &&
@@ -32,7 +35,18 @@ export function ProtectedGuard({ children }: { children: React.ReactNode }) {
     pathname === ONBOARDING_PATH;
 
   useEffect(() => {
+    if (session.status === 'authenticated') hasBeenAuthenticatedRef.current = true;
+  }, [session.status]);
+
+  useEffect(() => {
     if (session.status === 'anonymous') {
+      // 로그인 상태였다가 익명이 됐다 = 로그아웃 또는 탈퇴. 방금 떠난 화면을 `next`로
+      // 남기면 재로그인 직후 그리로 되돌아간다(탈퇴한 계정의 탈퇴 화면 등). 남기지 않는다.
+      if (hasBeenAuthenticatedRef.current) {
+        router.replace(buildLoginPath(null));
+        return;
+      }
+
       // 초대 링크로 들어온 사용자가 로그인 후 목적지를 잃지 않도록 현재 위치를 보존한다.
       const from = `${window.location.pathname}${window.location.search}`;
       router.replace(buildLoginPath(from));
