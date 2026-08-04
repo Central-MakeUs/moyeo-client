@@ -26,10 +26,13 @@ const STEP_SEGMENTS = {
   departure: 'departure',
 } satisfies Record<ParticipationInputStep, string>;
 
-type ParticipationSteps = [ParticipationStep, ...ParticipationStep[]];
+type ParticipationSteps = [ParticipationInputStep, ...ParticipationInputStep[]];
 
 /**
- * 모임 유형별 참여 입력 순서.
+ * 모임 유형별 참여 입력 순서. **진행률이 세는 단계다.**
+ *
+ * 신원 화면은 여기 넣지 않는다. 로그인 화면에 가까운 인상이라 진행바를 띄우지 않고,
+ * 세지도 않는다. 일정과 장소를 모두 조율하는 모임이라면 두 화면이 진행률을 반씩 나눠 갖는다.
  *
  * `scheduleInputType`은 받지 않는다. 캘린더(`DATE_ONLY`)든 시간표(`DATE_AND_TIME`)든
  * 일정 입력은 한 화면이라 단계 수를 바꾸지 않는다.
@@ -39,13 +42,13 @@ export function getParticipationSteps({
 }: ParticipationFlowInput): ParticipationSteps {
   switch (planningType) {
     case 'SCHEDULE_ONLY':
-      return ['identity', 'schedule'];
+      return ['schedule'];
 
     case 'PLACE_ONLY':
-      return ['identity', 'departure'];
+      return ['departure'];
 
     case 'SCHEDULE_AND_PLACE':
-      return ['identity', 'schedule', 'departure'];
+      return ['schedule', 'departure'];
   }
 }
 
@@ -87,14 +90,16 @@ export function participationStepFromPath(pathname: string): ParticipationStep |
 }
 
 /**
- * 현재 입력 스텝의 진행률.
+ * 현재 화면의 진행률.
  *
- * 현재 planningType의 흐름에 포함되지 않는 스텝이면 null을 반환한다.
+ * 신원 화면과 현재 planningType의 흐름에 없는 스텝은 null이다. 호출부는 진행바를 감춘다.
  */
 export function participationProgressPercent(
   step: ParticipationStep,
   input: ParticipationFlowInput
 ): number | null {
+  if (step === 'identity') return null;
+
   const steps = getParticipationSteps(input);
   const index = steps.indexOf(step);
 
@@ -103,25 +108,36 @@ export function participationProgressPercent(
   return Math.round(((index + 1) / steps.length) * 100);
 }
 
-/** 현재 입력 스텝의 이전 스텝. 첫 스텝이면 null. */
+/**
+ * 뒤로가기가 향할 이전 화면.
+ *
+ * 첫 입력 스텝의 이전은 신원 화면이다. 진행률에서는 빠지지만 흐름상으로는 앞에 있다.
+ * 신원 화면의 이전은 없다(참여 이탈).
+ */
 export function previousParticipationStep(
   step: ParticipationStep,
   input: ParticipationFlowInput
 ): ParticipationStep | null {
+  if (step === 'identity') return null;
+
   const steps = getParticipationSteps(input);
   const index = steps.indexOf(step);
 
-  if (index <= 0) return null;
+  if (index === -1) return null;
+  if (index === 0) return 'identity';
 
   return steps[index - 1] ?? null;
 }
 
-/** 현재 입력 스텝의 다음 스텝. 마지막이면 null(제출 지점). */
+/** 현재 화면의 다음 입력 스텝. 마지막이면 null(제출 지점). */
 export function nextParticipationStep(
   step: ParticipationStep,
   input: ParticipationFlowInput
-): ParticipationStep | null {
+): ParticipationInputStep | null {
   const steps = getParticipationSteps(input);
+
+  if (step === 'identity') return steps[0];
+
   const index = steps.indexOf(step);
 
   if (index === -1 || index === steps.length - 1) {
@@ -131,25 +147,14 @@ export function nextParticipationStep(
   return steps[index + 1] ?? null;
 }
 
-/** identity를 제외한 입력 스텝만. 경로가 하나로 정해지는 것들이다. */
-function getParticipationInputSteps(
-  input: ParticipationFlowInput
-): [ParticipationInputStep, ...ParticipationInputStep[]] {
-  const steps = getParticipationSteps(input).filter(
-    (step): step is ParticipationInputStep => step !== 'identity'
-  );
-
-  return steps as [ParticipationInputStep, ...ParticipationInputStep[]];
-}
-
 /** 신원 입력 다음에 오는 첫 스텝. 잘못된 스텝으로 직접 들어왔을 때 돌려보낼 곳이다. */
 export function firstParticipationInputStep(input: ParticipationFlowInput): ParticipationInputStep {
-  return getParticipationInputSteps(input)[0];
+  return getParticipationSteps(input)[0];
 }
 
 /** 현재 planningType의 마지막 입력 스텝. 여기서 제출한다. */
 export function lastParticipationStep(input: ParticipationFlowInput): ParticipationInputStep {
-  const steps = getParticipationInputSteps(input);
+  const steps = getParticipationSteps(input);
 
   return steps[steps.length - 1]!;
 }

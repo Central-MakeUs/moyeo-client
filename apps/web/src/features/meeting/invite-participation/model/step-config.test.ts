@@ -12,52 +12,47 @@ import {
 } from './step-config';
 
 describe('getParticipationSteps', () => {
-  it('SCHEDULE_ONLY는 신원과 일정 두 단계다', () => {
-    expect(getParticipationSteps({ planningType: 'SCHEDULE_ONLY' })).toEqual([
-      'identity',
-      'schedule',
-    ]);
+  it('SCHEDULE_ONLY는 일정 한 단계다', () => {
+    expect(getParticipationSteps({ planningType: 'SCHEDULE_ONLY' })).toEqual(['schedule']);
   });
 
-  it('PLACE_ONLY는 신원과 출발지 두 단계다', () => {
-    expect(getParticipationSteps({ planningType: 'PLACE_ONLY' })).toEqual([
-      'identity',
-      'departure',
-    ]);
+  it('PLACE_ONLY는 출발지 한 단계다', () => {
+    expect(getParticipationSteps({ planningType: 'PLACE_ONLY' })).toEqual(['departure']);
   });
 
-  it('SCHEDULE_AND_PLACE는 신원·일정·출발지 세 단계다', () => {
+  it('SCHEDULE_AND_PLACE는 일정과 출발지 두 단계다', () => {
     expect(getParticipationSteps({ planningType: 'SCHEDULE_AND_PLACE' })).toEqual([
-      'identity',
       'schedule',
       'departure',
     ]);
+  });
+
+  it('신원 화면은 단계에 넣지 않는다', () => {
+    // 로그인 화면에 가까운 인상이라 진행바를 띄우지 않고 세지도 않는다.
+    expect(getParticipationSteps({ planningType: 'SCHEDULE_AND_PLACE' })).not.toContain('identity');
   });
 
   it('일정 입력 방식은 단계 수를 바꾸지 않는다', () => {
     // 캘린더(DATE_ONLY)든 시간표(DATE_AND_TIME)든 일정 입력은 한 화면이다.
-    expect(getParticipationSteps({ planningType: 'SCHEDULE_AND_PLACE' })).toHaveLength(3);
+    expect(getParticipationSteps({ planningType: 'SCHEDULE_AND_PLACE' })).toHaveLength(2);
   });
 });
 
 describe('participationProgressPercent', () => {
-  it('일정+장소 모임의 출발지는 세 단계 중 세 번째다', () => {
+  it('일정과 장소를 모두 조율하면 두 화면이 진행률을 반씩 나눠 갖는다', () => {
+    expect(participationProgressPercent('schedule', { planningType: 'SCHEDULE_AND_PLACE' })).toBe(
+      50
+    );
     expect(participationProgressPercent('departure', { planningType: 'SCHEDULE_AND_PLACE' })).toBe(
       100
     );
   });
 
-  it('일정+장소 모임의 일정은 세 단계 중 두 번째다', () => {
-    expect(participationProgressPercent('schedule', { planningType: 'SCHEDULE_AND_PLACE' })).toBe(
-      67
-    );
-  });
-
-  it('신원 입력은 언제나 첫 단계다', () => {
-    expect(participationProgressPercent('identity', { planningType: 'SCHEDULE_ONLY' })).toBe(50);
-    expect(participationProgressPercent('identity', { planningType: 'SCHEDULE_AND_PLACE' })).toBe(
-      33
-    );
+  it('신원 화면은 진행률이 없다', () => {
+    expect(
+      participationProgressPercent('identity', { planningType: 'SCHEDULE_AND_PLACE' })
+    ).toBeNull();
+    expect(participationProgressPercent('identity', { planningType: 'SCHEDULE_ONLY' })).toBeNull();
   });
 
   it('현재 모임 유형에 없는 단계면 null이다', () => {
@@ -123,7 +118,7 @@ describe('nextParticipationStep', () => {
 });
 
 describe('firstParticipationInputStep · lastParticipationStep', () => {
-  it('신원은 입력 스텝에서 제외된다', () => {
+  it('첫 입력 스텝은 모임 유형이 정한다', () => {
     expect(firstParticipationInputStep({ planningType: 'SCHEDULE_AND_PLACE' })).toBe('schedule');
     expect(firstParticipationInputStep({ planningType: 'PLACE_ONLY' })).toBe('departure');
   });

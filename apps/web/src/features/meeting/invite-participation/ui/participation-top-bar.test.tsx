@@ -44,7 +44,13 @@ beforeEach(() => {
 });
 
 describe('ParticipationTopBar 진행률', () => {
-  it('일정+장소 모임의 출발지 화면은 세 단계 중 세 번째임을 나타낸다', () => {
+  it('일정과 장소를 모두 조율하면 두 화면이 진행률을 반씩 나눠 갖는다', () => {
+    renderTopBar('SCHEDULE_AND_PLACE');
+
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '50');
+  });
+
+  it('마지막 입력 화면은 100%다', () => {
     pathname.current = '/i/ABC123/respond/departure';
 
     renderTopBar('SCHEDULE_AND_PLACE');
@@ -52,18 +58,22 @@ describe('ParticipationTopBar 진행률', () => {
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '100');
   });
 
-  it('일정+장소 모임의 일정 화면은 세 단계 중 두 번째임을 나타낸다', () => {
-    renderTopBar('SCHEDULE_AND_PLACE');
-
-    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '67');
-  });
-
-  it('신원 화면도 진행률에 포함된다', () => {
+  it('신원 화면에서는 진행바를 그리지 않는다', () => {
+    // 로그인 화면에 가까운 인상이라 진행바가 어울리지 않는다.
+    // 단계 수에는 그대로 포함된다(step-config.test.ts 참고).
     pathname.current = '/i/ABC123/guest';
 
     renderTopBar('SCHEDULE_ONLY');
 
-    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '50');
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+  });
+
+  it('신원 화면에서도 뒤로가기는 남는다', () => {
+    pathname.current = '/i/ABC123/nickname';
+
+    renderTopBar('SCHEDULE_ONLY');
+
+    expect(screen.getByRole('button', { name: '뒤로가기' })).toBeInTheDocument();
   });
 });
 
@@ -82,12 +92,13 @@ describe('ParticipationTopBar 렌더 범위', () => {
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
   });
 
-  it('현재 모임 유형에 없는 스텝으로 들어오면 상단바를 그리지 않는다', () => {
+  it('현재 모임 유형에 없는 스텝으로 들어오면 진행바를 그리지 않는다', () => {
+    // 이동은 진입 가드가 맡는다. 그전까지 진행률을 지어내지 않는다.
     pathname.current = '/i/ABC123/respond/departure';
 
     renderTopBar('SCHEDULE_ONLY');
 
-    expect(screen.queryByRole('button', { name: '뒤로가기' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
   });
 });
 

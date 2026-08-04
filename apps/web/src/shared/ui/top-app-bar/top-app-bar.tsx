@@ -18,7 +18,10 @@ export function TopAppBar({ leading, title, trailing, className, ...props }: Top
       )}
       {...props}
     >
-      <div data-slot="top-app-bar-leading" className="flex items-center justify-self-start">
+      <div
+        data-slot="top-app-bar-leading"
+        className="flex min-w-fit shrink-0 items-center justify-self-start"
+      >
         {leading}
       </div>
 

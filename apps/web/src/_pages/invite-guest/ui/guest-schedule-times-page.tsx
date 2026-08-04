@@ -16,6 +16,7 @@ import type {
 } from '@/shared/api';
 import { Button } from '@/shared/ui/button';
 import { CTASection } from '@/shared/ui/cta-section';
+import { WizardStepLayout } from '@/shared/ui/layouts';
 import { PageHeader } from '@/shared/ui/page-header';
 import { AvailabilityTimeGrid, buildCellKeysBeforeDate } from '@/shared/ui/time-grid';
 
@@ -62,37 +63,41 @@ export function GuestScheduleTimesPage({
   );
 
   return (
-    <div className="flex h-dvh flex-col bg-white">
-      <main className="flex min-h-0 flex-1 flex-col gap-12 overflow-hidden px-5 py-10">
+    // 높이·상단바는 (participant) 레이아웃이 잡는다. 여기서 h-dvh를 다시 잡으면
+    // 상단바·진행바 높이만큼 넘쳐 body에 스크롤이 생긴다.
+    <WizardStepLayout
+      className="overflow-hidden"
+      header={
         <PageHeader
           title="가능한 시간대를 알려주세요"
           description="모임장이 지정한 범위 안에서만 선택할 수 있어요"
         />
-
-        <AvailabilityTimeGrid
-          columns={columns}
-          rows={rows}
-          value={selectedCellKeys}
-          onChange={(next) =>
-            setScheduleResponse({ availableTimeRanges: cellKeysToAvailabilityTimeRanges(next) })
+      }
+      footer={
+        <CTASection
+          primaryAction={
+            <Button
+              fullWidth
+              disabled={selectedCellKeys.length === 0}
+              isLoading={isSubmitting}
+              onClick={proceed}
+            >
+              참여하기
+            </Button>
           }
-          disabledKeys={unselectableKeys}
-          className="min-h-0 flex-1"
         />
-      </main>
-
-      <CTASection
-        primaryAction={
-          <Button
-            fullWidth
-            disabled={selectedCellKeys.length === 0}
-            isLoading={isSubmitting}
-            onClick={proceed}
-          >
-            참여하기
-          </Button>
+      }
+    >
+      <AvailabilityTimeGrid
+        columns={columns}
+        rows={rows}
+        value={selectedCellKeys}
+        onChange={(next) =>
+          setScheduleResponse({ availableTimeRanges: cellKeysToAvailabilityTimeRanges(next) })
         }
+        disabledKeys={unselectableKeys}
+        className="min-h-0 flex-1"
       />
-    </div>
+    </WizardStepLayout>
   );
 }
