@@ -30,6 +30,7 @@ export function InviteLandingPage({
 
   const {
     isBlocked,
+    isChecking,
     isDrawerOpen,
     drawerType,
     participate,
@@ -105,7 +106,7 @@ export function InviteLandingPage({
               )
             }
             primaryAction={
-              <Button fullWidth onClick={participate} disabled={isBlocked}>
+              <Button fullWidth onClick={participate} disabled={isBlocked} isLoading={isChecking}>
                 모임 참여하기
               </Button>
             }
