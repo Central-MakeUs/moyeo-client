@@ -18,7 +18,13 @@ vi.mock('./participant-departures-section', () => ({
 const { meetingViewData } = vi.hoisted(() => ({
   meetingViewData: { current: {} as Record<string, unknown> },
 }));
-vi.mock('@/shared/api', () => ({ useGetMeetingView: () => ({ data: meetingViewData.current }) }));
+vi.mock('@/shared/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/shared/api')>()),
+  useGetMeetingView: () => ({ data: meetingViewData.current }),
+}));
+
+// 응답 수정 버튼이 라우터로 수정 화면에 보낸다. 이동 자체는 이 화면의 검증 대상이 아니다.
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 describe('CoordinationSection', () => {
   beforeEach(() => {

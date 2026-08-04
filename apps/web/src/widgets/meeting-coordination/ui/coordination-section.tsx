@@ -38,7 +38,7 @@ function PlaceTabContent({
       <PlaceRecommendationsSection inviteCode={inviteCode} isConfirmed={isConfirmed} />
       <ParticipantDeparturesSection inviteCode={inviteCode} capacity={capacity} />
       <div className="flex justify-center">
-        <EditResponseButton />
+        <EditResponseButton inviteCode={inviteCode} target="departure" />
       </div>
     </div>
   );

@@ -29,7 +29,10 @@ vi.mock('@/features/meeting/confirm-schedule', async (importOriginal) => ({
 const { meetingViewData } = vi.hoisted(() => ({
   meetingViewData: { current: { meetingId: 7 } as Record<string, unknown> },
 }));
-vi.mock('@/shared/api', () => ({ useGetMeetingView: () => ({ data: meetingViewData.current }) }));
+vi.mock('@/shared/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/shared/api')>()),
+  useGetMeetingView: () => ({ data: meetingViewData.current }),
+}));
 
 /** 소미(모임장)·린이 가능한 후보 하나. */
 const CANDIDATE = {
@@ -50,6 +53,9 @@ function mockScheduleView() {
     isError: false,
   });
 }
+
+// 응답 수정 버튼이 라우터로 수정 화면에 보낸다. 이동 자체는 이 화면의 검증 대상이 아니다.
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 describe('ScheduleCandidatesSection', () => {
   beforeEach(() => {

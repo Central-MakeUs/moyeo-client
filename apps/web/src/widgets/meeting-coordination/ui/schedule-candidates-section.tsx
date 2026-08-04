@@ -93,7 +93,7 @@ export function ScheduleCandidatesSection({
           <div className="flex flex-col items-center gap-3 rounded-12 bg-neutral-10 px-4 py-[30px]">
             <Icon name="calendar-neutral" size={30} />
             <span className="text-bold-14 text-neutral-400">겹치는 일정이 없어요</span>
-            <EditResponseButton />
+            <EditResponseButton inviteCode={inviteCode} target="schedule" />
           </div>
         ) : (
           <div className="flex flex-col gap-6">
@@ -111,7 +111,7 @@ export function ScheduleCandidatesSection({
               ))}
             </div>
             <div className="flex justify-center">
-              <EditResponseButton />
+              <EditResponseButton inviteCode={inviteCode} target="schedule" />
             </div>
           </div>
         ))}
