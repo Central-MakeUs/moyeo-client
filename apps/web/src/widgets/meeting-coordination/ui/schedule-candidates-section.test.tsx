@@ -26,7 +26,10 @@ vi.mock('@/features/meeting/confirm-schedule', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/features/meeting/confirm-schedule')>()),
   useConfirmSchedule: () => ({ confirm: confirmMock, isConfirming: false }),
 }));
-vi.mock('@/shared/api', () => ({ useGetMeetingView: () => ({ data: { meetingId: 7 } }) }));
+const { meetingViewData } = vi.hoisted(() => ({
+  meetingViewData: { current: { meetingId: 7 } as Record<string, unknown> },
+}));
+vi.mock('@/shared/api', () => ({ useGetMeetingView: () => ({ data: meetingViewData.current }) }));
 
 /** 소미(모임장)·린이 가능한 후보 하나. */
 const CANDIDATE = {
@@ -50,6 +53,7 @@ function mockScheduleView() {
 
 describe('ScheduleCandidatesSection', () => {
   beforeEach(() => {
+    meetingViewData.current = { meetingId: 7 };
     useViewerIdentityMock.mockReturnValue({ userId: null, guestNickname: null });
     useMeetingHostMock.mockReturnValue({ participantId: 1, isViewerHost: false });
   });
@@ -77,6 +81,18 @@ describe('ScheduleCandidatesSection', () => {
     await user.click(screen.getByText('7.18'));
 
     expect(await screen.findByRole('button', { name: '일정 확정하기' })).toBeInTheDocument();
+  });
+
+  it('이미 확정됐으면 모임장에게도 일정 확정하기를 보여주지 않는다', async () => {
+    const user = userEvent.setup();
+    mockScheduleView();
+    useMeetingHostMock.mockReturnValue({ participantId: 1, isViewerHost: true });
+
+    render(<ScheduleCandidatesSection inviteCode="29NRVBGXGP" isConfirmed />);
+    await user.click(screen.getByText('7.18'));
+
+    await screen.findByText('7월 18일 토요일');
+    expect(screen.queryByRole('button', { name: '일정 확정하기' })).not.toBeInTheDocument();
   });
 
   it('모임장이 일정 확정하기를 누르면 상세가 닫히고 확인 팝업이 뜬다', async () => {

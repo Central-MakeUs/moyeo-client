@@ -1,11 +1,18 @@
 export type { MeetingSummary } from './model/meeting-summary';
-export { toConfirmationOutcome } from './model/meeting-confirmation';
+export {
+  applyConfirmationToMeetingView,
+  toConfirmationOutcome,
+} from './model/meeting-confirmation';
 export type { ConfirmationOutcome } from './model/meeting-confirmation';
 export { availabilityTimeRangesToCellKeys } from './model/availability-time-ranges-to-cell-keys';
 export { cellKeysToAvailabilityTimeRanges } from './model/cell-keys-to-availability-time-ranges';
 export { useMeetingsQuery } from './model/use-meetings-query';
 export type { UseMeetingsQueryResult } from './model/use-meetings-query';
-export type { MeetingDetail, MeetingPlanningType } from './model/meeting-detail';
+export type {
+  MeetingDetail,
+  MeetingParticipant,
+  MeetingPlanningType,
+} from './model/meeting-detail';
 export { useMeetingDetailQuery } from './model/use-meeting-detail-query';
 export type { UseMeetingDetailQueryResult } from './model/use-meeting-detail-query';
 export { MeetingCard } from './ui/meeting-card';

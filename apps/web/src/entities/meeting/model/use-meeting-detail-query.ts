@@ -27,6 +27,17 @@ export function useMeetingDetailQuery(inviteCode: string): UseMeetingDetailQuery
           capacity: data.maxParticipants ?? 0,
           joinedCount: data.participantCount ?? 0,
           planningType: data.planningType ?? 'SCHEDULE_AND_PLACE',
+          isConfirmed: data.meetingConfirmed ?? false,
+          confirmedScheduleDate: data.confirmedScheduleDate ?? undefined,
+          confirmedStartTime: data.confirmedStartTime ?? undefined,
+          confirmedEndTime: data.confirmedEndTime ?? undefined,
+          confirmedPlaceName: data.confirmedPlaceName ?? undefined,
+          participants: (data.participants ?? []).map((participant) => ({
+            participantId: participant.participantId ?? 0,
+            userId: participant.userId ?? null,
+            nickname: participant.nickname ?? '',
+            isHost: participant.participantType === 'HOST',
+          })),
         }
       : undefined,
     isLoading,

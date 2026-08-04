@@ -26,10 +26,13 @@ const SORT_DESCRIPTIONS: Record<ScheduleSort, string> = {
 
 export interface ScheduleCandidatesSectionProps {
   inviteCode: string;
+  /** 일정이 이미 확정됐는지. 확정 후에는 다시 확정할 수 없다. */
+  isConfirmed?: boolean;
 }
 
 export function ScheduleCandidatesSection({
   inviteCode,
+  isConfirmed = false,
 }: ScheduleCandidatesSectionProps): React.JSX.Element {
   const [sort, setSort] = React.useState<ScheduleSort>('EARLIEST_DATE');
   const { data, isLoading, isError } = useScheduleViewQuery(inviteCode, sort);
@@ -124,7 +127,8 @@ export function ScheduleCandidatesSection({
             isHost: participant.participantId === hostParticipantId,
             isMe: isViewerParticipant(participant, viewer),
           }))}
-          canConfirm={isViewerHost}
+          // 이미 확정했으면 다시 확정할 수 없다.
+          canConfirm={isViewerHost && !isConfirmed}
           open
           onOpenChange={(open) => {
             if (!open) setSelected(null);

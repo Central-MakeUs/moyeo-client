@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -14,7 +14,53 @@ vi.mock('./participant-departures-section', () => ({
   ParticipantDeparturesSection: () => <div>참여자출발위치스텁</div>,
 }));
 
+// 확정 여부와 확정된 값은 모임 현황 조회에서 온다.
+const { meetingViewData } = vi.hoisted(() => ({
+  meetingViewData: { current: {} as Record<string, unknown> },
+}));
+vi.mock('@/shared/api', () => ({ useGetMeetingView: () => ({ data: meetingViewData.current }) }));
+
 describe('CoordinationSection', () => {
+  beforeEach(() => {
+    meetingViewData.current = {};
+  });
+
+  it('일정이 확정되면 일정 탭에 확정 카드를 보여준다', () => {
+    meetingViewData.current = {
+      confirmedScheduleDate: '2026-07-18',
+      confirmedStartTime: '14:00:00',
+      confirmedEndTime: '18:00:00',
+    };
+
+    render(
+      <CoordinationSection inviteCode="29NRVBGXGP" planningType="SCHEDULE_AND_PLACE" capacity={4} />
+    );
+
+    expect(screen.getByText('일정이 확정되었어요!')).toBeInTheDocument();
+    expect(screen.getByText('7/18 (토) 14:00~18:00')).toBeInTheDocument();
+  });
+
+  it('위치가 확정되면 위치 탭에 확정 카드를 보여준다', async () => {
+    const user = userEvent.setup();
+    meetingViewData.current = { confirmedPlaceName: '합정역' };
+
+    render(
+      <CoordinationSection inviteCode="29NRVBGXGP" planningType="SCHEDULE_AND_PLACE" capacity={4} />
+    );
+    await user.click(screen.getByRole('tab', { name: '위치 조율 현황' }));
+
+    expect(screen.getByText('위치가 확정되었어요!')).toBeInTheDocument();
+    expect(screen.getByText('합정역')).toBeInTheDocument();
+  });
+
+  it('확정 전에는 확정 카드가 없다', () => {
+    render(
+      <CoordinationSection inviteCode="29NRVBGXGP" planningType="SCHEDULE_AND_PLACE" capacity={4} />
+    );
+
+    expect(screen.queryByText('일정이 확정되었어요!')).not.toBeInTheDocument();
+  });
+
   it('SCHEDULE_AND_PLACE면 탭이 표시되고, 기본값은 "일정 조율 현황"이며 "위치 조율 현황"을 누르면 전환된다', async () => {
     const user = userEvent.setup();
     render(

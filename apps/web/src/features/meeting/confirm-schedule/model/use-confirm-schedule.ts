@@ -6,12 +6,13 @@ import { useRouter } from 'next/navigation';
 
 import { useQueryClient } from '@tanstack/react-query';
 
-import { toConfirmationOutcome } from '@/entities/meeting';
+import { applyConfirmationToMeetingView, toConfirmationOutcome } from '@/entities/meeting';
 import {
   confirmSchedule,
   getGetMeetingViewQueryKey,
   getGetMyMeetingsQueryKey,
   getGetScheduleViewQueryKey,
+  type MeetingViewResponse,
 } from '@/shared/api';
 import { toast } from '@/shared/ui';
 
@@ -73,17 +74,25 @@ export function useConfirmSchedule({
         endTime: target.endTime,
       });
 
+      // 확정 화면도 같은 조회를 쓴다. 응답으로 캐시를 먼저 맞춰 재조회를 기다리지 않는다.
+      queryClient.setQueryData<MeetingViewResponse>(
+        getGetMeetingViewQueryKey(inviteCode),
+        (previous) => applyConfirmationToMeetingView(previous, response)
+      );
+
+      /*
+       * 서버 값과 맞추는 재조회는 기다리지 않는다. 기다리면 현재 화면이 먼저 갱신돼, 확정
+       * 카드가 그려지는 것을 보고 나서야 확정 화면으로 넘어간다.
+       *
+       * 정렬을 바꿔 담아 둔 후보 캐시까지 함께 지우려고 params 없는 키로 무효화한다.
+       */
+      void queryClient.invalidateQueries({ queryKey: getGetScheduleViewQueryKey(inviteCode) });
+      void queryClient.invalidateQueries({ queryKey: getGetMyMeetingsQueryKey() });
+
       if (toConfirmationOutcome(response) === 'final') {
         router.replace(`/meetings/confirmed?code=${inviteCode}`);
         return;
       }
-
-      // 정렬을 바꿔 담아 둔 후보 캐시까지 함께 지우려고 params 없는 키로 무효화한다.
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: getGetScheduleViewQueryKey(inviteCode) }),
-        queryClient.invalidateQueries({ queryKey: getGetMeetingViewQueryKey(inviteCode) }),
-        queryClient.invalidateQueries({ queryKey: getGetMyMeetingsQueryKey() }),
-      ]);
 
       toast.add({ description: SUCCESS_MESSAGE });
       onPartialConfirm?.();

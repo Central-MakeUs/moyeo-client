@@ -22,12 +22,33 @@ vi.mock('@/features/meeting/confirm-place', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/features/meeting/confirm-place')>()),
   useConfirmPlace: () => ({ confirm: confirmMock, isConfirming: false }),
 }));
-vi.mock('@/shared/api', () => ({ useGetMeetingView: () => ({ data: { meetingId: 7 } }) }));
+const { meetingViewData } = vi.hoisted(() => ({
+  meetingViewData: { current: { meetingId: 7 } as Record<string, unknown> },
+}));
+vi.mock('@/shared/api', () => ({ useGetMeetingView: () => ({ data: meetingViewData.current }) }));
 
 describe('PlaceRecommendationsSection', () => {
   beforeEach(() => {
+    meetingViewData.current = { meetingId: 7 };
     // 기본은 참여자 시점. 모임장만 후보를 고를 수 있다.
     useMeetingHostMock.mockReturnValue({ participantId: 1, isViewerHost: false });
+  });
+
+  it('이미 확정됐으면 모임장에게도 후보가 눌리지 않는다', () => {
+    useMeetingHostMock.mockReturnValue({ participantId: 1, isViewerHost: true });
+    usePlaceViewQueryMock.mockReturnValue({
+      data: {
+        participantCount: 5,
+        recommendations: [{ rank: 1, areaCode: 'A01', areaName: '합정동' }],
+        participants: [],
+      },
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<PlaceRecommendationsSection inviteCode="29NRVBGXGP" isConfirmed />);
+
+    expect(screen.queryByRole('button', { name: /합정동/ })).not.toBeInTheDocument();
   });
 
   it('추천 후보가 있으면 타이틀에 개수가 표시되고 목록이 렌더된다', () => {

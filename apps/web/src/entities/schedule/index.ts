@@ -11,6 +11,7 @@ export {
   formatCandidateDuration,
   formatCandidateTimeRange,
   formatConfirmedSchedule,
+  formatConfirmedMeetingDate,
 } from './model/format-candidate-schedule';
 export { ScheduleCandidateListItem } from './ui/schedule-candidate-list-item';
 export type { ScheduleCandidateListItemProps } from './ui/schedule-candidate-list-item';

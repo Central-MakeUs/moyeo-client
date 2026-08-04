@@ -14,10 +14,13 @@ import { useMeetingHost } from '../model/use-meeting-host';
 
 export interface PlaceRecommendationsSectionProps {
   inviteCode: string;
+  /** 장소가 이미 확정됐는지. 확정 후에는 다시 확정할 수 없다. */
+  isConfirmed?: boolean;
 }
 
 export function PlaceRecommendationsSection({
   inviteCode,
+  isConfirmed = false,
 }: PlaceRecommendationsSectionProps): React.JSX.Element {
   const { data, isLoading, isError } = usePlaceViewQuery(inviteCode);
   const { isViewerHost } = useMeetingHost(inviteCode);
@@ -69,8 +72,10 @@ export function PlaceRecommendationsSection({
                 dongName={recommendation.dongName}
                 averageTravelTimeSeconds={recommendation.averageTravelTimeSeconds}
                 station={recommendation.station}
-                // 장소를 확정할 수 있는 모임장에게만 고를 수 있게 한다.
-                onClick={isViewerHost ? () => setConfirmTarget(recommendation) : undefined}
+                // 장소를 확정할 수 있는 모임장에게만, 아직 확정 전일 때만 고를 수 있게 한다.
+                onClick={
+                  isViewerHost && !isConfirmed ? () => setConfirmTarget(recommendation) : undefined
+                }
               />
             ))}
           </div>
