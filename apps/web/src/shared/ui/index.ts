@@ -1,4 +1,5 @@
 export * from './avatar';
+export * from './back-button';
 export * from './avatar-group';
 export * from './badge';
 export * from './button';
@@ -26,3 +27,5 @@ export * from './top-app-bar';
 export * from './carousel';
 export * from './tabs';
 export * from './tooltip';
+export * from './form-field';
+export * from './alert-dialog';
