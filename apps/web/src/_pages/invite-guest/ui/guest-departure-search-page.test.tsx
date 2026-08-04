@@ -76,4 +76,22 @@ describe('GuestDepartureSearchPage', () => {
     expect(useGuestJoinDraft.getState().departure).toBeNull();
     expect(push).toHaveBeenCalledWith('/i/ABC123/respond/departure');
   });
+
+  it('초안이 없으면 게스트 진입 화면으로 돌려보낸다', () => {
+    useGuestJoinDraft.setState({ identity: null });
+
+    renderWithQuery(<GuestDepartureSearchPage inviteToken="ABC123" />);
+
+    expect(replace).toHaveBeenCalledWith('/i/ABC123/guest');
+  });
+
+  it('다른 초대의 초안이면 현재 초대의 게스트 진입 화면으로 돌려보낸다', () => {
+    useGuestJoinDraft.setState({
+      identity: { inviteToken: 'OTHER', nickname: '소미', password: '1234' },
+    });
+
+    renderWithQuery(<GuestDepartureSearchPage inviteToken="ABC123" />);
+
+    expect(replace).toHaveBeenCalledWith('/i/ABC123/guest');
+  });
 });

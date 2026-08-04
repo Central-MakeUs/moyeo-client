@@ -1,11 +1,12 @@
 'use client';
 
 import type * as React from 'react';
+import { useEffect } from 'react';
 
 import { useRouter } from 'next/navigation';
 
 import { PlaceSearchView } from '@/entities/place';
-import { useGuestJoinDraft } from '@/features/meeting/invite-participation';
+import { isDraftUsableFor, useGuestJoinDraft } from '@/features/meeting/invite-participation';
 
 export interface GuestDepartureSearchPageProps {
   inviteToken: string;
@@ -18,8 +19,13 @@ export function GuestDepartureSearchPage({
   inviteToken,
 }: GuestDepartureSearchPageProps): React.JSX.Element {
   const router = useRouter();
+  const identity = useGuestJoinDraft((state) => state.identity);
   const setDeparture = useGuestJoinDraft((state) => state.setDeparture);
   const departurePath = `/i/${inviteToken}/respond/departure`;
+
+  useEffect(() => {
+    if (!isDraftUsableFor(identity, inviteToken)) router.replace(`/i/${inviteToken}/guest`);
+  }, [identity, inviteToken, router]);
 
   return (
     <PlaceSearchView
