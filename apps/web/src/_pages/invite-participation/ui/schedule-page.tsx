@@ -11,6 +11,7 @@ import {
   toLocalDate,
 } from '@/shared/ui/calendar';
 import { CTASection } from '@/shared/ui/cta-section';
+import { WizardStepLayout } from '@/shared/ui/layouts';
 import { PageHeader } from '@/shared/ui/page-header';
 
 export interface SchedulePageProps {
@@ -47,14 +48,29 @@ export function SchedulePage({
     firstCandidateDate === undefined ? undefined : toLocalDate(firstCandidateDate);
 
   return (
-    <div className="flex min-h-dvh flex-col bg-white">
-      <main className="flex flex-1 flex-col gap-12">
-        <PageHeader
-          className="px-5 pt-10"
-          title="가능한 날짜를 알려주세요"
-          description="모임장이 지정한 범위 안에서만 선택할 수 있어요"
-        />
-
+    <div className="flex h-full flex-col">
+      <WizardStepLayout
+        header={
+          <PageHeader
+            title="가능한 날짜를 알려주세요"
+            description="모임장이 지정한 범위 안에서만 선택할 수 있어요"
+          />
+        }
+        footer={
+          <CTASection
+            primaryAction={
+              <Button
+                fullWidth
+                disabled={selectedDates.length === 0}
+                isLoading={isSubmitting}
+                onClick={proceed}
+              >
+                참여하기
+              </Button>
+            }
+          />
+        }
+      >
         <DraggableCalendar
           className="mx-auto"
           value={parseScheduleCandidateDates(selectedDates)}
@@ -70,20 +86,7 @@ export function SchedulePage({
           }}
           month={initialMonth}
         />
-      </main>
-
-      <CTASection
-        primaryAction={
-          <Button
-            fullWidth
-            disabled={selectedDates.length === 0}
-            isLoading={isSubmitting}
-            onClick={proceed}
-          >
-            참여하기
-          </Button>
-        }
-      />
+      </WizardStepLayout>
     </div>
   );
 }

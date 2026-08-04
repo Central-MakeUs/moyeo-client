@@ -20,3 +20,23 @@ export { useMemberJoinDraft, type MemberIdentity } from './model/member-join-dra
 export { toMemberJoinRequest, type MemberJoinDraftSnapshot } from './model/to-member-join-request';
 export { useSubmitMemberJoin } from './model/use-submit-member-join';
 export { useDepartureStep } from './model/use-departure-step';
+export {
+  getParticipationSteps,
+  participationStepToPath,
+  participationStepFromPath,
+  participationProgressPercent,
+  previousParticipationStep,
+  nextParticipationStep,
+  firstParticipationStep,
+  lastParticipationStep,
+  type ParticipationStep,
+  type ParticipationFlowInput,
+} from './model/step-config';
+export { resolveParticipationStepRedirect, type ParticipationStepGuardInput } from './model/guard';
+export {
+  participationEntryPath,
+  participationCompletePath,
+  invitationPath,
+  type ParticipantKind,
+} from './model/participation-path';
+export { ParticipationTopBar, type ParticipationTopBarProps } from './ui/participation-top-bar';
