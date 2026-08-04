@@ -9,7 +9,9 @@ import {
   isDraftUsableFor,
   isGuestJoinDraftComplete,
   useGuestJoinDraft,
+  useMemberJoinDraft,
   useSubmitGuestJoin,
+  useSubmitMemberJoin,
 } from '@/features/meeting/invite-participation';
 import type { MeetingInvitationResponsePlanningType } from '@/shared/api';
 import { Button } from '@/shared/ui/button';
@@ -37,24 +39,42 @@ export function GuestDeparturePage({ inviteToken, planningType }: GuestDeparture
   const departure = useGuestJoinDraft((state) => state.departure);
   const transportationMode = useGuestJoinDraft((state) => state.transportationMode);
   const setTransportationMode = useGuestJoinDraft((state) => state.setTransportationMode);
+  const memberIdentity = useMemberJoinDraft((state) => state.identity);
+  const memberScheduleResponse = useMemberJoinDraft((state) => state.scheduleResponse);
+  const memberDeparture = useMemberJoinDraft((state) => state.departure);
+  const memberTransportationMode = useMemberJoinDraft((state) => state.transportationMode);
+  const setMemberTransportationMode = useMemberJoinDraft((state) => state.setTransportationMode);
 
-  const { submit, isSubmitting } = useSubmitGuestJoin({ inviteCode: inviteToken, planningType });
+  const guestSubmit = useSubmitGuestJoin({ inviteCode: inviteToken, planningType });
+  const memberSubmit = useSubmitMemberJoin({ inviteCode: inviteToken, planningType });
 
   const isDraftUsable = isDraftUsableFor(identity, inviteToken);
+  const isMemberDraftUsable = isDraftUsableFor(memberIdentity, inviteToken);
+  const activeScheduleResponse = isMemberDraftUsable ? memberScheduleResponse : scheduleResponse;
+  const activeDeparture = isMemberDraftUsable ? memberDeparture : departure;
+  const activeTransportationMode = isMemberDraftUsable
+    ? memberTransportationMode
+    : transportationMode;
 
   // 초안이 없거나 다른 모임 것이면 쓸 수 없다. 신원부터 다시 받는다(prd.md ADR-2).
   useEffect(() => {
-    if (!isDraftUsable) router.replace(`/i/${inviteToken}/guest`);
-  }, [isDraftUsable, inviteToken, router]);
+    if (!isDraftUsable && !isMemberDraftUsable) router.replace(`/i/${inviteToken}/guest`);
+  }, [isDraftUsable, isMemberDraftUsable, inviteToken, router]);
 
   // 일정을 거쳐 왔으면 일정 화면으로, 아니면 진입 화면으로 되돌아간다.
   const backPath =
     planningType === 'SCHEDULE_AND_PLACE'
       ? `/i/${inviteToken}/respond/schedule`
-      : `/i/${inviteToken}/guest`;
+      : isMemberDraftUsable
+        ? `/i/${inviteToken}/nickname`
+        : `/i/${inviteToken}/guest`;
 
   const isComplete = isGuestJoinDraftComplete(
-    { scheduleResponse, departure, transportationMode },
+    {
+      scheduleResponse: activeScheduleResponse,
+      departure: activeDeparture,
+      transportationMode: activeTransportationMode,
+    },
     planningType
   );
 
@@ -80,8 +100,8 @@ export function GuestDeparturePage({ inviteToken, planningType }: GuestDeparture
         <div className="flex w-full flex-col gap-4 px-5">
           <InputButton
             label="출발지"
-            value={departure?.name}
-            placeholder="서울·경기 내 출발지를 검색해주세요"
+            value={activeDeparture?.name}
+            placeholder="출발지를 입력해주세요"
             onClick={() => router.push(`/i/${inviteToken}/respond/departure/search`)}
           />
 
@@ -91,8 +111,10 @@ export function GuestDeparturePage({ inviteToken, planningType }: GuestDeparture
             </span>
             <DepartureRadioGroup
               aria-labelledby="transportation-mode-label"
-              value={transportationMode ?? ''}
-              onChangeValue={setTransportationMode}
+              value={activeTransportationMode ?? ''}
+              onChangeValue={
+                isMemberDraftUsable ? setMemberTransportationMode : setTransportationMode
+              }
             />
           </div>
         </div>
@@ -100,7 +122,12 @@ export function GuestDeparturePage({ inviteToken, planningType }: GuestDeparture
 
       <CTASection
         primaryAction={
-          <Button fullWidth disabled={!isComplete} isLoading={isSubmitting} onClick={submit}>
+          <Button
+            fullWidth
+            disabled={!isComplete}
+            isLoading={isMemberDraftUsable ? memberSubmit.isSubmitting : guestSubmit.isSubmitting}
+            onClick={isMemberDraftUsable ? memberSubmit.submit : guestSubmit.submit}
+          >
             참여하기
           </Button>
         }

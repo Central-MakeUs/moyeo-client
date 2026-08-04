@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { useGuestJoinDraft } from '@/features/meeting/invite-participation';
+import { useGuestJoinDraft, useMemberJoinDraft } from '@/features/meeting/invite-participation';
 import { renderWithQuery } from '@/shared/lib/render-with-query';
 
 import { GuestDepartureSearchPage } from './guest-departure-search-page';
@@ -42,6 +42,7 @@ beforeEach(() => {
     departure: null,
     transportationMode: null,
   });
+  useMemberJoinDraft.getState().reset();
 });
 
 describe('GuestDepartureSearchPage', () => {
@@ -65,6 +66,26 @@ describe('GuestDepartureSearchPage', () => {
       longitude: 127.0276,
     });
     expect(push).toHaveBeenCalledWith('/i/ABC123/respond/departure');
+  });
+
+  it('회원 초안이면 검색 결과를 회원 초안에 저장한다', async () => {
+    useGuestJoinDraft.getState().reset();
+    useMemberJoinDraft.setState({
+      identity: { inviteToken: 'ABC123', nickname: '소미' },
+      departure: null,
+    });
+    const user = userEvent.setup();
+    renderWithQuery(<GuestDepartureSearchPage inviteToken="ABC123" />);
+
+    await user.type(screen.getByRole('searchbox'), '강남');
+    await user.click(await screen.findByRole('button', { name: /강남역/ }));
+
+    expect(useMemberJoinDraft.getState().departure).toEqual({
+      name: '강남역',
+      address: '서울 강남구 강남대로 396',
+      latitude: 37.4979,
+      longitude: 127.0276,
+    });
   });
 
   it('뒤로가기를 탭하면 초안을 바꾸지 않고 출발지 화면으로 돌아간다', async () => {

@@ -2,14 +2,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { useGuestJoinDraft } from '@/features/meeting/invite-participation';
+import { useGuestJoinDraft, useMemberJoinDraft } from '@/features/meeting/invite-participation';
 
 import { GuestDeparturePage } from './guest-departure-page';
 
-const { push, replace, joinGuest } = vi.hoisted(() => ({
+const { push, replace, joinGuest, joinMember } = vi.hoisted(() => ({
   push: vi.fn(),
   replace: vi.fn(),
   joinGuest: vi.fn(),
+  joinMember: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -19,6 +20,7 @@ vi.mock('next/navigation', () => ({
 vi.mock('@/shared/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/shared/api')>()),
   joinGuest,
+  joinMember,
 }));
 
 const IDENTITY = { inviteToken: 'ABC123', nickname: '소미', password: '1234' };
@@ -38,6 +40,9 @@ beforeEach(() => {
   replace.mockReset();
   joinGuest.mockReset();
   joinGuest.mockResolvedValue({});
+  joinMember.mockReset();
+  joinMember.mockResolvedValue({});
+  useMemberJoinDraft.getState().reset();
   useGuestJoinDraft.setState({
     identity: IDENTITY,
     scheduleResponse: null,
@@ -72,6 +77,25 @@ describe('GuestDeparturePage', () => {
     const [, body] = joinGuest.mock.calls[0]!;
     expect(body.departure).toEqual({ ...GANGNAM, transportationMode: 'PUBLIC_TRANSIT' });
     expect(body).not.toHaveProperty('scheduleResponse');
+  });
+
+  it('PLACE_ONLY 회원은 일정 없이 departure를 담아 joinMember를 호출한다', async () => {
+    useGuestJoinDraft.getState().reset();
+    useMemberJoinDraft.setState({
+      identity: { inviteToken: 'ABC123', nickname: '소미' },
+      scheduleResponse: null,
+      departure: GANGNAM,
+      transportationMode: 'PUBLIC_TRANSIT',
+    });
+    renderPage('PLACE_ONLY');
+
+    await userEvent.click(screen.getByRole('button', { name: '참여하기' }));
+
+    await waitFor(() => expect(joinMember).toHaveBeenCalledTimes(1));
+    expect(joinMember).toHaveBeenCalledWith('ABC123', {
+      nickname: '소미',
+      departure: { ...GANGNAM, transportationMode: 'PUBLIC_TRANSIT' },
+    });
   });
 
   it('SCHEDULE_AND_PLACE에서 참여하기를 탭하면 scheduleResponse와 departure가 모두 실린 본문으로 제출한다', async () => {
