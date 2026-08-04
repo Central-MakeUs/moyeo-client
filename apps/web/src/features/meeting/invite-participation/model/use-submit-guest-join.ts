@@ -5,10 +5,11 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { writeGuestSession } from '@/entities/guest-session';
-import { joinGuest } from '@/shared/api';
+import { joinGuest, type MeetingInvitationResponsePlanningType } from '@/shared/api';
 import { toast } from '@/shared/ui';
 
 import { useGuestJoinDraft } from './guest-join-draft';
+import { isGuestJoinDraftComplete } from './is-guest-join-draft-complete';
 import { toGuestJoinRequest } from './to-guest-join-request';
 
 const SUBMIT_ERROR_TOAST_ID = 'guest-join-failed';
@@ -17,6 +18,8 @@ const SUBMIT_ERROR_MESSAGE = '참여하지 못했어요. 잠시 후 다시 시�
 export interface UseSubmitGuestJoinParams {
   /** 경로의 초대 코드. */
   inviteCode: string;
+  /** 서버가 정한 모임 유형. 제출 직전 초안 완성도 검증에 사용한다. */
+  planningType: MeetingInvitationResponsePlanningType;
 }
 
 export interface UseSubmitGuestJoinReturn {
@@ -34,6 +37,7 @@ export interface UseSubmitGuestJoinReturn {
  */
 export function useSubmitGuestJoin({
   inviteCode,
+  planningType,
 }: UseSubmitGuestJoinParams): UseSubmitGuestJoinReturn {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,22 +46,25 @@ export function useSubmitGuestJoin({
   const submit = async () => {
     const { identity, scheduleResponse, departure, transportationMode } =
       useGuestJoinDraft.getState();
-    if (identity === null || isSubmittingRef.current) return;
+    const draft = { scheduleResponse, departure, transportationMode };
+
+    if (
+      identity === null ||
+      !isGuestJoinDraftComplete(draft, planningType) ||
+      isSubmittingRef.current
+    ) {
+      return;
+    }
 
     isSubmittingRef.current = true;
     setIsSubmitting(true);
 
     try {
-      await joinGuest(
-        inviteCode,
-        toGuestJoinRequest({ identity, scheduleResponse, departure, transportationMode })
-      );
+      await joinGuest(inviteCode, toGuestJoinRequest({ identity, ...draft }));
 
       // 참여가 확정된 시점이다. 초안은 비워지므로, 현황 화면이 신원을 알아볼 수 있도록
       // 모임 닉네임만 게스트 세션에 남긴다.
       writeGuestSession(inviteCode, identity.nickname);
-
-      useGuestJoinDraft.getState().reset();
       router.replace(`/i/${inviteCode}/complete`);
     } catch {
       toast.add({ id: SUBMIT_ERROR_TOAST_ID, description: SUBMIT_ERROR_MESSAGE });
