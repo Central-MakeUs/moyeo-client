@@ -10,6 +10,10 @@ export interface HostScheduleBounds {
   availableEndTime: string | null;
 }
 
+/** 'HH:mm' → 시(hour). 블록이 1시간 단위라 분은 항상 00이다. */
+const toHour = (time: string) => Number(time.slice(0, 2));
+const toTime = (hour: number) => `${String(hour).padStart(2, '0')}:00`;
+
 /**
  * 조율 범위 밖으로 나간 모임장 본인의 응답을 걷어낸다.
  *
@@ -18,7 +22,43 @@ export interface HostScheduleBounds {
  */
 export function pruneHostScheduleResponse(
   response: ScheduleResponseRequest | null,
-  bounds: HostScheduleBounds
+  { candidateDates, availableStartTime, availableEndTime }: HostScheduleBounds
 ): ScheduleResponseRequest | null {
-  throw new Error(`not implemented (${typeof response}, ${typeof bounds})`);
+  if (response === null) return null;
+
+  const isCandidate = (date: string) => candidateDates.includes(date);
+  const pruned: ScheduleResponseRequest = {};
+
+  // 없는 키는 만들지 않는다. 두 형식을 함께 보내면 서버가 무엇을 기준으로 볼지 모호해진다.
+  if (response.availableDates !== undefined) {
+    pruned.availableDates = response.availableDates.filter(isCandidate);
+  }
+
+  if (response.availableTimeRanges !== undefined) {
+    // 시간 범위 자체가 없으면(= 날짜만 조율) 시간 응답이 설 자리가 없다. 남겨두면 나중에
+    // 시간 범위를 다시 고를 때 예전 선택이 되살아난다.
+    const hasTimeBounds = availableStartTime !== null && availableEndTime !== null;
+
+    pruned.availableTimeRanges = !hasTimeBounds
+      ? []
+      : response.availableTimeRanges.flatMap((range) => {
+          if (!isCandidate(range.candidateDate)) return [];
+
+          // 새 경계로 자른다. 잘라낸 뒤 남는 블록이 없으면 그 구간은 버린다.
+          const startHour = Math.max(toHour(range.startTime), toHour(availableStartTime));
+          const endHour = Math.min(toHour(range.endTime), toHour(availableEndTime));
+
+          if (startHour >= endHour) return [];
+
+          return [
+            {
+              candidateDate: range.candidateDate,
+              startTime: toTime(startHour),
+              endTime: toTime(endHour),
+            },
+          ];
+        });
+  }
+
+  return pruned;
 }
