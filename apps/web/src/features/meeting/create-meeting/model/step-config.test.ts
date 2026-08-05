@@ -43,21 +43,21 @@ const flow = (planningType: PlanningType | null, scheduleInputType: ScheduleInpu
 
 describe('getSteps', () => {
   // ℹ️ CRT-05 커버('cover')는 1차 MVP 제외. 재활성화 시 아래 기대값에 'cover'를 다시 넣을 예정이다.
-  it("should return 6 steps ending with 'schedule-dates' when planningType is SCHEDULE_ONLY and scheduleInputType is DATE_ONLY", () => {
+  // 🚧 CRT-04 마감 기한('deadline')도 1차 출시 임시 비활성화(리마인더 미구현).
+  //   재활성화 시 아래 기대값의 'created' 앞에 'deadline'을 다시 넣는다.
+  it("should return 5 steps ending with 'schedule-dates' when planningType is SCHEDULE_ONLY and scheduleInputType is DATE_ONLY", () => {
     expect(getSteps(flow('SCHEDULE_ONLY', 'DATE_ONLY'))).toEqual([
       'basic',
       'time-range',
-      'deadline',
       'created',
       'schedule-dates',
     ]);
   });
 
-  it("should return 7 steps ending with 'schedule-times' when planningType is SCHEDULE_ONLY and scheduleInputType is DATE_AND_TIME", () => {
+  it("should return 6 steps ending with 'schedule-times' when planningType is SCHEDULE_ONLY and scheduleInputType is DATE_AND_TIME", () => {
     expect(getSteps(flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toEqual([
       'basic',
       'time-range',
-      'deadline',
       'created',
       'schedule-dates',
       'schedule-times',
@@ -68,7 +68,6 @@ describe('getSteps', () => {
     expect(getSteps(flow('SCHEDULE_AND_PLACE', 'DATE_ONLY'))).toEqual([
       'basic',
       'time-range',
-      'deadline',
       'created',
       'schedule-dates',
       'departure',
@@ -79,7 +78,6 @@ describe('getSteps', () => {
     expect(getSteps(flow('SCHEDULE_AND_PLACE', 'DATE_AND_TIME'))).toEqual([
       'basic',
       'time-range',
-      'deadline',
       'created',
       'schedule-dates',
       'schedule-times',
@@ -87,13 +85,15 @@ describe('getSteps', () => {
     ]);
   });
 
-  it("should return ['basic','deadline','created','departure'] when planningType is PLACE_ONLY", () => {
-    expect(getSteps(flow('PLACE_ONLY', null))).toEqual([
-      'basic',
-      'deadline',
-      'created',
-      'departure',
-    ]);
+  it("should return ['basic','created','departure'] when planningType is PLACE_ONLY", () => {
+    expect(getSteps(flow('PLACE_ONLY', null))).toEqual(['basic', 'created', 'departure']);
+  });
+
+  // 🚧 임시 비활성화가 유지되는지 지키는 테스트. 재활성화하면 이 테스트를 지운다.
+  it("should not include 'deadline' in any flow while the deadline step is disabled", () => {
+    expect(getSteps(flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).not.toContain('deadline');
+    expect(getSteps(flow('SCHEDULE_AND_PLACE', 'DATE_ONLY'))).not.toContain('deadline');
+    expect(getSteps(flow('PLACE_ONLY', null))).not.toContain('deadline');
   });
 
   // 유형 미선택 = HOME Drawer를 거치지 않은 진입. 흐름 자체가 없다(resolver가 HOME으로 돌려보낸다).
@@ -196,6 +196,7 @@ describe('isStepComplete', () => {
     expect(isStepComplete('time-range', draft({ scheduleInputType: null }))).toBe(false);
   });
 
+  // 🚧 'deadline'은 스텝 흐름에서 임시로 빠져 있지만, 판정 로직은 재활성화에 대비해 살아 있다.
   it("should return true for 'deadline' when noDeadline is true", () => {
     expect(isStepComplete('deadline', draft({ noDeadline: true }))).toBe(true);
   });
@@ -256,12 +257,13 @@ describe('isStepComplete', () => {
 });
 
 describe('stepPhase (created 를 경계로 갈리는 진행률 구간)', () => {
-  it("should return 'create' for 'basic'·'time-range'·'deadline' when SCHEDULE_ONLY and DATE_AND_TIME", () => {
+  // 🚧 'deadline'은 임시 비활성화라 흐름 밖(null)이다. 재활성화 시 여기에 'create' 기대를 되살린다.
+  it("should return 'create' for 'basic'·'time-range' when SCHEDULE_ONLY and DATE_AND_TIME", () => {
     const input = flow('SCHEDULE_ONLY', 'DATE_AND_TIME');
 
     expect(stepPhase('basic', input)).toBe('create');
     expect(stepPhase('time-range', input)).toBe('create');
-    expect(stepPhase('deadline', input)).toBe('create');
+    expect(stepPhase('deadline', input)).toBeNull();
   });
 
   it("should return 'host' for 'schedule-dates'·'schedule-times' when SCHEDULE_ONLY and DATE_AND_TIME", () => {
@@ -286,26 +288,20 @@ describe('stepPhase (created 를 경계로 갈리는 진행률 구간)', () => {
 
 // ℹ️ 'cover' 재활성화 시 create 구간 분모가 한 칸 늘어난다. 그때 아래 기대값을 다시 계산한다.
 describe('progressPercent (분모 = 현재 구간의 입력 스텝 수)', () => {
-  // create 구간: basic·time-range·deadline = 3칸
-  it("should return 33 when step is 'basic' and flow is SCHEDULE_ONLY + DATE_AND_TIME (create 3 steps)", () => {
-    expect(progressPercent('basic', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe(33);
+  // 🚧 'deadline' 임시 비활성화로 create 구간이 한 칸씩 줄었다(3→2칸, PLACE_ONLY는 2→1칸).
+  //   재활성화 시 아래 값은 33/67/100 · 50/100 으로 되돌아간다.
+  // create 구간: basic·time-range = 2칸
+  it("should return 50 when step is 'basic' and flow is SCHEDULE_ONLY + DATE_AND_TIME (create 2 steps)", () => {
+    expect(progressPercent('basic', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe(50);
   });
 
-  it("should return 67 when step is 'time-range' and flow is SCHEDULE_ONLY + DATE_AND_TIME", () => {
-    expect(progressPercent('time-range', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe(67);
+  it("should return 100 when step is 'time-range' (create 구간 마지막 — CRT-06 은 이게 꽉 차서 나온다)", () => {
+    expect(progressPercent('time-range', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe(100);
   });
 
-  it("should return 100 when step is 'deadline' (create 구간 마지막 — CRT-06 은 이게 꽉 차서 나온다)", () => {
-    expect(progressPercent('deadline', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe(100);
-  });
-
-  // create 구간: basic·deadline = 2칸 (PLACE_ONLY 는 time-range 를 건너뛴다)
-  it("should return 50 when step is 'basic' and flow is PLACE_ONLY (create 2 steps)", () => {
-    expect(progressPercent('basic', flow('PLACE_ONLY', null))).toBe(50);
-  });
-
-  it("should return 100 when step is 'deadline' and flow is PLACE_ONLY", () => {
-    expect(progressPercent('deadline', flow('PLACE_ONLY', null))).toBe(100);
+  // create 구간: basic = 1칸 (PLACE_ONLY 는 time-range 를 건너뛴다)
+  it("should return 100 when step is 'basic' and flow is PLACE_ONLY (create 1 step)", () => {
+    expect(progressPercent('basic', flow('PLACE_ONLY', null))).toBe(100);
   });
 
   // host 구간: created 다음부터 0에서 다시 시작한다
@@ -332,8 +328,9 @@ describe('nextStep', () => {
     expect(nextStep('basic', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe('time-range');
   });
 
-  it("should return 'deadline' when step is 'basic' and flow is PLACE_ONLY (time-range 건너뜀)", () => {
-    expect(nextStep('basic', flow('PLACE_ONLY', null))).toBe('deadline');
+  // 🚧 'deadline' 임시 비활성화 — 재활성화 시 기대값이 다시 'deadline'이 된다.
+  it("should return 'created' when step is 'basic' and flow is PLACE_ONLY (time-range 건너뜀)", () => {
+    expect(nextStep('basic', flow('PLACE_ONLY', null))).toBe('created');
   });
 
   it("should return 'schedule-times' when step is 'schedule-dates' and scheduleInputType is DATE_AND_TIME", () => {
@@ -356,8 +353,9 @@ describe('prevStep', () => {
     expect(prevStep('time-range', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe('basic');
   });
 
-  it("should return 'basic' when step is 'deadline' and flow is PLACE_ONLY (time-range를 건너뛴 흐름)", () => {
-    expect(prevStep('deadline', flow('PLACE_ONLY', null))).toBe('basic');
+  // 🚧 'deadline' 임시 비활성화 — 흐름 밖 스텝이라 이전 스텝이 없다(재활성화 시 다시 'basic').
+  it("should return null when step is 'deadline' and flow is PLACE_ONLY (임시 비활성화로 흐름 밖)", () => {
+    expect(prevStep('deadline', flow('PLACE_ONLY', null))).toBeNull();
   });
 
   it("should return null when step is 'basic' (첫 스텝 = 위저드 종료 지점)", () => {

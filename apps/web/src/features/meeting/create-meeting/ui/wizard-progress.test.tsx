@@ -18,18 +18,20 @@ describe('모임 생성 위저드 진행률', () => {
   });
 
   // 진행률은 완료 안내(CRT-06)를 경계로 둘로 나뉜다.
-  // 모임 정보 구간 = basic·time-range·deadline(3칸) → 마감 기한에서 100%가 되어야 CRT-06이 나온다.
+  // 모임 정보 구간 = basic·time-range(2칸) → 마지막 칸에서 100%가 되어야 CRT-06이 나온다.
   // 모임장 참여 정보 구간 = schedule-dates·schedule-times(2칸) → 0에서 다시 시작한다.
   // ℹ️ 'cover'(CRT-05)는 1차 MVP 제외. 재활성화 시 앞 구간 분모가 한 칸 늘어 아래 값이 바뀐다.
-  it('일정과 시간을 조율하는 모임의 기본 정보 화면에서 진행률은 33%다', () => {
+  // 🚧 마감 기한(CRT-04)도 임시 비활성화라 앞 구간이 3칸 → 2칸으로 줄었다.
+  //   재활성화하면 basic 33% · time-range 67% · deadline 100%로 되돌아간다.
+  it('일정과 시간을 조율하는 모임의 기본 정보 화면에서 진행률은 50%다', () => {
     pathname.value = '/meetings/new/basic';
     render(<WizardProgress />);
 
-    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '33');
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '50');
   });
 
-  it('일정과 시간을 조율하는 모임의 마감 기한 화면에서 진행률은 100%다', () => {
-    pathname.value = '/meetings/new/deadline';
+  it('일정과 시간을 조율하는 모임의 시간 범위 화면에서 진행률은 100%다', () => {
+    pathname.value = '/meetings/new/time-range';
     render(<WizardProgress />);
 
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '100');
@@ -49,9 +51,10 @@ describe('모임 생성 위저드 진행률', () => {
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '100');
   });
 
-  it('위치만 조율하는 모임의 마감 기한 화면에서 진행률은 100%다', () => {
+  // 🚧 마감 기한 임시 비활성화로, 위치만 조율하는 모임의 모임 정보 구간은 basic 한 칸뿐이다.
+  it('위치만 조율하는 모임의 기본 정보 화면에서 진행률은 100%다', () => {
     useCreateMeetingDraft.setState({ planningType: 'PLACE_ONLY' });
-    pathname.value = '/meetings/new/deadline';
+    pathname.value = '/meetings/new/basic';
     render(<WizardProgress />);
 
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '100');

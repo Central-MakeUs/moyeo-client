@@ -49,17 +49,19 @@ describe('위저드 뒤로가기 버튼', () => {
     expect(replace).toHaveBeenCalledWith('/home');
   });
 
-  it("should call router.push('/meetings/new/time-range') when the current step is 'deadline' with SCHEDULE_ONLY", async () => {
+  // 🚧 마감 기한 스텝 임시 비활성화로, 중간 스텝 예시를 'deadline' 대신 'time-range'로 든다.
+  //   (재활성화 시 'deadline' → '/meetings/new/time-range' 케이스로 되돌린다)
+  it("should call router.push('/meetings/new/basic') when the current step is 'time-range' with SCHEDULE_ONLY", async () => {
     useCreateMeetingDraft.setState({
       planningType: 'SCHEDULE_ONLY',
       scheduleInputType: 'DATE_AND_TIME',
     });
-    setPathname('/meetings/new/deadline');
+    setPathname('/meetings/new/time-range');
     render(<BackButton />);
 
     await clickBack();
 
-    expect(push).toHaveBeenCalledWith('/meetings/new/time-range');
+    expect(push).toHaveBeenCalledWith('/meetings/new/basic');
   });
 
   it("should reset the draft and call router.replace('/home') when the pathname is not a wizard step", async () => {
