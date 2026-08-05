@@ -14,13 +14,13 @@
     "build:android:dev": "eas build --profile development --platform android",
     "build:android:preview": "eas build --profile preview --platform android",
     "build:android:prod": "eas build --profile production --platform android",
-    "build:ios:dev": "eas build --profile development --platform ios",
-    "build:ios:preview": "eas build --profile preview --platform ios",
-    "build:ios:testflight": "eas build --profile testflight --platform ios",
-    "build:ios:prod": "eas build --profile production --platform ios",
-    "build:all:dev": "eas build --profile development --platform all",
-    "build:all:preview": "eas build --profile preview --platform all",
-    "build:all:prod": "eas build --profile production --platform all",
+    "build:ios:dev": "cross-env EXPO_NO_CAPABILITY_SYNC=1 eas build --profile development --platform ios",
+    "build:ios:preview": "cross-env EXPO_NO_CAPABILITY_SYNC=1 eas build --profile preview --platform ios",
+    "build:ios:testflight": "cross-env EXPO_NO_CAPABILITY_SYNC=1 eas build --profile testflight --platform ios",
+    "build:ios:prod": "cross-env EXPO_NO_CAPABILITY_SYNC=1 eas build --profile production --platform ios",
+    "build:all:dev": "cross-env EXPO_NO_CAPABILITY_SYNC=1 eas build --profile development --platform all",
+    "build:all:preview": "cross-env EXPO_NO_CAPABILITY_SYNC=1 eas build --profile preview --platform all",
+    "build:all:prod": "cross-env EXPO_NO_CAPABILITY_SYNC=1 eas build --profile production --platform all",
     "submit:ios:testflight": "eas submit --profile testflight --platform ios"
   },
   "dependencies": {
@@ -65,6 +65,7 @@
     "@repo/types": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/react": "~19.1.0",
+    "cross-env": "^10.1.0",
     "eslint": "^9.25.0",
     "typescript": "~5.9.2"
   },
