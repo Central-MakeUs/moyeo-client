@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useRef } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { BackHandler, Platform, StyleSheet, ToastAndroid, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import type {
@@ -383,6 +383,7 @@ export default function HomeScreen() {
         source={{ uri: webViewUrl }}
         onMessage={handleMessage}
         onShouldStartLoadWithRequest={handleShouldStartLoad}
+        onNavigationStateChange={handleNavigationStateChange}
         // 커스텀 스킴 판단을 위 핸들러가 전담하도록 WebView 자체 필터는 열어둔다.
         originWhitelist={['*']}
         // 카카오 로그인 페이지가 새 창으로 앱 전환을 시도하면 Android에서 빈 창만 뜨고 끝난다.
