@@ -79,7 +79,7 @@ export function EditNicknameDrawer({ trigger, currentNickname }: EditNicknameDra
             onChange={(e) => setNickname(e.target.value)}
           />
         </DrawerBody>
-        <DrawerFooter>
+        <DrawerFooter className="pt-0">
           <div className="grid grid-cols-2 gap-2">
             <Button variant="outline" fullWidth onClick={() => handleOpenChange(false)}>
               취소

@@ -75,7 +75,7 @@ export function SubmitFeedbackDrawer({ trigger }: SubmitFeedbackDrawerProps) {
             onChange={(e) => setFeedback(e.target.value)}
           />
         </DrawerBody>
-        <DrawerFooter>
+        <DrawerFooter className="pt-0">
           <Button
             fullWidth
             disabled={!feedback.trim()}
