@@ -82,14 +82,14 @@ function withPrunedScheduleResponse(
   state: CreateMeetingDraftState,
   next: Partial<ScheduleBoundsInput>
 ): Partial<CreateMeetingDraftState> {
-  const bounds = { ...state, ...next };
+  const { scheduleCandidateDates, availableStartTime, availableEndTime } = { ...state, ...next };
 
   return {
     ...next,
     scheduleResponse: pruneHostScheduleResponse(state.scheduleResponse, {
-      candidateDates: bounds.scheduleCandidateDates,
-      availableStartTime: bounds.availableStartTime,
-      availableEndTime: bounds.availableEndTime,
+      candidateDates: scheduleCandidateDates,
+      availableStartTime,
+      availableEndTime,
     }),
   };
 }
