@@ -14,7 +14,7 @@ import { PageHeader } from '@/shared/ui/page-header';
 import { Skeleton } from '@/shared/ui/skeleton';
 
 import { useCreateMeetingDraft } from '../model/create-meeting-draft';
-import { isBeforeServerToday } from '../model/is-before-server-today';
+import { isDisabledCandidateDate } from '../model/is-disabled-candidate-date';
 import { isStepComplete } from '../model/step-config';
 import { useServerToday } from '../model/use-server-today';
 import { WizardStepLayout } from './wizard-step-layout';
@@ -86,7 +86,7 @@ export function ScheduleDatesStep({ onNext }: ScheduleDatesStepProps): React.JSX
           className="mx-auto"
           value={selected}
           onChange={(next) => setScheduleCandidateDates(formatScheduleCandidateDates(next))}
-          isDateDisabled={(date) => isBeforeServerToday(date, serverToday)}
+          isDateDisabled={(date) => isDisabledCandidateDate(date, serverToday)}
           month={month ?? toLocalDate(serverToday)}
           onMonthChange={setMonth}
           maxSelectedDays={MAX_CANDIDATE_DATES}

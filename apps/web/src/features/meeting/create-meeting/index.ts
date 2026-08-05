@@ -1,4 +1,4 @@
-export { isBeforeServerToday } from './model/is-before-server-today';
+export { isDisabledCandidateDate } from './model/is-disabled-candidate-date';
 export { useServerToday, type UseServerTodayResult } from './model/use-server-today';
 export {
   useCreateMeetingDraft,
