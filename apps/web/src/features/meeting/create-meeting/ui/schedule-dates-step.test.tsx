@@ -85,29 +85,29 @@ describe('ScheduleDatesStep', () => {
     expect(screen.getByText('2026년 10월')).toBeInTheDocument();
   });
 
-  it("should set scheduleCandidateDates to ['2026-07-10','2026-07-11'] when 7/11 then 7/10 are tapped given serverToday '2026-07-10'", async () => {
+  it("should set scheduleCandidateDates to ['2026-07-11','2026-07-12'] when 7/12 then 7/11 are tapped given serverToday '2026-07-10'", async () => {
     render(<ScheduleDatesStep onNext={vi.fn()} />);
 
+    await userEvent.click(screen.getByText('12'));
     await userEvent.click(screen.getByText('11'));
-    await userEvent.click(screen.getByText('10'));
 
     expect(useCreateMeetingDraft.getState().scheduleCandidateDates).toEqual([
-      '2026-07-10',
       '2026-07-11',
+      '2026-07-12',
     ]);
   });
 
   it('should enable 다음 when one date is selected', async () => {
     render(<ScheduleDatesStep onNext={vi.fn()} />);
 
-    await userEvent.click(screen.getByText('10'));
+    await userEvent.click(screen.getByText('11'));
 
     expect(screen.getByRole('button', { name: '다음' })).toBeEnabled();
   });
 
   it('should call onNext when 다음 is clicked with one date selected', async () => {
     const onNext = vi.fn();
-    useCreateMeetingDraft.setState({ scheduleCandidateDates: ['2026-07-10'] });
+    useCreateMeetingDraft.setState({ scheduleCandidateDates: ['2026-07-11'] });
     render(<ScheduleDatesStep onNext={onNext} />);
 
     await userEvent.click(screen.getByRole('button', { name: '다음' }));
@@ -115,8 +115,8 @@ describe('ScheduleDatesStep', () => {
     expect(onNext).toHaveBeenCalledTimes(1);
   });
 
-  it("should render 2 selected day cells when draft has ['2026-07-10','2026-07-11']", () => {
-    useCreateMeetingDraft.setState({ scheduleCandidateDates: ['2026-07-10', '2026-07-11'] });
+  it("should render 2 selected day cells when draft has ['2026-07-11','2026-07-12']", () => {
+    useCreateMeetingDraft.setState({ scheduleCandidateDates: ['2026-07-11', '2026-07-12'] });
     const { container } = render(<ScheduleDatesStep onNext={vi.fn()} />);
 
     expect(selectedDays(container)).toHaveLength(2);
@@ -128,11 +128,11 @@ describe('ScheduleDatesStep', () => {
     expect(screen.getByRole('button', { name: '다음' })).toBeDisabled();
   });
 
-  it("should clear scheduleCandidateDates when tapping 7/10 given draft ['2026-07-10']", async () => {
-    useCreateMeetingDraft.setState({ scheduleCandidateDates: ['2026-07-10'] });
+  it("should clear scheduleCandidateDates when tapping 7/11 given draft ['2026-07-11']", async () => {
+    useCreateMeetingDraft.setState({ scheduleCandidateDates: ['2026-07-11'] });
     render(<ScheduleDatesStep onNext={vi.fn()} />);
 
-    await userEvent.click(screen.getByText('10'));
+    await userEvent.click(screen.getByText('11'));
 
     expect(useCreateMeetingDraft.getState().scheduleCandidateDates).toEqual([]);
   });
@@ -227,5 +227,23 @@ describe('ScheduleDatesStep', () => {
     await userEvent.click(screen.getByText('9'));
 
     expect(useCreateMeetingDraft.getState().scheduleCandidateDates).toEqual(['2026-07-15']);
+  });
+
+  // 당일 차단 (#120 1차 결정). 시간표가 오늘 열을 날짜 단위로만 보고 통째로 열어두기 때문에,
+  // 오늘을 후보로 허용하면 이미 지난 시간대가 응답으로 들어간다.
+  it("should not change scheduleCandidateDates when tapping 7/10 given serverToday '2026-07-10'", async () => {
+    render(<ScheduleDatesStep onNext={vi.fn()} />);
+
+    await userEvent.click(screen.getByText('10'));
+
+    expect(useCreateMeetingDraft.getState().scheduleCandidateDates).toEqual([]);
+  });
+
+  it("should keep 다음 disabled when only 7/10 is tapped given serverToday '2026-07-10'", async () => {
+    render(<ScheduleDatesStep onNext={vi.fn()} />);
+
+    await userEvent.click(screen.getByText('10'));
+
+    expect(screen.getByRole('button', { name: '다음' })).toBeDisabled();
   });
 });
