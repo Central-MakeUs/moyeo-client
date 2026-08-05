@@ -11,7 +11,21 @@ export type NativeToWebMessage =
   // COPY_TO_CLIPBOARD 요청의 처리 결과다.
   | { type: 'COPY_RESULT'; requestId: string; payload: { state: 'success' | 'error' } }
   | { type: 'DEVICE_INFO'; payload: { os: 'ios' | 'android' } }
-  | { type: 'APP_STATE'; payload: { state: 'active' | 'background' } };
+  | { type: 'APP_STATE'; payload: { state: 'active' | 'background' } }
+  // 네이티브 뒤로가기를 웹이 먼저 처리하도록 넘긴다. 웹은 BACK_RESULT로 답한다.
+  | { type: 'BACK_PRESSED'; requestId: string };
+
+/**
+ * 네이티브 뒤로가기에 대한 웹의 처리 결과
+ *
+ * - `handled`: 웹이 처리했다(오버레이를 닫았거나 화면을 옮겼다). 네이티브는 아무것도 하지 않는다.
+ * - `passthrough`: 웹이 처리할 것이 없다. 네이티브가 WebView 방문 기록으로 뒤로 간다.
+ * - `exit`: 앱의 시작 화면이라 더 돌아갈 곳이 없다. 네이티브가 종료 확인 단계로 넘어간다.
+ *
+ * 방문 기록의 깊이는 웹이 알 수 없으므로(`history.length`는 뒤로 가도 줄지 않는다),
+ * 일반 화면의 뒤로가기는 `passthrough`로 네이티브에 맡긴다.
+ */
+export type BackResultState = 'handled' | 'passthrough' | 'exit';
 
 /**
  * 웹에서 네이티브 앱으로 전달하는 메시지
@@ -33,4 +47,6 @@ export type WebToNativeMessage =
   | { type: 'COPY_TO_CLIPBOARD'; requestId: string; payload: { text: string } }
   // WebView 대신 네이티브에서 메시지 앱을 실행한다.
   | { type: 'SHARE_SMS'; payload: { message: string } }
-  | { type: 'REQUEST_PERMISSION'; payload: { type: 'camera' | 'location' } };
+  | { type: 'REQUEST_PERMISSION'; payload: { type: 'camera' | 'location' } }
+  // BACK_PRESSED와 연결할 수 있도록 요청에 실려 온 requestId를 그대로 돌려준다.
+  | { type: 'BACK_RESULT'; requestId: string; payload: { state: BackResultState } };
