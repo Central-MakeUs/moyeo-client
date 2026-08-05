@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef } from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
@@ -8,6 +8,7 @@ import * as Haptics from 'expo-haptics';
 import * as Linking from 'expo-linking';
 import * as SecureStore from 'expo-secure-store';
 import * as Clipboard from 'expo-clipboard';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { NativeToWebMessage, WebToNativeMessage } from '@repo/types';
 
@@ -73,6 +74,7 @@ function parseIntentUrl(url: string): { schemeUrl: string; fallbackUrl: string |
 }
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   const webViewRef = useRef<WebView>(null);
   // App Link의 origin을 제외한 `/i/{inviteToken}` 경로다.
   const { appLinkPath } = useLocalSearchParams<{ appLinkPath?: string | string[] }>();
@@ -213,28 +215,41 @@ export default function HomeScreen() {
   }, []);
 
   return (
-    <WebView
-      ref={webViewRef}
-      style={styles.container}
-      source={{ uri: webViewUrl }}
-      onMessage={handleMessage}
-      onShouldStartLoadWithRequest={handleShouldStartLoad}
-      // 커스텀 스킴 판단을 위 핸들러가 전담하도록 WebView 자체 필터는 열어둔다.
-      originWhitelist={['*']}
-      // 카카오 로그인 페이지가 새 창으로 앱 전환을 시도하면 Android에서 빈 창만 뜨고 끝난다.
-      // 같은 WebView에서 처리하게 해 위 핸들러를 타도록 한다.
-      setSupportMultipleWindows={false}
-      // OAuth state는 sessionStorage에 있고, 공급자 세션은 서드파티 쿠키에 있다.
-      domStorageEnabled
-      thirdPartyCookiesEnabled
-      sharedCookiesEnabled
-    />
+    <View
+      style={[
+        styles.safeArea,
+        {
+          paddingTop: insets.top,
+          paddingBottom: Platform.OS === 'android' ? insets.bottom : 0,
+        },
+      ]}
+    >
+      <WebView
+        ref={webViewRef}
+        style={styles.container}
+        source={{ uri: webViewUrl }}
+        onMessage={handleMessage}
+        onShouldStartLoadWithRequest={handleShouldStartLoad}
+        // 커스텀 스킴 판단을 위 핸들러가 전담하도록 WebView 자체 필터는 열어둔다.
+        originWhitelist={['*']}
+        // 카카오 로그인 페이지가 새 창으로 앱 전환을 시도하면 Android에서 빈 창만 뜨고 끝난다.
+        // 같은 WebView에서 처리하게 해 위 핸들러를 타도록 한다.
+        setSupportMultipleWindows={false}
+        // OAuth state는 sessionStorage에 있고, 공급자 세션은 서드파티 쿠키에 있다.
+        domStorageEnabled
+        thirdPartyCookiesEnabled
+        sharedCookiesEnabled
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
   container: {
     flex: 1,
-    marginTop: Constants.statusBarHeight,
   },
 });
