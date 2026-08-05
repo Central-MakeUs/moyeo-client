@@ -82,4 +82,70 @@ describe('useCreateMeetingDraft', () => {
     expect(useCreateMeetingDraft.getState().scheduleCandidateDates).toEqual([]);
     expect(useCreateMeetingDraft.getState().scheduleResponse).toBeNull();
   });
+
+  /**
+   * 위저드는 뒤로 돌아가 조율 범위를 바꿀 수 있다. 시간표에서 고른 응답은 그 범위 안에서만
+   * 의미가 있으므로, 범위를 좁힌 순간 밖으로 나간 선택이 초안에 남아 있으면 안 된다.
+   * 남으면 화면에는 보이지 않은 채 생성 요청에 실려 나간다.
+   */
+  describe('조율 범위를 좁혔을 때', () => {
+    beforeEach(() => {
+      useCreateMeetingDraft.setState({
+        scheduleInputType: 'DATE_AND_TIME',
+        scheduleCandidateDates: ['2026-08-10', '2026-08-11', '2026-08-12', '2026-08-13'],
+        availableStartTime: '09:00',
+        availableEndTime: '18:00',
+        scheduleResponse: {
+          availableTimeRanges: [
+            { candidateDate: '2026-08-10', startTime: '10:00', endTime: '12:00' },
+            { candidateDate: '2026-08-13', startTime: '10:00', endTime: '12:00' },
+          ],
+        },
+      });
+    });
+
+    it('후보 날짜를 줄이면 빠진 날짜의 구간이 사라진다', () => {
+      useCreateMeetingDraft
+        .getState()
+        .setScheduleCandidateDates(['2026-08-10', '2026-08-11', '2026-08-12']);
+
+      expect(useCreateMeetingDraft.getState().scheduleResponse).toEqual({
+        availableTimeRanges: [
+          { candidateDate: '2026-08-10', startTime: '10:00', endTime: '12:00' },
+        ],
+      });
+    });
+
+    it('시작 시간을 늦추면 저장된 구간의 앞이 잘린다', () => {
+      useCreateMeetingDraft.getState().setAvailableStartTime('11:00');
+
+      expect(useCreateMeetingDraft.getState().scheduleResponse).toEqual({
+        availableTimeRanges: [
+          { candidateDate: '2026-08-10', startTime: '11:00', endTime: '12:00' },
+          { candidateDate: '2026-08-13', startTime: '11:00', endTime: '12:00' },
+        ],
+      });
+    });
+
+    it('종료 시간을 앞당기면 저장된 구간의 뒤가 잘린다', () => {
+      useCreateMeetingDraft.getState().setAvailableEndTime('11:00');
+
+      expect(useCreateMeetingDraft.getState().scheduleResponse).toEqual({
+        availableTimeRanges: [
+          { candidateDate: '2026-08-10', startTime: '10:00', endTime: '11:00' },
+          { candidateDate: '2026-08-13', startTime: '10:00', endTime: '11:00' },
+        ],
+      });
+    });
+
+    it('날짜만 정하기로 되돌리면 availableTimeRanges가 비워진다', () => {
+      // `날짜만 정하고 싶어요`(time-range-step)가 두 시각을 null로 되돌리는 순서 그대로.
+      useCreateMeetingDraft.getState().setAvailableStartTime(null);
+      useCreateMeetingDraft.getState().setAvailableEndTime(null);
+
+      expect(useCreateMeetingDraft.getState().scheduleResponse).toEqual({
+        availableTimeRanges: [],
+      });
+    });
+  });
 });

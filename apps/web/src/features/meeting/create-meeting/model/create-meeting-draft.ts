@@ -4,6 +4,8 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import type { DepartureDraft } from '@/entities/place';
 import type { ScheduleResponseRequest } from '@/shared/api';
 
+import { pruneHostScheduleResponse } from './prune-host-schedule-response';
+
 export type PlanningType = 'SCHEDULE_ONLY' | 'PLACE_ONLY' | 'SCHEDULE_AND_PLACE';
 export type ScheduleInputType = 'DATE_ONLY' | 'DATE_AND_TIME';
 export type TransportationMode = 'PUBLIC_TRANSIT' | 'CAR';
@@ -63,6 +65,35 @@ const initialState: CreateMeetingDraftState = {
   transportationMode: null,
 };
 
+/** 조율 범위를 이루는 세 필드. 하나라도 바뀌면 방장 응답을 다시 걸러야 한다. */
+type ScheduleBoundsInput = Pick<
+  CreateMeetingDraftState,
+  'scheduleCandidateDates' | 'availableStartTime' | 'availableEndTime'
+>;
+
+/**
+ * 조율 범위를 바꾸면서 방장 본인의 응답을 함께 정리한다.
+ *
+ * 시간표에서 고른 응답은 후보 날짜와 공통 시간 범위 안에서만 의미가 있다. 범위만 좁히고
+ * 응답을 두면 화면에는 보이지 않는 선택이 초안에 남아 생성 요청에 실려 나간다.
+ * 세 setter가 같은 규칙을 쓰므로 여기 한 번만 둔다.
+ */
+function withPrunedScheduleResponse(
+  state: CreateMeetingDraftState,
+  next: Partial<ScheduleBoundsInput>
+): Partial<CreateMeetingDraftState> {
+  const { scheduleCandidateDates, availableStartTime, availableEndTime } = { ...state, ...next };
+
+  return {
+    ...next,
+    scheduleResponse: pruneHostScheduleResponse(state.scheduleResponse, {
+      candidateDates: scheduleCandidateDates,
+      availableStartTime,
+      availableEndTime,
+    }),
+  };
+}
+
 export const useCreateMeetingDraft = create<CreateMeetingDraftStore>()(
   persist(
     (set) => ({
@@ -72,11 +103,14 @@ export const useCreateMeetingDraft = create<CreateMeetingDraftStore>()(
       setMaxParticipants: (value) => set({ maxParticipants: value }),
       setPlanningType: (value) => set({ planningType: value }),
       setScheduleInputType: (value) => set({ scheduleInputType: value }),
-      setAvailableStartTime: (value) => set({ availableStartTime: value }),
-      setAvailableEndTime: (value) => set({ availableEndTime: value }),
+      setAvailableStartTime: (value) =>
+        set((state) => withPrunedScheduleResponse(state, { availableStartTime: value })),
+      setAvailableEndTime: (value) =>
+        set((state) => withPrunedScheduleResponse(state, { availableEndTime: value })),
       setDeadlineMinutes: (value) => set({ deadlineMinutes: value }),
       setNoDeadline: (value) => set({ noDeadline: value }),
-      setScheduleCandidateDates: (value) => set({ scheduleCandidateDates: value }),
+      setScheduleCandidateDates: (value) =>
+        set((state) => withPrunedScheduleResponse(state, { scheduleCandidateDates: value })),
       setScheduleResponse: (value) => set({ scheduleResponse: value }),
       setDeparture: (value) => set({ departure: value }),
       setTransportationMode: (value) => set({ transportationMode: value }),
