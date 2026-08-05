@@ -30,6 +30,14 @@
         "buildConfiguration": "Release"
       }
     },
+    "testflight": {
+      "extends": "preview",
+      "distribution": "store",
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      }
+    },
     "production": {
       "autoIncrement": true,
       "distribution": "store",
@@ -43,6 +51,7 @@
     }
   },
   "submit": {
+    "testflight": {},
     "production": {}
   }
 }
