@@ -1,7 +1,9 @@
 'use client';
 
+import { useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
+import { useBackHandler } from '@/shared/model';
 import { IconButton } from '@/shared/ui/icon-button';
 
 import { useCreateMeetingDraft } from '../model/create-meeting-draft';
@@ -24,8 +26,9 @@ export function BackButton() {
   const flow = useStepFlow();
   const reset = useCreateMeetingDraft((s) => s.reset);
 
-  const handleBack = () => {
-    const step = stepFromPath(pathname);
+  const step = stepFromPath(pathname);
+
+  const handleBack = useCallback(() => {
     const previous = step === null ? null : prevStep(step, flow);
 
     // 이전 스텝이 없다 = 위저드 종료. draft를 비우고 HOME으로 나간다.
@@ -36,7 +39,21 @@ export function BackButton() {
     }
 
     router.push(stepToPath(previous));
-  };
+  }, [flow, reset, router, step]);
+
+  // 네이티브 뒤로가기도 스텝 순서를 따라야 한다. 방문 기록에 맡기면 스텝을 오간 뒤에
+  // 순서가 어긋나고, 위저드를 나갈 때 draft를 비우는 경로도 타지 않는다.
+  //
+  // 스텝이 아닌 경로에서는 처리하지 않고 넘긴다. 위저드 레이아웃은 출발지 검색처럼
+  // 병렬 슬롯으로 열리는 하위 라우트에서도 살아 있어 이 상단바가 가려진 채 남는데,
+  // 그때 가져가 버리면 스텝을 찾지 못해 `previous === null`(= 위저드 종료) 경로로 빠져
+  // 검색만 닫으려던 뒤로가기가 draft를 비우고 HOME으로 나가버린다.
+  useBackHandler(() => {
+    if (step === null) return false;
+
+    handleBack();
+    return true;
+  });
 
   return <IconButton icon="chevron-left" aria-label="뒤로가기" onClick={handleBack} />;
 }

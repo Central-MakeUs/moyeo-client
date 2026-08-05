@@ -1,7 +1,9 @@
 'use client';
 
+import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { useBackHandler } from '@/shared/model';
 import { IconButton } from '@/shared/ui/icon-button';
 
 export interface BackButtonProps {
@@ -31,7 +33,7 @@ export function BackButton({
 }: BackButtonProps) {
   const router = useRouter();
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     if (href === undefined) {
       router.back();
       return;
@@ -40,7 +42,14 @@ export function BackButton({
     // push가 아니라 replace다. push하면 히스토리가 [부모, 자식, 부모]가 되어
     // 그 다음 시스템 back이 방금 닫은 화면으로 되돌아간다.
     router.replace(href);
-  };
+  }, [href, router]);
+
+  // 네이티브 뒤로가기도 이 버튼과 같은 곳으로 가야 한다. 특히 `href`가 있는 화면은
+  // 방문 기록이 아니라 상위 화면으로 닫는 것이 의미라, 네이티브에 맡기면 어긋난다.
+  useBackHandler(() => {
+    handleBack();
+    return true;
+  });
 
   return (
     <IconButton

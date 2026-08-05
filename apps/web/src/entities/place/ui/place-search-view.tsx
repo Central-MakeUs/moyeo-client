@@ -3,6 +3,7 @@
 import * as React from 'react';
 
 import { type Result } from '@/shared/api';
+import { useBackHandler } from '@/shared/model';
 import { SearchField } from '@/shared/ui';
 import { Button } from '@/shared/ui/button';
 import { IconButton } from '@/shared/ui/icon-button';
@@ -33,6 +34,13 @@ export function PlaceSearchView({
 }: PlaceSearchViewProps): React.JSX.Element {
   const [inputValue, setInputValue] = React.useState('');
   const search = usePlaceSearch(inputValue, inviteCode);
+
+  // 네이티브 뒤로가기도 아래 Escape·상단 버튼과 같은 곳으로 보낸다. 검색은 진입점마다
+  // 닫는 방법이 다르므로(모달은 되감기, 독립 페이지는 목적지 지정) 호출부의 `onBack`을 그대로 쓴다.
+  useBackHandler(() => {
+    onBack();
+    return true;
+  });
 
   const isShowingPreviousResults = search.isDebouncing || search.query.isPlaceholderData;
 
