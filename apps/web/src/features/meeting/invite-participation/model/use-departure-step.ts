@@ -1,100 +1,54 @@
 'use client';
 
-import { useEffect } from 'react';
-
-import { useRouter } from 'next/navigation';
 import { useShallow } from 'zustand/react/shallow';
 
-import type { DepartureDraft } from '@/entities/place';
-import type {
-  DepartureRequestTransportationMode,
-  MeetingInvitationResponsePlanningType,
-  ScheduleResponseRequest,
-} from '@/shared/api';
+import type { MeetingInvitationResponsePlanningType } from '@/shared/api';
 
-import { useGuestJoinDraft } from './guest-join-draft';
-import { isGuestJoinDraftComplete } from './is-guest-join-draft-complete';
-import { useMemberJoinDraft } from './member-join-draft';
-import { useSubmitGuestJoin } from './use-submit-guest-join';
-import { useSubmitMemberJoin } from './use-submit-member-join';
-import { isDraftUsableFor } from './validate-guest-identity';
+import { isParticipationDraftComplete } from './is-participation-draft-complete';
+import { useParticipationDraft } from './participation-draft';
+import { useParticipationStepGuard } from './use-participation-step-guard';
+import { useSubmitParticipation } from './use-submit-participation';
 
 export interface UseDepartureStepParams {
   inviteToken: string;
   planningType: MeetingInvitationResponsePlanningType;
 }
 
-interface DepartureParticipationAdapter {
-  identity: { inviteToken: string } | null;
-  scheduleResponse: ScheduleResponseRequest | null;
-  departure: DepartureDraft | null;
-  transportationMode: DepartureRequestTransportationMode | null;
-  setTransportationMode: (value: DepartureRequestTransportationMode | null) => void;
-  entryPath: string;
-  isSubmitting: boolean;
-  submit: () => Promise<void>;
-}
-
+/**
+ * 출발지 입력 화면의 공통 배선.
+ *
+ * 게스트와 회원이 같은 초안을 쓰므로 참여자 종류로 갈라지지 않는다.
+ * `kind`는 신원이 없어 되돌려 보낼 때의 진입 경로를 고르는 데만 쓴다.
+ */
 export function useDepartureStep({ inviteToken, planningType }: UseDepartureStepParams) {
-  const router = useRouter();
+  const { scheduleResponse, departure, transportationMode, setTransportationMode } =
+    useParticipationDraft(
+      useShallow((state) => ({
+        scheduleResponse: state.scheduleResponse,
+        departure: state.departure,
+        transportationMode: state.transportationMode,
+        setTransportationMode: state.setTransportationMode,
+      }))
+    );
 
-  const guestDraft = useGuestJoinDraft(
-    useShallow((state) => ({
-      identity: state.identity,
-      scheduleResponse: state.scheduleResponse,
-      departure: state.departure,
-      transportationMode: state.transportationMode,
-      setTransportationMode: state.setTransportationMode,
-    }))
+  const { submit, isSubmitting } = useSubmitParticipation({
+    inviteCode: inviteToken,
+    planningType,
+  });
+
+  useParticipationStepGuard('departure', { inviteToken, planningType });
+
+  const isComplete = isParticipationDraftComplete(
+    { scheduleResponse, departure, transportationMode },
+    planningType
   );
-  const memberDraft = useMemberJoinDraft(
-    useShallow((state) => ({
-      identity: state.identity,
-      scheduleResponse: state.scheduleResponse,
-      departure: state.departure,
-      transportationMode: state.transportationMode,
-      setTransportationMode: state.setTransportationMode,
-    }))
-  );
-
-  const guestSubmit = useSubmitGuestJoin({ inviteCode: inviteToken, planningType });
-  const memberSubmit = useSubmitMemberJoin({ inviteCode: inviteToken, planningType });
-
-  const guestAdapter: DepartureParticipationAdapter = {
-    ...guestDraft,
-    entryPath: `/i/${inviteToken}/guest`,
-    ...guestSubmit,
-  };
-  const memberAdapter: DepartureParticipationAdapter = {
-    ...memberDraft,
-    entryPath: `/i/${inviteToken}/nickname`,
-    ...memberSubmit,
-  };
-
-  const isGuestDraftUsable = isDraftUsableFor(guestAdapter.identity, inviteToken);
-  const isMemberDraftUsable = isDraftUsableFor(memberAdapter.identity, inviteToken);
-  const activeAdapter = isMemberDraftUsable ? memberAdapter : guestAdapter;
-
-  useEffect(() => {
-    if (!isGuestDraftUsable && !isMemberDraftUsable) {
-      router.replace(`/i/${inviteToken}/guest`);
-    }
-  }, [isGuestDraftUsable, isMemberDraftUsable, inviteToken, router]);
-
-  const backPath =
-    planningType === 'SCHEDULE_AND_PLACE'
-      ? `/i/${inviteToken}/respond/schedule`
-      : activeAdapter.entryPath;
-
-  const isComplete = isGuestJoinDraftComplete(activeAdapter, planningType);
 
   return {
-    backPath,
-    departure: activeAdapter.departure,
-    transportationMode: activeAdapter.transportationMode,
-    setTransportationMode: activeAdapter.setTransportationMode,
+    departure,
+    transportationMode,
+    setTransportationMode,
     isComplete,
-    isSubmitting: activeAdapter.isSubmitting,
-    submit: activeAdapter.submit,
+    isSubmitting,
+    submit,
   };
 }

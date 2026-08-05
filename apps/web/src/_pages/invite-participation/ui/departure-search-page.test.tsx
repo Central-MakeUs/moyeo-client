@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { useGuestJoinDraft, useMemberJoinDraft } from '@/features/meeting/invite-participation';
+import { useParticipationDraft } from '@/features/meeting/invite-participation';
 import { renderWithQuery } from '@/shared/lib/render-with-query';
 
 import { DepartureSearchPage } from './departure-search-page';
@@ -22,7 +22,12 @@ vi.mock('@/shared/api', async (importOriginal) => ({
   search,
 }));
 
-const IDENTITY = { inviteToken: 'ABC123', nickname: '소미', password: '1234' };
+const IDENTITY = {
+  kind: 'guest',
+  inviteToken: 'ABC123',
+  nickname: '소미',
+  password: '1234',
+} as const;
 
 const GANGNAM_RESULT = {
   displayName: '강남역',
@@ -36,13 +41,12 @@ beforeEach(() => {
   replace.mockReset();
   search.mockReset();
   search.mockResolvedValue({ results: [GANGNAM_RESULT] });
-  useGuestJoinDraft.setState({
+  useParticipationDraft.setState({
     identity: IDENTITY,
     scheduleResponse: null,
     departure: null,
     transportationMode: null,
   });
-  useMemberJoinDraft.getState().reset();
 });
 
 describe('DepartureSearchPage', () => {
@@ -59,7 +63,7 @@ describe('DepartureSearchPage', () => {
       undefined,
       expect.anything()
     );
-    expect(useGuestJoinDraft.getState().departure).toEqual({
+    expect(useParticipationDraft.getState().departure).toEqual({
       name: '강남역',
       address: '서울 강남구 강남대로 396',
       latitude: 37.4979,
@@ -69,9 +73,9 @@ describe('DepartureSearchPage', () => {
   });
 
   it('회원 초안이면 검색 결과를 회원 초안에 저장한다', async () => {
-    useGuestJoinDraft.getState().reset();
-    useMemberJoinDraft.setState({
-      identity: { inviteToken: 'ABC123', nickname: '소미' },
+    useParticipationDraft.getState().reset();
+    useParticipationDraft.setState({
+      identity: { kind: 'member', inviteToken: 'ABC123', nickname: '소미' },
       departure: null,
     });
     const user = userEvent.setup();
@@ -80,7 +84,7 @@ describe('DepartureSearchPage', () => {
     await user.type(screen.getByRole('searchbox'), '강남');
     await user.click(await screen.findByRole('button', { name: /강남역/ }));
 
-    expect(useMemberJoinDraft.getState().departure).toEqual({
+    expect(useParticipationDraft.getState().departure).toEqual({
       name: '강남역',
       address: '서울 강남구 강남대로 396',
       latitude: 37.4979,
@@ -94,12 +98,12 @@ describe('DepartureSearchPage', () => {
 
     await user.click(screen.getByRole('button', { name: '뒤로가기' }));
 
-    expect(useGuestJoinDraft.getState().departure).toBeNull();
+    expect(useParticipationDraft.getState().departure).toBeNull();
     expect(push).toHaveBeenCalledWith('/i/ABC123/respond/departure');
   });
 
   it('초안이 없으면 게스트 진입 화면으로 돌려보낸다', () => {
-    useGuestJoinDraft.setState({ identity: null });
+    useParticipationDraft.setState({ identity: null });
 
     renderWithQuery(<DepartureSearchPage inviteToken="ABC123" />);
 
@@ -107,8 +111,8 @@ describe('DepartureSearchPage', () => {
   });
 
   it('다른 초대의 초안이면 현재 초대의 게스트 진입 화면으로 돌려보낸다', () => {
-    useGuestJoinDraft.setState({
-      identity: { inviteToken: 'OTHER', nickname: '소미', password: '1234' },
+    useParticipationDraft.setState({
+      identity: { kind: 'guest', inviteToken: 'OTHER', nickname: '소미', password: '1234' },
     });
 
     renderWithQuery(<DepartureSearchPage inviteToken="ABC123" />);

@@ -5,10 +5,10 @@ import type {
   ScheduleResponseRequest,
 } from '@/shared/api';
 
-import type { MemberIdentity } from './member-join-draft';
+import type { MemberParticipationIdentity } from './participation-identity';
 
 export interface MemberJoinDraftSnapshot {
-  identity: MemberIdentity;
+  identity: MemberParticipationIdentity;
   scheduleResponse: ScheduleResponseRequest | null;
   departure?: DepartureDraft | null;
   transportationMode?: DepartureRequestTransportationMode | null;

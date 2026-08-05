@@ -8,8 +8,8 @@ import { useRouter } from 'next/navigation';
 import { PlaceSearchView } from '@/entities/place';
 import {
   isDraftUsableFor,
-  useGuestJoinDraft,
-  useMemberJoinDraft,
+  participationEntryPath,
+  useParticipationDraft,
 } from '@/features/meeting/invite-participation';
 
 export interface DepartureSearchPageProps {
@@ -21,27 +21,23 @@ export interface DepartureSearchPageProps {
  */
 export function DepartureSearchPage({ inviteToken }: DepartureSearchPageProps): React.JSX.Element {
   const router = useRouter();
-  const identity = useGuestJoinDraft((state) => state.identity);
-  const setDeparture = useGuestJoinDraft((state) => state.setDeparture);
-  const memberIdentity = useMemberJoinDraft((state) => state.identity);
-  const setMemberDeparture = useMemberJoinDraft((state) => state.setDeparture);
-  const isGuestDraftUsable = isDraftUsableFor(identity, inviteToken);
-  const isMemberDraftUsable = isDraftUsableFor(memberIdentity, inviteToken);
+  const identity = useParticipationDraft((state) => state.identity);
+  const setDeparture = useParticipationDraft((state) => state.setDeparture);
+  const isDraftUsable = isDraftUsableFor(identity, inviteToken);
   const departurePath = `/i/${inviteToken}/respond/departure`;
 
   useEffect(() => {
-    if (!isGuestDraftUsable && !isMemberDraftUsable) {
-      router.replace(`/i/${inviteToken}/guest`);
+    if (!isDraftUsable) {
+      router.replace(participationEntryPath(inviteToken, 'guest'));
     }
-  }, [isGuestDraftUsable, isMemberDraftUsable, inviteToken, router]);
+  }, [isDraftUsable, inviteToken, router]);
 
   return (
     <PlaceSearchView
       inviteCode={inviteToken}
       onBack={() => router.push(departurePath)}
       onSelect={(place) => {
-        if (isMemberDraftUsable) setMemberDeparture(place);
-        else setDeparture(place);
+        setDeparture(place);
         router.push(departurePath);
       }}
     />

@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { useMemberJoinDraft } from '@/features/meeting/invite-participation';
+import { useParticipationDraft } from '@/features/meeting/invite-participation';
 
 import { MemberEntryPage } from './member-entry-page';
 
@@ -12,7 +12,7 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
 
 beforeEach(() => {
   push.mockReset();
-  useMemberJoinDraft.getState().reset();
+  useParticipationDraft.getState().reset();
 });
 
 describe('MemberEntryPage', () => {
@@ -29,7 +29,8 @@ describe('MemberEntryPage', () => {
     await userEvent.type(screen.getByLabelText('내 닉네임'), '소미');
     await userEvent.click(screen.getByRole('button', { name: '다음' }));
 
-    expect(useMemberJoinDraft.getState().identity).toEqual({
+    expect(useParticipationDraft.getState().identity).toEqual({
+      kind: 'member',
       inviteToken: 'ABC123',
       nickname: '소미',
     });

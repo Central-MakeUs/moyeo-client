@@ -297,8 +297,15 @@ Issue 2 완료 필요 (Issue 3과는 독립, 병렬 가능)
 
 ### 설명
 
-게스트가 지금 몇 단계 중 어디인지 본다. 실제로 거치는 입력 화면만 세므로 모임 유형에 따라
+참여자가 지금 몇 단계 중 어디인지 본다. 실제로 거치는 입력 화면만 세므로 모임 유형에 따라
 전체 단계 수가 달라진다.
+
+**신원 입력 화면(`/guest`, `/nickname`)은 단계에 넣지 않는다.** 로그인 화면에 가까운 인상이라
+진행바를 띄우지 않고, 세지도 않는다. 일정과 장소를 모두 조율하는 모임이라면 두 입력 화면이
+진행률을 반씩 나눠 갖는다.
+
+게스트와 회원은 거치는 입력 단계가 같으므로 진행 표시와 뒤로가기는 참여자 종류를 알 필요가
+없다. 참여자 종류가 갈리는 곳은 신원 화면의 경로(`/guest` vs `/nickname`)와 제출 API뿐이다.
 
 ### 구현 범위
 
@@ -306,49 +313,67 @@ Issue 2 완료 필요 (Issue 3과는 독립, 병렬 가능)
   `header`·`footer`·`children`만 받는 완전 범용 레이아웃이라 도메인 의존이 없다.
   `shared/ui/layouts`에 `CompletionLayout`이 이미 있어 자리도 맞는다
 - `features/meeting/create-meeting` — 위 이동에 따른 import 경로 수정 (동작 변경 없음)
-- `features/meeting/invite-participation/model/resolve-guest-steps.ts` — 단계 목록·현재 위치 순수 함수 (신규)
-- `features/meeting/invite-participation/ui/guest-step-progress.tsx` (신규)
-- 각 참여 화면에 배치
+- `features/meeting/invite-participation/model/step-config.ts` — 단계 목록·경로·진행률 순수 함수 (신규)
+- `features/meeting/invite-participation/ui/participation-top-bar.tsx` — 뒤로가기와 진행바를
+  함께 담는 상단바 (신규). 스텝 경로가 아니면 아무것도 렌더하지 않는다 — 완료 화면과 출발지
+  검색 화면은 자기 상단바를 가지고 있어 겹치면 상단바가 두 개가 된다
+- `app/i/[inviteToken]/(participant)/layout.tsx` — 상단바 배치. 신원 화면(`guest`, `nickname`)
+  라우트를 이 그룹 안으로 옮겨 상단바를 공유한다 (라우트 그룹이라 URL은 바뀌지 않는다)
 
 > `WizardProgress`는 옮기지 않는다. `usePathname` + `create-meeting`의 `step-config`·`useStepFlow`에
-> 의존해 범용이 아니다. 게스트는 흐름 정의가 달라 자기 진행률을 따로 계산한다.
+> 의존해 범용이 아니다. 참여 흐름은 흐름 정의가 달라 자기 진행률을 따로 계산한다.
 > **레이아웃은 공용화, 진행률 계산은 각자** — ADR-5와 같은 기준이다.
 
 ### 완료 조건 (Acceptance Criteria)
 
 ☐ AC-1 (범위: 단위):
 Given `planningType`이 `'SCHEDULE_ONLY'`
-When `resolveGuestSteps`를 호출한다
-Then `['identity', 'schedule']` 두 단계를 돌려준다
+When `getParticipationSteps`를 호출한다
+Then `['schedule']` 한 단계를 돌려준다
 
 ☐ AC-2 (범위: 단위):
 Given `planningType`이 `'PLACE_ONLY'`
-When `resolveGuestSteps`를 호출한다
-Then `['identity', 'departure']` 두 단계를 돌려준다
+When `getParticipationSteps`를 호출한다
+Then `['departure']` 한 단계를 돌려준다
 
 ☐ AC-3 (범위: 단위):
 Given `planningType`이 `'SCHEDULE_AND_PLACE'`
-When `resolveGuestSteps`를 호출한다
-Then `['identity', 'schedule', 'departure']` 세 단계를 돌려준다
+When `getParticipationSteps`를 호출한다
+Then `['schedule', 'departure']` 두 단계를 돌려준다
 
 ☐ AC-4 (범위: 단위):
 Given `planningType`이 `'SCHEDULE_AND_PLACE'`이고 `scheduleInputType`이 `'DATE_AND_TIME'`
-When `resolveGuestSteps`를 호출한다
-Then 단계 수가 여전히 `3`이다 (`scheduleInputType`은 단계 수를 바꾸지 않는다)
+When `getParticipationSteps`를 호출한다
+Then 단계 수가 여전히 `2`이다 (`scheduleInputType`은 단계 수를 바꾸지 않는다)
 
 ☐ AC-5 (범위: 통합):
 Given `planningType`이 `'SCHEDULE_AND_PLACE'`인 모임의 출발지 화면
 When 렌더한다
-Then 진행 표시가 `3`단계 중 `3`번째임을 나타낸다
+Then 진행 표시가 `2`단계 중 `2`번째(100%)임을 나타낸다
 
 ☐ AC-6 (범위: 통합):
 Given 모임장 위저드의 각 스텝 화면
 When 기존 테스트를 실행한다
 Then `WizardStepLayout` 이동 후에도 전부 통과한다 (회귀 없음)
 
+☐ AC-7 (범위: 통합):
+Given 신원 입력 화면(`/i/:token/guest` 또는 `/i/:token/nickname`)
+When 렌더한다
+Then 진행바를 그리지 않는다 (뒤로가기는 남는다)
+
+☐ AC-8 (범위: 통합):
+Given `planningType`이 `'SCHEDULE_AND_PLACE'`인 모임의 일정 화면
+When 뒤로가기를 누른다
+Then 참여자 종류에 맞는 신원 화면(게스트는 `/guest`, 회원은 `/nickname`)으로 이동한다
+
 ### 의존성
 
 Issue 1 완료 필요 (Issue 2~4와 병렬 가능)
+
+> **범위 변경**: 원래 "회원 참여 흐름"을 뺐으나, 진행 표시가 게스트·회원에 똑같이 필요한데
+> 그 아래 초안(`useGuestJoinDraft`/`useMemberJoinDraft`)이 갈라져 있어 상단바가 참여자 종류를
+> 되묻는 구조가 됐다. 두 스토어는 `password` 필드 하나만 다르고 둘 다 `persist`를 쓰지 않아
+> 통합 비용이 낮다고 판단해 이번 이슈에서 함께 합쳤다.
 
 ---
 

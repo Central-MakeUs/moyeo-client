@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { useGuestJoinDraft } from '@/features/meeting/invite-participation';
+import { useParticipationDraft } from '@/features/meeting/invite-participation';
 
 import { GuestEntryPage } from './guest-entry-page';
 
@@ -61,7 +61,7 @@ describe('GuestEntryPage', () => {
     checkGuestEntry.mockResolvedValue({ entryType: 'NEW_GUEST' });
     joinGuest.mockReset();
     writeGuestSession.mockReset();
-    useGuestJoinDraft.setState({ identity: null });
+    useParticipationDraft.setState({ identity: null });
   });
 
   it('게스트에게 필요한 닉네임과 비밀번호 입력을 표시한다', () => {
@@ -156,14 +156,7 @@ describe('GuestEntryPage', () => {
     expect(screen.getByRole('button', { name: '이번에만 게스트로 참여하기' })).toBeDisabled();
   });
 
-  it('뒤로가기를 누르면 현재 초대장 경로로 이동한다', async () => {
-    const user = userEvent.setup();
-    render(<GuestEntryPage inviteToken="ABC123" planningType="SCHEDULE_ONLY" />);
-
-    await user.click(screen.getByRole('button', { name: '초대장으로 돌아가기' }));
-
-    expect(pushMock).toHaveBeenCalledWith('/i/ABC123');
-  });
+  // 뒤로가기는 참여 상단바(ParticipationTopBar)가 맡는다. 화면은 더 이상 상단바를 그리지 않는다.
 
   it('CTA를 탭하면 checkGuestEntry가 초대 코드와 입력한 신원으로 한 번 호출된다', async () => {
     const user = userEvent.setup();
@@ -192,7 +185,8 @@ describe('GuestEntryPage', () => {
     entry.resolve({ entryType: 'NEW_GUEST' });
 
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/i/ABC123/respond/schedule'));
-    expect(useGuestJoinDraft.getState().identity).toEqual({
+    expect(useParticipationDraft.getState().identity).toEqual({
+      kind: 'guest',
       inviteToken: 'ABC123',
       nickname: '소미',
       password: '1234',
@@ -218,7 +212,7 @@ describe('GuestEntryPage', () => {
     await submitEntry(user);
 
     await waitFor(() => expect(pushMock).toHaveBeenCalled());
-    expect(useGuestJoinDraft.getState().identity).toBeNull();
+    expect(useParticipationDraft.getState().identity).toBeNull();
   });
 
   it('분기 요청이 진행 중일 때 CTA를 두 번 더 탭해도 checkGuestEntry는 한 번만 호출된다', async () => {
