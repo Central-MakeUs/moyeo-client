@@ -266,7 +266,7 @@ export const useDeleteCoverImage = <TError = ErrorType<void>, TContext = unknown
  *
  * await fetch("/api/meetings", {
  *   method: "POST",
- *   headers: { Authorization: `Bearer ${accessToken}` },
+ *   headers: { Authorization: "Bearer {accessToken}" },
  *   body: formData
  * });
  * ```

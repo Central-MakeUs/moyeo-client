@@ -13,12 +13,18 @@ vi.mock('@/entities/schedule', async (importOriginal) => {
   return { ...actual, useScheduleViewQuery: useScheduleViewQueryMock };
 });
 
-const { useMeetingHostMock, useViewerIdentityMock } = vi.hoisted(() => ({
-  useMeetingHostMock: vi.fn(),
-  useViewerIdentityMock: vi.fn(),
-}));
+const { useMeetingHostMock, useViewerIdentityMock, useIsViewerParticipantMock } = vi.hoisted(
+  () => ({
+    useMeetingHostMock: vi.fn(),
+    useViewerIdentityMock: vi.fn(),
+    useIsViewerParticipantMock: vi.fn(),
+  })
+);
 vi.mock('../model/use-meeting-host', () => ({ useMeetingHost: useMeetingHostMock }));
 vi.mock('../model/use-viewer-identity', () => ({ useViewerIdentity: useViewerIdentityMock }));
+vi.mock('../model/use-viewer-participation', () => ({
+  useIsViewerParticipant: useIsViewerParticipantMock,
+}));
 
 // 확정 요청은 이 화면의 검증 대상이 아니다. meetingId 조회와 함께 실제 호출을 끊는다.
 const { confirmMock } = vi.hoisted(() => ({ confirmMock: vi.fn() }));
@@ -29,7 +35,10 @@ vi.mock('@/features/meeting/confirm-schedule', async (importOriginal) => ({
 const { meetingViewData } = vi.hoisted(() => ({
   meetingViewData: { current: { meetingId: 7 } as Record<string, unknown> },
 }));
-vi.mock('@/shared/api', () => ({ useGetMeetingView: () => ({ data: meetingViewData.current }) }));
+vi.mock('@/shared/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/shared/api')>()),
+  useGetMeetingView: () => ({ data: meetingViewData.current }),
+}));
 
 /** 소미(모임장)·린이 가능한 후보 하나. */
 const CANDIDATE = {
@@ -51,11 +60,16 @@ function mockScheduleView() {
   });
 }
 
+// 응답 수정 버튼이 라우터로 수정 화면에 보낸다. 이동 자체는 이 화면의 검증 대상이 아니다.
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
+
 describe('ScheduleCandidatesSection', () => {
   beforeEach(() => {
     meetingViewData.current = { meetingId: 7 };
     useViewerIdentityMock.mockReturnValue({ userId: null, guestNickname: null });
     useMeetingHostMock.mockReturnValue({ participantId: 1, isViewerHost: false });
+    // 기본은 참여자 시점. 응답 수정 버튼은 참여자에게만 보인다.
+    useIsViewerParticipantMock.mockReturnValue(true);
   });
 
   it('후보를 누르면 참여 가능자 목록 dialog가 열린다', async () => {
@@ -159,6 +173,27 @@ describe('ScheduleCandidatesSection', () => {
 
     expect(screen.getByText('겹치는 일정이 없어요')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '내 응답 수정하기' })).toBeInTheDocument();
+  });
+
+  it('일정이 확정되면 응답 수정 버튼이 비활성화된다', () => {
+    mockScheduleView();
+
+    render(<ScheduleCandidatesSection inviteCode="29NRVBGXGP" isConfirmed />);
+
+    expect(screen.getByRole('button', { name: '내 응답 수정하기' })).toBeDisabled();
+  });
+
+  it('참여하지 않은 사람에게는 응답 수정 버튼을 보여주지 않는다 — 고칠 응답이 없다', () => {
+    useIsViewerParticipantMock.mockReturnValue(false);
+    useScheduleViewQueryMock.mockReturnValue({
+      data: { participantCount: 2, candidates: [CANDIDATE] },
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<ScheduleCandidatesSection inviteCode="29NRVBGXGP" />);
+
+    expect(screen.queryByRole('button', { name: '내 응답 수정하기' })).not.toBeInTheDocument();
   });
 
   it('isLoading이 true이면 로딩 안내가 표시된다', () => {
