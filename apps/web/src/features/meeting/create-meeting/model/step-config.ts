@@ -6,6 +6,12 @@ import type { CreateMeetingDraftState } from './create-meeting-draft';
  * ℹ️ CRT-05 커버사진('cover')은 **1차 MVP에서 제외**되어 여기 없다(crt-06.md 배너).
  *   후속 개발에서 갤러리 피커와 함께 재활성화할 때 'cover'를 다시 포함할 예정이다.
  *   → 그때 필요한 것: 이 유니온 · STEP_PATHS · getSteps · isStepComplete 각 한 줄.
+ *
+ * 🚧 CRT-04 마감 기한('deadline')은 **1차 출시에서 임시 비활성화**다.
+ *   화면이 약속하는 "마감 전 리마인더 발송"이 아직 없어, 없는 기능을 걸어두지 않으려고
+ *   `getSteps`의 흐름에서만 빼 두었다. 키·경로·완성 판정·화면 코드는 그대로 살려 둔다.
+ *   → 재활성화 시 손댈 곳은 `getSteps`의 주석 처리된 'deadline' 두 줄과
+ *     `use-submit-meeting.ts`의 마감 강제 한 곳뿐이다. (전부 `🚧` 로 찾을 수 있다)
  */
 export type StepKey =
   | 'basic'
@@ -50,6 +56,9 @@ const PATH_TO_STEP = new Map<string, StepKey>(
  *
  * ℹ️ 커버사진(CRT-05)은 1차 MVP 제외라 흐름이 deadline → created 로 직행한다.
  *   재활성화 시 deadline 다음에 'cover'를 포함할 예정이다(StepKey 주석 참고).
+ *
+ * 🚧 마감 기한(CRT-04)도 1차 출시 임시 비활성화라 흐름이 basic/time-range → created 로 직행한다.
+ *   재활성화는 아래 주석 처리된 'deadline' 두 줄을 되살리는 것으로 끝난다(StepKey 주석 참고).
  */
 export function getSteps({ planningType, scheduleInputType }: StepFlowInput): StepKey[] {
   // 유형 미선택(= HOME Drawer를 거치지 않은 진입)이면 흐름 자체가 없다.
@@ -57,11 +66,17 @@ export function getSteps({ planningType, scheduleInputType }: StepFlowInput): St
   if (planningType === null) return [];
 
   if (planningType === 'PLACE_ONLY') {
-    return ['basic', 'deadline', 'created', 'departure'];
+    return ['basic', /* 🚧 'deadline', */ 'created', 'departure'];
   }
 
   // 일정 조율 계열(SCHEDULE_ONLY · SCHEDULE_AND_PLACE) 공통 골격
-  const steps: StepKey[] = ['basic', 'time-range', 'deadline', 'created', 'schedule-dates'];
+  const steps: StepKey[] = [
+    'basic',
+    'time-range',
+    /* 🚧 'deadline', */
+    'created',
+    'schedule-dates',
+  ];
 
   // DATE_AND_TIME만 방장 시간 입력(INV-02-B)을 갖는다.
   // scheduleInputType이 null이면 제외한다 — time-range 미완성이라 가드가 먼저 막는 상태다.
@@ -97,6 +112,7 @@ export function isStepComplete(step: StepKey, draft: CreateMeetingDraftState): b
         );
       return false;
     case 'deadline':
+      // 🚧 임시 비활성화 중이라 흐름에 없지만, 재활성화에 대비해 판정 자체는 그대로 둔다.
       if (draft.noDeadline) return true;
       return draft.deadlineMinutes !== null && draft.deadlineMinutes >= 10;
     case 'created':
@@ -184,6 +200,8 @@ export function stepPhase(step: StepKey, input: StepFlowInput): StepPhase | null
  * 0부터 다시 시작한다. 모임 유형(CRT-01)은 위저드 스텝이 아니므로 어느 분모에도 없다.
  *
  * ℹ️ 'cover' 재활성화 시 create 구간 분모가 한 칸 늘어난다.
+ * 🚧 'deadline'이 빠져 있는 동안 create 구간의 마지막(= 100%)은 time-range,
+ *   PLACE_ONLY에서는 basic이다. 재활성화하면 다시 deadline이 그 자리를 가져간다.
  */
 export function progressPercent(step: StepKey, input: StepFlowInput): number {
   const phase = stepPhase(step, input);

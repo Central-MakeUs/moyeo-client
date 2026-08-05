@@ -9,6 +9,18 @@ import { createMeeting, type CreateMeetingResponse } from '@/shared/api';
 import { useCreateMeetingDraft } from './create-meeting-draft';
 import { toCreateMeetingRequest } from './to-create-meeting-request';
 
+/**
+ * 🚧 마감 기한 스텝(CRT-04) 임시 비활성화 동안 제출에 덮어씌우는 값.
+ *
+ * 서버는 `noDeadline`이 false/생략이면 `deadlineMinutes`를 필수로 본다. 스텝이 흐름에서 빠진
+ * 지금 draft에는 마감이 영영 채워지지 않으므로, 여기서 덮지 않으면 생성 요청이 계약 위반이 된다.
+ * 배포 전에 시작해 sessionStorage에 남아 있던 draft(마감 값이 있거나 비어 있는 둘 다)도
+ * 이 한 곳을 지나므로 함께 정리된다.
+ *
+ * → 재활성화하면 이 상수와 아래 mutationFn의 스프레드를 지우면 된다.
+ */
+const NO_DEADLINE = { noDeadline: true, deadlineMinutes: null } as const;
+
 export interface UseSubmitMeetingOptions {
   /** 생성 성공 시 호출된다. 이동은 호출부(페이지)가 정한다. */
   onSuccess: (response: CreateMeetingResponse) => void;
@@ -35,7 +47,10 @@ export function useSubmitMeeting({ onSuccess }: UseSubmitMeetingOptions) {
   const inFlightRef = React.useRef(false); // 제출 요청이 진행 중인지를 담고 있는 플래그
 
   const mutation = useMutation({
-    mutationFn: () => createMeeting(toCreateMeetingRequest(useCreateMeetingDraft.getState())),
+    mutationFn: () =>
+      createMeeting(
+        toCreateMeetingRequest({ ...useCreateMeetingDraft.getState(), ...NO_DEADLINE })
+      ),
     onSuccess,
     onSettled: () => {
       inFlightRef.current = false;
