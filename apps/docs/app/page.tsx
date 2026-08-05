@@ -50,6 +50,42 @@ const guideSteps = [
     title: 'Git hook validation',
     detail: 'Husky, lint-staged, commitlint rules',
   },
+  {
+    href: '/frontend-styling',
+    index: '09',
+    title: 'Frontend styling',
+    detail: 'Tailwind v4, Prettier class sorting, Next font',
+  },
+  {
+    href: '/fsd-architecture',
+    index: '10',
+    title: 'FSD architecture',
+    detail: 'Next App Router, aliases, public API, Steiger boundaries',
+  },
+  {
+    href: '/steiger-prefixed-layers',
+    index: '11',
+    title: 'Steiger prefix layers',
+    detail: '_app, _pages prefix layer troubleshooting',
+  },
+  {
+    href: '/eas-build',
+    index: '12',
+    title: 'EAS Build',
+    detail: '빌드 프로파일, 빌드 명령어, 개발 시 핫리로드',
+  },
+  {
+    href: '/server-state-management',
+    index: '13',
+    title: 'Server state management',
+    detail: 'TanStack Query provider, devtools, ESLint plugin',
+  },
+  {
+    href: '/icon-system',
+    index: '14',
+    title: 'Icon system',
+    detail: 'SVG registry, accessibility, Storybook MDX troubleshooting',
+  },
 ];
 
 export default function Home() {

@@ -1,0 +1,237 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@source '../shared/ui/dialog';
+@source '../shared/ui/alert-dialog';
+@custom-variant dark (&:is(.dark *));
+
+/* 터치 sticky hover 방지 + 터치스크린 노트북 hover 유지 (hover: none)은 노트북 신호로, 제거 금지 */
+@custom-variant hover {
+  @media (any-hover: hover) and ((hover: none) or (pointer: fine)) {
+    &:hover {
+      @slot;
+    }
+  }
+}
+
+/*
+  * Design tokens
+  *
+  * 현재 디자인 기준에서 확정된 color/typography/radius 토큰만 Tailwind @theme에 정의함
+  * spacing, shadow는 별도 디자인 토큰이 확정되기 전까지 Tailwind 기본 scale을 사용한다.
+  * 컴포넌트에서는 하드코딩 대신 bg-primary, text-neutral-900, text-bold-16처럼
+  * @theme 기반 Tailwind class를 우선 사용한다.
+*/
+@theme static {
+  /* font */
+  --font-suit: var(--font-suit);
+
+  /* common */
+  --color-primary: #f43630;
+
+  /* neutral */
+  --color-neutral-0: #ffffff;
+  --color-neutral-10: #f9f9f9;
+  --color-neutral-20: #f7f7f7;
+  --color-neutral-50: #e7e7e7;
+  --color-neutral-70: #d0d0d0;
+  --color-neutral-100: #c4c4c4;
+  --color-neutral-200: #b0b0b0;
+  --color-neutral-300: #9b9b9b;
+  --color-neutral-400: #8a8a8a;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #5c5c5c;
+  --color-neutral-700: #474747;
+  --color-neutral-800: #2a2a2a;
+  --color-neutral-850: #1c1c1c;
+  --color-neutral-900: #171717;
+  --color-neutral-950: #0f0f0f;
+  --color-neutral-1000: #000000;
+
+  /* accessible */
+  --color-accessible-10: #fffcfc;
+  --color-accessible-50: #fef2f2;
+  --color-accessible-100: #ffe2e1;
+  --color-accessible-200: #ffcac8;
+  --color-accessible-300: #ffa5a2;
+  --color-accessible-400: #fd716c;
+  --color-accessible-500: #f43730;
+  --color-accessible-600: #e22720;
+  --color-accessible-700: #be1d17;
+  --color-accessible-800: #9d1c17;
+  --color-accessible-900: #821e1a;
+  --color-accessible-950: #470a08;
+
+  /* purple */
+  --color-purple-100: #ede8ff;
+  --color-purple-400: #8565ff;
+
+  /* yellow */
+  --color-yellow-100: #fff2d9;
+  --color-yellow-400: #feaa02;
+
+  /* opacity */
+  --color-opacity-40: #00000066;
+
+  /* background image */
+  --background-image-celebration: radial-gradient(50% 50% at 50% 50%, #fff4f4 0%, #ffffff 100%);
+
+  /* extrabold */
+  --text-extrabold-22: 1.375rem; /* 22px */
+  --text-extrabold-22--line-height: 1.4; /* 140% */
+  --text-extrabold-22--font-weight: 800;
+
+  --text-extrabold-18: 1.125rem; /* 18px */
+  --text-extrabold-18--line-height: 1.5; /* 150% */
+  --text-extrabold-18--font-weight: 800;
+
+  --text-extrabold-16: 1rem; /* 16px */
+  --text-extrabold-16--line-height: normal; /* auto */
+  --text-extrabold-16--font-weight: 800;
+
+  --text-extrabold-14: 0.875rem; /* 14px */
+  --text-extrabold-14--line-height: normal; /* auto */
+  --text-extrabold-14--font-weight: 800;
+
+  --text-extrabold-10: 0.625rem; /* 10px */
+  --text-extrabold-10--line-height: 1.5; /* 150% */
+  --text-extrabold-10--font-weight: 800;
+
+  --text-extrabold-8: 0.5rem; /* 8px */
+  --text-extrabold-8--line-height: normal; /* auto */
+  --text-extrabold-8--font-weight: 800;
+
+  /* bold */
+  --text-bold-18: 1.125rem; /* 18px */
+
+  --text-bold-18--line-height: 1.2; /* 120% */
+  --text-bold-18--font-weight: 700;
+
+  /* bold */
+  --text-bold-16: 1rem; /* 16px */
+  --text-bold-16--line-height: 1.25; /* 125% */
+  --text-bold-16--font-weight: 700;
+
+  --text-bold-14: 0.875rem; /* 14px */
+  --text-bold-14--line-height: 1.4; /* 140% */
+  --text-bold-14--font-weight: 700;
+
+  --text-bold-12: 0.75rem; /* 12px */
+  --text-bold-12--line-height: 1.4; /* 140% */
+  --text-bold-12--font-weight: 700;
+
+  /* semibold */
+  --text-semibold-16: 1rem; /* 16px */
+  --text-semibold-16--line-height: 1.5; /* 150% */
+  --text-semibold-16--font-weight: 600;
+
+  --text-semibold-14: 0.875rem; /* 14px */
+  --text-semibold-14--line-height: 1.5; /* 150% */
+  --text-semibold-14--font-weight: 600;
+
+  --text-semibold-12: 0.75rem; /* 12px */
+  --text-semibold-12--line-height: 1.5; /* 150% */
+  --text-semibold-12--font-weight: 600;
+
+  /* medium */
+  --text-medium-16: 1rem; /* 16px */
+  --text-medium-16--line-height: 1.5; /* 150% */
+  --text-medium-16--font-weight: 500;
+
+  --text-medium-14: 0.875rem; /* 14px */
+  --text-medium-14--line-height: 1.4; /* 140% */
+  --text-medium-14--font-weight: 500;
+
+  --text-medium-12: 0.75rem; /* 12px */
+  --text-medium-12--line-height: 1.5; /* 150% */
+  --text-medium-12--font-weight: 500;
+
+  /* radius */
+  --radius-*: initial;
+  --radius-2: 2px;
+  --radius-4: 4px;
+  --radius-6: 6px;
+  --radius-8: 8px;
+  --radius-10: 10px;
+  --radius-12: 12px;
+  --radius-14: 14px;
+  --radius-16: 16px;
+  --radius-20: 20px;
+  --radius-24: 24px;
+}
+
+@layer base {
+  :root {
+    /* layout */
+    --app-shell-max-width: 30rem; /* 480px */
+  }
+
+  body {
+    font-family: var(--font-suit);
+    @apply bg-background text-foreground;
+  }
+
+  button {
+    cursor: pointer;
+  }
+  * {
+    @apply border-border outline-ring/50;
+  }
+}
+
+@layer components {
+  .app-viewport {
+    min-height: 100dvh;
+    width: 100%;
+  }
+
+  .app-shell {
+    min-height: 100dvh;
+    width: 100%;
+    max-width: var(--app-shell-max-width);
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+/*
+  * shadcn semantic tokens
+  *
+  * shadcn 컴포넌트가 참조하는 의미론적 색상 이름(background, border, ring 등)을
+  * 위 @theme에서 정의한 실제 디자인 토큰(neutral, accessible, primary)에 매핑한다.
+  * Button/Input처럼 상태별 색을 자체적으로 지정하는 커스텀 컴포넌트는 이 매핑과 무관하게
+  * 컴포넌트 코드에서 직접 관리한다.
+*/
+@theme inline {
+  /* surface */
+  --color-background: var(--color-neutral-10);
+  --color-foreground: var(--color-neutral-900);
+  --color-card: var(--color-neutral-10);
+  --color-card-foreground: var(--color-neutral-900);
+  --color-popover: var(--color-neutral-0);
+  --color-popover-foreground: var(--color-neutral-1000);
+  --color-secondary: var(--color-neutral-20);
+  --color-secondary-foreground: var(--color-neutral-900);
+  --color-muted: var(--color-neutral-50);
+  --color-muted-foreground: var(--color-neutral-500);
+  --color-accent: var(--color-neutral-20);
+  --color-accent-foreground: var(--color-neutral-900);
+  --color-primary-foreground: var(--color-neutral-10);
+
+  /* form / interactive */
+  --color-border: var(--color-neutral-70);
+  --color-input: var(--color-neutral-70);
+  --color-ring: var(--color-accessible-400);
+  --color-destructive: var(--color-accessible-500);
+
+  /* sidebar */
+  --color-sidebar: var(--color-neutral-10);
+  --color-sidebar-foreground: var(--color-neutral-900);
+  --color-sidebar-primary: var(--color-primary);
+  --color-sidebar-primary-foreground: var(--color-neutral-10);
+  --color-sidebar-accent: var(--color-neutral-20);
+  --color-sidebar-accent-foreground: var(--color-neutral-900);
+  --color-sidebar-border: var(--color-neutral-70);
+  --color-sidebar-ring: var(--color-neutral-300);
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: 'TDD Green'
+  short_description: '실패 테스트를 최소 구현으로 하나씩 통과시킵니다'
+  default_prompt: 'Use $tdd-green to make the failing tests for the current issue pass with minimal implementation changes.'

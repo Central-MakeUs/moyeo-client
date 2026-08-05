@@ -6,32 +6,15 @@
     "build": "turbo run build",
     "dev": "turbo run dev --filter=@repo/web --filter=docs",
     "dev:native": "pnpm --filter native start",
+    "dev:native:clear": "pnpm --filter native start:clear",
+    "generate:icons": "node scripts/generate-icons.mjs",
+    "storybook": "pnpm --filter @repo/web storybook",
     "lint": "turbo run lint",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "typecheck": "turbo run check-types",
+    "test": "turbo run test",
     "prepare": "husky"
-  },
-  "lint-staged": {
-    "apps/web/**/*.{js,jsx,ts,tsx}": [
-      "eslint --fix --config apps/web/eslint.config.mjs",
-      "prettier --write"
-    ],
-    "apps/docs/**/*.{js,jsx,ts,tsx}": [
-      "eslint --fix --config apps/docs/eslint.config.mjs",
-      "prettier --write"
-    ],
-    "apps/native/**/*.{js,jsx,ts,tsx}": [
-      "eslint --fix --config apps/native/eslint.config.mjs",
-      "prettier --write"
-    ],
-    "packages/ui/**/*.{js,jsx,ts,tsx}": [
-      "eslint --fix --config packages/ui/eslint.config.mjs",
-      "prettier --write"
-    ],
-    "*.{js,mjs,json,md,mdx,yml,yaml,css}": [
-      "prettier --write"
-    ]
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.0",

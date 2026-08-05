@@ -1,0 +1,72 @@
+'use client';
+
+import * as React from 'react';
+
+import { useMutation } from '@tanstack/react-query';
+
+import { createMeeting, type CreateMeetingResponse } from '@/shared/api';
+
+import { useCreateMeetingDraft } from './create-meeting-draft';
+import { toCreateMeetingRequest } from './to-create-meeting-request';
+
+/**
+ * 🚧 마감 기한 스텝(CRT-04) 임시 비활성화 동안 제출에 덮어씌우는 값.
+ *
+ * 서버는 `noDeadline`이 false/생략이면 `deadlineMinutes`를 필수로 본다. 스텝이 흐름에서 빠진
+ * 지금 draft에는 마감이 영영 채워지지 않으므로, 여기서 덮지 않으면 생성 요청이 계약 위반이 된다.
+ * 배포 전에 시작해 sessionStorage에 남아 있던 draft(마감 값이 있거나 비어 있는 둘 다)도
+ * 이 한 곳을 지나므로 함께 정리된다.
+ *
+ * → 재활성화하면 이 상수와 아래 mutationFn의 스프레드를 지우면 된다.
+ */
+const NO_DEADLINE = { noDeadline: true, deadlineMinutes: null } as const;
+
+export interface UseSubmitMeetingOptions {
+  /** 생성 성공 시 호출된다. 이동은 호출부(페이지)가 정한다. */
+  onSuccess: (response: CreateMeetingResponse) => void;
+}
+
+/**
+ * 위저드 마지막 스텝의 제출.
+ *
+ * 서버에 `Idempotency-Key`가 없어 중복 생성을 막을 수단이 요청 단에는 없다.
+ * 그래서 in-flight 가드로 두 번째 호출 자체를 버린다(spec-fixed §7).
+ *
+ * ⚠️ 가드를 `isPending`으로 두면 연타를 못 막는다. 한 번 탭한 직후 리렌더 전까지
+ * `isPending`은 아직 false라, 같은 프레임에 들어온 두 번째 호출이 그대로 통과한다.
+ * 렌더와 무관하게 즉시 바뀌는 ref로 막는다.
+ *
+ * ⚠️ **여기서 draft를 비우지 않는다.** `router.replace`는 위저드 페이지를 동기적으로
+ * 언마운트하지 않아서, 곧바로 reset하면 아직 살아 있는 페이지가 리렌더되고 `useStepGuard`가
+ * 빈 draft를 보고 홈으로 되돌려 방금 건 이동을 덮어쓴다. 비우는 일은 위저드를 완전히 벗어난
+ * 도착지(CRT-07)가 맡는다.
+ *
+ * 실패 시 draft는 그대로라 다시 시도할 수 있다.
+ */
+export function useSubmitMeeting({ onSuccess }: UseSubmitMeetingOptions) {
+  const inFlightRef = React.useRef(false); // 제출 요청이 진행 중인지를 담고 있는 플래그
+
+  const mutation = useMutation({
+    mutationFn: () =>
+      createMeeting(
+        toCreateMeetingRequest({ ...useCreateMeetingDraft.getState(), ...NO_DEADLINE })
+      ),
+    onSuccess,
+    onSettled: () => {
+      inFlightRef.current = false;
+    },
+  });
+
+  const { mutate } = mutation;
+
+  return {
+    submit: () => {
+      if (inFlightRef.current) return;
+      inFlightRef.current = true;
+      mutate();
+    },
+    isPending: mutation.isPending,
+    isError: mutation.isError,
+    error: mutation.error,
+  };
+}

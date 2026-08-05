@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.moyeozo.moyeo",
+      "sha256_cert_fingerprints": [
+        "11:7B:39:57:09:9B:CC:5C:AD:64:DA:82:71:AC:9F:93:C7:59:31:CF:AD:8D:E7:53:FB:B9:B3:8F:F5:3D:33:6D"
+      ]
+    }
+  }
+]
