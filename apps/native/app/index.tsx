@@ -1,15 +1,18 @@
-import { useCallback, useMemo, useRef } from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { BackHandler, Platform, StyleSheet, ToastAndroid } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
-import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
+import type {
+  ShouldStartLoadRequest,
+  WebViewNavigation,
+} from 'react-native-webview/lib/WebViewTypes';
 import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
 import * as Linking from 'expo-linking';
 import * as SecureStore from 'expo-secure-store';
 import * as Clipboard from 'expo-clipboard';
 
-import type { NativeToWebMessage, WebToNativeMessage } from '@repo/types';
+import type { BackResultState, NativeToWebMessage, WebToNativeMessage } from '@repo/types';
 
 const devHost = Constants.expoConfig?.hostUri?.split(':')[0];
 const WEB_URL =
@@ -33,6 +36,19 @@ const ACCESS_TOKEN_KEY = 'moyeo.session.accessToken';
 
 /** WebView가 스스로 열 수 있는 스킴. 나머지는 OS에 넘긴다. */
 const IN_APP_SCHEMES = ['http:', 'https:', 'about:', 'data:'];
+
+/**
+ * 뒤로가기를 웹에 넘기고 응답을 기다리는 시간.
+ *
+ * 이 시간을 넘기면 웹이 아직 뜨지 않았거나 브리지가 죽은 것으로 보고 WebView 방문 기록으로
+ * 폴백한다. 뒤로가기는 즉시 반응해야 하는 조작이라 길게 잡지 않는다.
+ */
+const BACK_RESULT_TIMEOUT_MS = 500;
+
+/** 종료 안내 후 한 번 더 눌러야 실제로 종료되는 시간. 토스트 노출 시간에 맞춘다. */
+const EXIT_CONFIRM_WINDOW_MS = 2000;
+
+const EXIT_CONFIRM_MESSAGE = '한 번 더 누르면 종료됩니다';
 
 /** 웹이 보내는 세기 → Expo 임팩트 스타일. */
 const IMPACT_STYLE = {
@@ -77,6 +93,18 @@ export default function HomeScreen() {
   // App Link의 origin을 제외한 `/i/{inviteToken}` 경로다.
   const { appLinkPath } = useLocalSearchParams<{ appLinkPath?: string | string[] }>();
   const webViewUrl = useMemo(() => toWebViewUrl(appLinkPath), [appLinkPath]);
+
+  /** WebView에 돌아갈 방문 기록이 있는지. 웹이 뒤로가기를 넘겼을 때의 폴백 판단에 쓴다. */
+  const canGoBackRef = useRef(false);
+  /** 뒤로가기 요청을 구분하는 증가 값. 늦게 도착한 이전 응답을 무시하는 데 쓴다. */
+  const backSequenceRef = useRef(0);
+  /** 응답을 기다리는 중인 뒤로가기 요청. 응답이 없으면 타임아웃이 대신 끝낸다. */
+  const pendingBackRef = useRef<{
+    requestId: string;
+    settle: (state: BackResultState | null) => void;
+  } | null>(null);
+  /** 종료 안내가 유효한 동안 살아 있는 타이머. `null`이면 안내 전 상태다. */
+  const exitConfirmTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const postMessageToWeb = useCallback((message: NativeToWebMessage) => {
     webViewRef.current?.postMessage(JSON.stringify(message));
@@ -177,11 +205,136 @@ export default function HomeScreen() {
           return;
         }
 
+        // 뒤로가기를 넘겨받은 웹의 처리 결과다. 기다리고 있던 요청의 응답일 때만 받는다
+        // — 타임아웃으로 이미 끝난 요청의 늦은 응답이 다음 뒤로가기를 건드리면 안 된다.
+        case 'BACK_RESULT': {
+          const pending = pendingBackRef.current;
+          if (pending === null || pending.requestId !== message.requestId) return;
+
+          pendingBackRef.current = null;
+          pending.settle(message.payload.state);
+          return;
+        }
+
         default:
           return;
       }
     },
     [postMessageToWeb, sendStoredToken]
+  );
+
+  /** 종료 안내를 무효화한다. 화면이 바뀌거나 웹이 뒤로가기를 처리했을 때 부른다. */
+  const clearExitConfirm = useCallback(() => {
+    if (exitConfirmTimerRef.current === null) return;
+
+    clearTimeout(exitConfirmTimerRef.current);
+    exitConfirmTimerRef.current = null;
+  }, []);
+
+  /**
+   * 종료 직전 확인 단계.
+   *
+   * 처음 눌렀을 때는 안내만 하고, 안내가 살아 있는 동안 한 번 더 누르면 종료한다.
+   * 뒤로가기 한 번에 앱을 벗어나면 오조작으로 작성 중이던 내용을 잃기 쉽다.
+   */
+  const confirmExit = useCallback(() => {
+    if (exitConfirmTimerRef.current !== null) {
+      clearExitConfirm();
+      BackHandler.exitApp();
+      return;
+    }
+
+    ToastAndroid.show(EXIT_CONFIRM_MESSAGE, ToastAndroid.SHORT);
+    exitConfirmTimerRef.current = setTimeout(() => {
+      exitConfirmTimerRef.current = null;
+    }, EXIT_CONFIRM_WINDOW_MS);
+  }, [clearExitConfirm]);
+
+  /**
+   * 뒤로가기를 웹에 넘기고 결과를 기다린다.
+   *
+   * @returns 웹의 처리 결과. 제한 시간 안에 답이 없으면 `null`.
+   */
+  const requestWebBack = useCallback(
+    () =>
+      new Promise<BackResultState | null>((resolve) => {
+        backSequenceRef.current += 1;
+        const requestId = `back-${backSequenceRef.current}`;
+
+        const timer = setTimeout(() => {
+          if (pendingBackRef.current?.requestId !== requestId) return;
+
+          pendingBackRef.current = null;
+          resolve(null);
+        }, BACK_RESULT_TIMEOUT_MS);
+
+        pendingBackRef.current = {
+          requestId,
+          settle: (state) => {
+            clearTimeout(timer);
+            resolve(state);
+          },
+        };
+
+        postMessageToWeb({ type: 'BACK_PRESSED', requestId });
+      }),
+    [postMessageToWeb]
+  );
+
+  /**
+   * 뒤로가기 한 번의 전체 흐름.
+   *
+   * 웹이 처리했으면 끝이고, 넘겼으면 WebView 방문 기록으로 돌아간다.
+   * 웹이 시작 화면이라고 답했거나 돌아갈 기록이 없으면 종료 확인으로 넘어간다.
+   */
+  const handleBackPress = useCallback(async () => {
+    const state = await requestWebBack();
+
+    if (state === 'handled') {
+      clearExitConfirm();
+      return;
+    }
+
+    // 무응답(`null`)은 웹이 아직 준비되지 않았다는 뜻이므로 방문 기록 쪽으로 본다.
+    if (state !== 'exit' && canGoBackRef.current) {
+      clearExitConfirm();
+      webViewRef.current?.goBack();
+      return;
+    }
+
+    confirmExit();
+  }, [clearExitConfirm, confirmExit, requestWebBack]);
+
+  /**
+   * Android 뒤로가기를 가로챈다.
+   *
+   * 처리 방법을 웹 응답까지 기다려 정하므로 핸들러는 항상 `true`를 반환해 기본 동작
+   * (액티비티 종료)을 막고, 종료가 필요하면 `handleBackPress`가 직접 `exitApp`을 부른다.
+   *
+   * iOS는 뒤로가기 입력 자체가 없다 — WebView의 엣지 스와이프는 WKWebView가 내부에서
+   * 처리해 이 흐름을 우회하므로 켜지 않고, 화면 안의 뒤로가기 버튼을 쓴다.
+   */
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      void handleBackPress();
+      return true;
+    });
+
+    return () => subscription.remove();
+  }, [handleBackPress]);
+
+  // 화면을 벗어날 때 남은 종료 안내 타이머를 정리한다.
+  useEffect(() => clearExitConfirm, [clearExitConfirm]);
+
+  /** 방문 기록 유무를 갱신한다. 화면이 바뀌면 직전의 종료 안내는 무효다. */
+  const handleNavigationStateChange = useCallback(
+    (navState: WebViewNavigation) => {
+      canGoBackRef.current = navState.canGoBack;
+      clearExitConfirm();
+    },
+    [clearExitConfirm]
   );
 
   /**
@@ -219,6 +372,7 @@ export default function HomeScreen() {
       source={{ uri: webViewUrl }}
       onMessage={handleMessage}
       onShouldStartLoadWithRequest={handleShouldStartLoad}
+      onNavigationStateChange={handleNavigationStateChange}
       // 커스텀 스킴 판단을 위 핸들러가 전담하도록 WebView 자체 필터는 열어둔다.
       originWhitelist={['*']}
       // 카카오 로그인 페이지가 새 창으로 앱 전환을 시도하면 Android에서 빈 창만 뜨고 끝난다.
