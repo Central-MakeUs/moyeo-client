@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import '@/_app/globals.css';
-import { DevAuthPanelMount, QueryProvider } from '@/_app';
+import { DevAuthPanelMount, NativeBackProvider, QueryProvider } from '@/_app';
 import { suit } from '@/_app/fonts';
 import { SessionProvider } from '@/entities/session';
 import { AppLayout } from '@/shared/ui/layouts/app-layout';
@@ -28,6 +28,7 @@ export default function RootLayout({
         <QueryProvider>
           <SessionProvider>
             <AppLayout>{children}</AppLayout>
+            <NativeBackProvider />
             <DevAuthPanelMount />
           </SessionProvider>
         </QueryProvider>

@@ -4,7 +4,6 @@ import { MeetingInvitationCard, type MeetingInvitation } from '@/entities/meetin
 import { useJoinEntry } from '@/features/meeting/invite-join-entry';
 import type { ParticipationStatusResponse } from '@/shared/api';
 import { Button, Celebration, CTASection, TopAppBar } from '@/shared/ui';
-import { IconButton } from '@/shared/ui/icon-button';
 import { CompletionLayout } from '@/shared/ui/layouts';
 import { PageHeader } from '@/shared/ui/page-header';
 import { LoginDrawer, type LoginDrawerProps } from '@/widgets/login-drawer';
@@ -60,10 +59,7 @@ export function InviteLandingPage({
 
   return (
     <div className="flex h-dvh flex-col bg-celebration">
-      <TopAppBar
-        className="shrink-0"
-        leading={<IconButton icon="chevron-left" aria-label="뒤로가기" />}
-      />
+      <TopAppBar className="shrink-0" />
       <CompletionLayout
         header={
           <PageHeader
