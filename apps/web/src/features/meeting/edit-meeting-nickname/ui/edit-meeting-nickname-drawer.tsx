@@ -6,6 +6,7 @@ import { isValidNickname } from '@/entities/nickname';
 import {
   Button,
   Drawer,
+  DrawerBody,
   DrawerContent,
   DrawerFooter,
   DrawerHeader,
@@ -63,23 +64,28 @@ export function EditMeetingNicknameDrawer({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent>
-        <DrawerHeader>
-          <DrawerTitle>모임별 닉네임 수정</DrawerTitle>
+      <DrawerContent className="flex flex-col gap-0">
+        <DrawerHeader className="gap-1.5 py-0 pb-6">
+          <DrawerTitle className="w-full text-start text-bold-16 text-neutral-900">
+            모임별 닉네임 수정
+          </DrawerTitle>
         </DrawerHeader>
 
+        {/* 완료 버튼이 footer에 있으므로 form이 body와 footer를 함께 감싼다. */}
         <form onSubmit={handleSubmit}>
-          <InputField
-            aria-label="모임별 닉네임"
-            placeholder="닉네임을 입력해주세요"
-            value={value}
-            onChange={(event) => setValue(event.target.value)}
-            description={NICKNAME_HINT}
-            errorMessage={showError ? NICKNAME_HINT : undefined}
-            disabled={isSubmitting}
-          />
+          <DrawerBody className="pb-8">
+            <InputField
+              aria-label="모임별 닉네임"
+              placeholder="닉네임을 입력해주세요"
+              value={value}
+              onChange={(event) => setValue(event.target.value)}
+              description={NICKNAME_HINT}
+              errorMessage={showError ? NICKNAME_HINT : undefined}
+              disabled={isSubmitting}
+            />
+          </DrawerBody>
 
-          <DrawerFooter className="grid grid-cols-2 gap-2.5">
+          <DrawerFooter className="grid grid-cols-2 gap-2.5 pt-0">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               취소
             </Button>
