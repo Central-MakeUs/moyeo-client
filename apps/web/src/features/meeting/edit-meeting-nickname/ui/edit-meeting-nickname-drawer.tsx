@@ -89,7 +89,7 @@ export function EditMeetingNicknameDrawer({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               취소
             </Button>
-            <Button type="submit" disabled={!isValid || !isChanged || isSubmitting}>
+            <Button type="submit" isLoading={isSubmitting} disabled={!isValid || !isChanged}>
               완료
             </Button>
           </DrawerFooter>

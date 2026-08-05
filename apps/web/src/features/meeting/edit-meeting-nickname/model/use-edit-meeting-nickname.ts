@@ -7,6 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   getGetMeetingViewQueryKey,
   getGetMyParticipationQueryKey,
+  getGetPlaceViewQueryKey,
   updateMeetingParticipantNickname,
 } from '@/shared/api';
 import { toast } from '@/shared/ui';
@@ -21,7 +22,7 @@ export interface UseEditMeetingNicknameParams {
   /** 수정 후 다시 읽어야 할 조회들의 초대 코드. */
   inviteCode: string;
   /** 수정에 성공했을 때. Drawer를 닫는 용도. */
-  onSuccess?: () => void;
+  onSuccess?: (nickname: string) => void;
 }
 
 export interface UseEditMeetingNicknameReturn {
@@ -58,10 +59,11 @@ export function useEditMeetingNickname({
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: getGetMeetingViewQueryKey(inviteCode) }),
         queryClient.invalidateQueries({ queryKey: getGetMyParticipationQueryKey(inviteCode) }),
+        queryClient.invalidateQueries({ queryKey: getGetPlaceViewQueryKey(inviteCode) }),
       ]);
 
       toast.add({ description: SUCCESS_MESSAGE });
-      onSuccess?.();
+      onSuccess?.(nickname);
     } catch {
       toast.add({ id: ERROR_TOAST_ID, description: ERROR_MESSAGE });
     } finally {
