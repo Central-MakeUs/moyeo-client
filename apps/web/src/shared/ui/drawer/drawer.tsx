@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Drawer as DrawerPrimitive } from 'vaul';
 
 import { cn } from '@/shared/lib/cn';
+import { useBackHandler } from '@/shared/model';
 
 import { useOverlayContainer } from '../overlay/overlay-provider';
 
@@ -11,8 +12,39 @@ type DrawerProps = React.ComponentProps<typeof DrawerPrimitive.Root> & {
   direction?: 'bottom';
 };
 
-function Drawer({ container, handleOnly = true, ...props }: DrawerProps) {
+/**
+ * 열려 있는 동안 네이티브 뒤로가기를 가져간다 — 뒤로가기는 페이지가 아니라 이 Drawer를 닫는다.
+ *
+ * 그러려면 열림 여부를 알아야 하는데 호출부가 제어/비제어 어느 쪽으로도 쓸 수 있다.
+ * 비제어일 때만 내부 상태를 두고, 제어일 때는 `open`을 그대로 진실로 삼는다 — 내부에 거울을
+ * 두면 호출부가 `onOpenChange`를 무시해 닫힘을 막는 경우에도 Drawer가 닫혀버린다.
+ */
+function Drawer({
+  container,
+  handleOnly = true,
+  open,
+  defaultOpen,
+  onOpenChange,
+  ...props
+}: DrawerProps) {
   const overlayContainer = useOverlayContainer();
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen ?? false);
+
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open : uncontrolledOpen;
+
+  const handleOpenChange = React.useCallback(
+    (next: boolean) => {
+      if (!isControlled) setUncontrolledOpen(next);
+      onOpenChange?.(next);
+    },
+    [isControlled, onOpenChange]
+  );
+
+  useBackHandler(() => {
+    handleOpenChange(false);
+    return true;
+  }, isOpen);
 
   return (
     <DrawerPrimitive.Root
@@ -20,6 +52,8 @@ function Drawer({ container, handleOnly = true, ...props }: DrawerProps) {
       handleOnly={handleOnly}
       direction="bottom"
       container={container ?? overlayContainer ?? undefined}
+      open={isOpen}
+      onOpenChange={handleOpenChange}
       {...props}
     />
   );

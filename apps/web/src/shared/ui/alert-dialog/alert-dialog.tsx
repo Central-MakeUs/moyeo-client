@@ -4,13 +4,50 @@ import * as React from 'react';
 import { AlertDialog as AlertDialogPrimitive } from 'radix-ui';
 
 import { cn } from '@/shared/lib/cn';
+import { useBackHandler } from '@/shared/model';
 import { Button } from '@/shared/ui/button';
 import { Icon, type IconName } from '@/shared/ui/icon';
 
 import { useOverlayContainer } from '../overlay/overlay-provider';
 
-function AlertDialog({ ...props }: React.ComponentProps<typeof AlertDialogPrimitive.Root>) {
-  return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />;
+/**
+ * 열려 있는 동안 네이티브 뒤로가기를 가져간다 — 뒤로가기는 페이지가 아니라 이 다이얼로그를 닫는다.
+ *
+ * 제어/비제어 처리는 Drawer와 같다. 비제어일 때만 내부 상태를 두고, 제어일 때는 `open`을
+ * 그대로 진실로 삼아 호출부의 제어권을 빼앗지 않는다.
+ */
+function AlertDialog({
+  open,
+  defaultOpen,
+  onOpenChange,
+  ...props
+}: React.ComponentProps<typeof AlertDialogPrimitive.Root>) {
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen ?? false);
+
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open : uncontrolledOpen;
+
+  const handleOpenChange = React.useCallback(
+    (next: boolean) => {
+      if (!isControlled) setUncontrolledOpen(next);
+      onOpenChange?.(next);
+    },
+    [isControlled, onOpenChange]
+  );
+
+  useBackHandler(() => {
+    handleOpenChange(false);
+    return true;
+  }, isOpen);
+
+  return (
+    <AlertDialogPrimitive.Root
+      data-slot="alert-dialog"
+      open={isOpen}
+      onOpenChange={handleOpenChange}
+      {...props}
+    />
+  );
 }
 
 function AlertDialogTrigger({
