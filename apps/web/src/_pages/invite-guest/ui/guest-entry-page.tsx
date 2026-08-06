@@ -4,7 +4,12 @@ import { useState } from 'react';
 
 import { InviteJoinFailedDialog } from '@/entities/meeting';
 import { isValidNickname } from '@/entities/nickname';
-import { isValidGuestPassword, useGuestEntry } from '@/features/meeting/invite-participation';
+import {
+  isDraftUsableFor,
+  isValidGuestPassword,
+  useGuestEntry,
+  useParticipationDraft,
+} from '@/features/meeting/invite-participation';
 import type { MeetingInvitationResponsePlanningType } from '@/shared/api';
 import { IconButton } from '@/shared/ui/icon-button';
 import { InputField } from '@/shared/ui/input';
@@ -31,8 +36,12 @@ export function GuestEntryPage({ inviteToken, planningType }: GuestEntryPageProp
     planningType,
   });
 
-  const [nickname, setNickname] = useState('');
-  const [password, setPassword] = useState('');
+  const identity = useParticipationDraft((state) => state.identity);
+  const savedIdentity =
+    isDraftUsableFor(identity, inviteToken) && identity?.kind === 'guest' ? identity : null;
+
+  const [nickname, setNickname] = useState(savedIdentity?.nickname ?? '');
+  const [password, setPassword] = useState(savedIdentity?.password ?? '');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const isNicknameValid = isValidNickname(nickname);
