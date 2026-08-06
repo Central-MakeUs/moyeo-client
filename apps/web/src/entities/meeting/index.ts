@@ -35,3 +35,8 @@ export { MeetingInfoCard } from './ui/meeting-info-card';
 export type { MeetingInfoCardProps } from './ui/meeting-info-card';
 export { MeetingParticipationProgress } from './ui/meeting-participation-progress';
 export type { MeetingParticipationProgressProps } from './ui/meeting-participation-progress';
+export { toBlockedGuide, isExplainedBlockReason, type BlockedGuide } from './model/blocked-guide';
+export {
+  InviteJoinFailedDialog,
+  type InviteJoinFailedDialogProps,
+} from './ui/invite-join-failed-dialog';

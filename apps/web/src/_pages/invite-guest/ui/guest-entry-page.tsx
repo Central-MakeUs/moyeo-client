@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 
+import { InviteJoinFailedDialog } from '@/entities/meeting';
 import { isValidNickname } from '@/entities/nickname';
 import { isValidGuestPassword, useGuestEntry } from '@/features/meeting/invite-participation';
 import type { MeetingInvitationResponsePlanningType } from '@/shared/api';
@@ -25,7 +26,10 @@ export interface GuestEntryPageProps {
 }
 
 export function GuestEntryPage({ inviteToken, planningType }: GuestEntryPageProps) {
-  const { enter, isEntering, error, clearError } = useGuestEntry({ inviteToken, planningType });
+  const { enter, isEntering, error, clearError, blockedStatus, clearBlocked } = useGuestEntry({
+    inviteToken,
+    planningType,
+  });
 
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
@@ -105,6 +109,9 @@ export function GuestEntryPage({ inviteToken, planningType }: GuestEntryPageProp
           }
         />
       </ParticipantIdentityForm>
+
+      {/* 닉네임을 입력하는 사이 마감·정원이 바뀔 수 있어, 트리거가 아니라 확인 결과로 연다. */}
+      <InviteJoinFailedDialog blockedStatus={blockedStatus} onClose={clearBlocked} />
     </div>
   );
 }

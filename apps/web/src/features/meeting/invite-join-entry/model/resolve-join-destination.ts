@@ -3,53 +3,65 @@ import type { ParticipationStatusResponseReason } from '@/shared/api';
 
 /** 참여하기를 눌렀을 때 갈 곳. */
 export type JoinDestination =
-  /** 갈 수 없다. 버튼을 비활성으로 둔다. */
+  /** 세션을 읽는 중이라 아직 어디로 갈지 모르는 경우 */
+  | { type: 'pending' }
+  /** 세션을 읽지 못한 경우 - 참여 불가가 아닌 재시도 대상 */
+  | { type: 'session-error' }
+  /** 참여 불가능 */
   | { type: 'blocked' }
-  /** 로그인 수단을 먼저 고른다. Drawer 구성은 호출부가 정한다(prd.md ADR-5). */
   | { type: 'login-drawer' }
-  /** 모임 닉네임 입력으로 이동한다. */
   | { type: 'nickname'; path: string }
-  /** 이미 참여한 모임이다. 현황 화면으로 보낸다. */
-  | { type: 'view'; path: string };
+  /** 이미 참여한 사용자 */
+  | { type: 'joined'; path: string };
 
-export interface ResolveJoinDestinationParams {
-  /** 세션 상태. `useSession()`이 돌려주는 판별 필드만 쓴다. */
-  sessionStatus: SessionState['status'];
-  /** 서버가 계산한 참여 가능 여부(#146의 `ParticipationGuide.canJoin`). */
-  canJoin: boolean;
-  /** 경로의 초대 코드. */
-  inviteCode: string;
-  /** 서버가 준 참여 불가 사유. `ALREADY_JOINED`면 현황 화면으로 보낸다. */
-  reason?: ParticipationStatusResponseReason;
+/**
+ * 세션을 몰라 아직 판정할 수 없는 목적지인지.
+ *
+ * 참여 불가(`blocked`)와 구분한다 — 이쪽은 안내할 사유가 없고, 기다리거나 재시도할 대상이다.
+ */
+export function isSessionUnresolved(
+  destination: JoinDestination
+): destination is Extract<JoinDestination, { type: 'pending' | 'session-error' }> {
+  return destination.type === 'pending' || destination.type === 'session-error';
 }
 
 /**
- * 참여하기를 눌렀을 때의 목적지를 정한다.
+ * 참여 정보를 입력하러 가는 경로.
  *
- * 활성 조건은 `canJoin=true` **AND** `sessionStatus ∈ {anonymous, authenticated}`다
- * (`spec-fixed.md` §4-3). `canJoin`을 먼저 보므로 로그인해도 참여 불가 모임에는 못 들어간다.
+ * 진입 조회가 막혔다고 답해도 토큰 실은 재확인이 뒤집을 수 있어, 재확인의 기본 경로로도 쓴다.
  */
+export function joinEntryPath(inviteCode: string): string {
+  return `/i/${inviteCode}/nickname`;
+}
+
+export interface ResolveJoinDestinationParams {
+  sessionStatus: SessionState['status'];
+  canJoin: boolean;
+  inviteCode: string;
+  reason?: ParticipationStatusResponseReason;
+}
+
 export function resolveJoinDestination({
   sessionStatus,
   canJoin,
   inviteCode,
   reason,
 }: ResolveJoinDestinationParams): JoinDestination {
-  // loading·error는 어디로 보낼지 판단할 근거가 없다.
-  if (sessionStatus === 'loading' || sessionStatus === 'error') return { type: 'blocked' };
+  // 세션을 모르면 참여 불가가 아니라 "아직 판정할 수 없음"이다. 둘을 blocked로 뭉치면
+  // 호출부가 다시 session.status를 보고 풀어야 해서, 판정이 두 곳에 생긴다.
+  if (sessionStatus === 'loading') return { type: 'pending' };
+  if (sessionStatus === 'error') return { type: 'session-error' };
 
-  // canJoin보다 먼저 본다. 서버는 이미 참여한 경우 canJoin: false를 함께 주는데, 그걸 먼저
-  // 보면 "참여 불가"로 막혀 현황으로 갈 길이 사라진다. 이미 참여했다는 건 참여할 수 없다가
-  // 아니라 다른 곳으로 가야 한다는 뜻이다.
-  //
-  // 현황 화면(#135)은 모임 ID가 아니라 초대 코드로 조회한다. 화면 경로도 그에 맞춘다.
+  // 이미 참여한 모임인 경우 현황 페이지로 이동
   if (sessionStatus === 'authenticated' && reason === 'ALREADY_JOINED')
-    return { type: 'view', path: `/meetings?code=${inviteCode}` };
+    return { type: 'joined', path: `/meetings?code=${inviteCode}` };
 
-  // 참여 불가 모임은 로그인해도 들어가지 못한다.
-  if (!canJoin) return { type: 'blocked' };
-
+  // 익명이면 참여 가능 여부와 무관하게 로그인 drawer 오픈
   if (sessionStatus === 'anonymous') return { type: 'login-drawer' };
 
-  return { type: 'nickname', path: `/i/${inviteCode}/nickname` };
+  // 로그인한 사용자
+  if (!canJoin) return { type: 'blocked' };
+
+  // 로그인 했으나 모임에 참여하지는 않은 사용자
+  return { type: 'nickname', path: joinEntryPath(inviteCode) };
 }
