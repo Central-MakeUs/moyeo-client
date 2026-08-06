@@ -13,4 +13,7 @@ export {
   useJoinEntry,
   type UseJoinEntryParams,
   type UseJoinEntryReturn,
+  type JoinButtonState,
+  type LoginDrawerState,
+  type BlockedNoticeState,
 } from './model/use-join-entry';
