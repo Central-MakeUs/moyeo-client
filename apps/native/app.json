@@ -78,7 +78,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "모임 커버 사진을 등록할 때 사용합니다.",
+          "photosPermission": "모임 커버사진을 등록할 때 사용합니다.",
           "cameraPermission": false,
           "microphonePermission": false
         }
