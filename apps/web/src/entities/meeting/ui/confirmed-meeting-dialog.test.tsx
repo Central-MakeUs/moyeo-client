@@ -33,6 +33,23 @@ function participantOrder(): string[] {
 }
 
 describe('ConfirmedMeetingDialog', () => {
+  it('커버 사진이 있으면 썸네일을 보여준다', () => {
+    renderDialog({ coverImageUrl: 'https://example.com/cover.png' });
+
+    expect(document.querySelector('[data-slot="thumbnail-img"]')).toHaveAttribute(
+      'src',
+      'https://example.com/cover.png'
+    );
+  });
+
+  it('커버 사진이 없으면 썸네일 영역 자체를 렌더하지 않는다', () => {
+    renderDialog({ coverImageUrl: undefined });
+
+    // 기본 플레이스홀더로 자리를 잡으면 빈 회색 상자만 남아 확정 정보가 밀린다.
+    expect(document.querySelector('[data-slot="thumbnail"]')).not.toBeInTheDocument();
+    expect(document.querySelector('[data-slot="thumbnail-fallback"]')).not.toBeInTheDocument();
+  });
+
   it('모임명·설명·확정 일시·확정 위치를 보여준다', async () => {
     renderDialog();
 

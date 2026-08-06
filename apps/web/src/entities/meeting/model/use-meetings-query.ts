@@ -1,6 +1,6 @@
 'use client';
 
-import { useGetMyMeetings, type Item } from '@/shared/api';
+import { toApiAssetUrl, useGetMyMeetings, type Item } from '@/shared/api';
 
 import type { MeetingSummary } from './meeting-summary';
 
@@ -18,7 +18,7 @@ function toMeetingSummary(item: Item): MeetingSummary {
     meetingId: item.meetingId ?? 0,
     inviteCode: item.inviteCode ?? '',
     name: item.name ?? '',
-    coverImageUrl: item.coverImageUrl ?? undefined,
+    coverImageUrl: toApiAssetUrl(item.coverImageUrl ?? undefined),
     capacity: item.maxParticipants ?? 0,
     joinedCount: item.participantCount ?? 0,
     confirmedScheduleDate: item.confirmedScheduleDate ?? undefined,

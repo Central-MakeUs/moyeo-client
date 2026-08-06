@@ -8,8 +8,11 @@ import { GuestEntryPage } from './guest-entry-page';
 
 const pushMock = vi.fn();
 
-const { checkGuestEntry, joinGuest, writeGuestSession } = vi.hoisted(() => ({
+const { checkGuestEntry, getInvitation, joinGuest, writeGuestSession } = vi.hoisted(() => ({
   checkGuestEntry: vi.fn(),
+  // 진입 분기 뒤에 참여 가능 여부와 확정 상태를 다시 읽는다. 목킹하지 않으면 실제 요청이
+  // 나가고, 늦게 도착한 응답이 다음 테스트로 새어 이동을 일으킨다.
+  getInvitation: vi.fn(),
   joinGuest: vi.fn(),
   writeGuestSession: vi.fn(),
 }));
@@ -21,6 +24,7 @@ vi.mock('next/navigation', () => ({
 vi.mock('@/shared/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/shared/api')>()),
   checkGuestEntry,
+  getInvitation,
   joinGuest,
 }));
 
@@ -59,6 +63,11 @@ describe('GuestEntryPage', () => {
     pushMock.mockReset();
     checkGuestEntry.mockReset();
     checkGuestEntry.mockResolvedValue({ entryType: 'NEW_GUEST' });
+    getInvitation.mockReset();
+    getInvitation.mockResolvedValue({
+      status: 'PLANNING',
+      participationStatus: { canJoin: true },
+    });
     joinGuest.mockReset();
     writeGuestSession.mockReset();
     useParticipationDraft.setState({ identity: null });

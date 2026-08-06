@@ -41,7 +41,7 @@ describe('buildCreateMeetingFormData', () => {
     expect(part.json).toEqual(request);
   });
 
-  it('커버 사진 파트를 보내지 않는다', () => {
+  it('커버 사진이 없으면 coverImage 파트를 생략한다', () => {
     const formData = buildCreateMeetingFormData({
       name: '팀 회식',
       maxParticipants: 6,
@@ -49,7 +49,35 @@ describe('buildCreateMeetingFormData', () => {
       noDeadline: true,
     });
 
-    // 1차 MVP는 커버 사진을 제외한다. 빈 파트를 보내면 서버가 415로 거절한다.
+    // 문서: "사진이 없으면 이 파트를 생략합니다." 빈 파트를 보내면 서버가 파일로 해석한다.
+    expect(formData.get('coverImage')).toBeNull();
+  });
+
+  it('커버 사진 data URL을 파일 파트로 담는다', async () => {
+    // 1×1 투명 GIF. 내용은 중요하지 않고 base64 data URL이 Blob으로 되돌아가는지만 본다.
+    const dataUrl =
+      'data:image/jpeg;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+    const formData = buildCreateMeetingFormData(
+      { name: '팀 회식', maxParticipants: 6, planningType: 'PLACE_ONLY', noDeadline: true },
+      dataUrl
+    );
+
+    const part = formData.get('coverImage');
+    if (part === null || typeof part === 'string')
+      throw new Error('coverImage 파트가 파일이 아니다');
+
+    expect(part.type).toBe('image/jpeg');
+    expect(part.size).toBeGreaterThan(0);
+  });
+
+  it('커버 사진이 null이면 coverImage 파트를 생략한다', () => {
+    // 초안의 기본값이 null이라, 고르지 않고 제출하는 경로가 그대로 여기로 들어온다.
+    const formData = buildCreateMeetingFormData(
+      { name: '팀 회식', maxParticipants: 6, planningType: 'PLACE_ONLY', noDeadline: true },
+      null
+    );
+
     expect(formData.get('coverImage')).toBeNull();
   });
 

@@ -15,9 +15,15 @@ export interface DepartureStepProps {
   onNext: () => void;
   /** 출발지 검색 화면으로 이동. */
   onSearch: () => void;
+  /** 모임 생성 요청이 진행 중인지. CTA를 잠가 연타를 막는다. */
+  isSubmitting?: boolean;
 }
 
-export function DepartureStep({ onNext, onSearch }: DepartureStepProps): React.JSX.Element {
+export function DepartureStep({
+  onNext,
+  onSearch,
+  isSubmitting = false,
+}: DepartureStepProps): React.JSX.Element {
   const draft = useCreateMeetingDraft();
   const departure = draft.departure;
   const setTransportationMode = useCreateMeetingDraft((s) => s.setTransportationMode);
@@ -33,7 +39,12 @@ export function DepartureStep({ onNext, onSearch }: DepartureStepProps): React.J
       footer={
         <CTASection
           primaryAction={
-            <Button fullWidth disabled={!isStepComplete('departure', draft)} onClick={onNext}>
+            <Button
+              fullWidth
+              disabled={!isStepComplete('departure', draft)}
+              isLoading={isSubmitting}
+              onClick={onNext}
+            >
               다음
             </Button>
           }

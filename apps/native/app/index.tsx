@@ -11,9 +11,16 @@ import * as Haptics from 'expo-haptics';
 import * as Linking from 'expo-linking';
 import * as SecureStore from 'expo-secure-store';
 import * as Clipboard from 'expo-clipboard';
+import * as ImagePicker from 'expo-image-picker';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import type { BackResultState, NativeToWebMessage, WebToNativeMessage } from '@repo/types';
+import type {
+  BackResultState,
+  NativeToWebMessage,
+  PickImageResult,
+  WebToNativeMessage,
+} from '@repo/types';
 
 const devHost = Constants.expoConfig?.hostUri?.split(':')[0];
 const WEB_URL =
@@ -50,6 +57,62 @@ const BACK_RESULT_TIMEOUT_MS = 500;
 const EXIT_CONFIRM_WINDOW_MS = 2000;
 
 const EXIT_CONFIRM_MESSAGE = '한 번 더 누르면 종료됩니다';
+
+/**
+ * 웹에 넘길 커버 사진의 긴 변 상한(px)과 JPEG 품질.
+ *
+ * 요즘 기기의 사진은 한 장이 수 MB라, base64로 부풀린 문자열을 그대로 브리지에 태우면
+ * 직렬화와 `JSON.parse`에서 JS 스레드가 눈에 띄게 멈춘다. 여기서 줄여 수백 KB로 만든다.
+ * 이 크기면 서버의 커버 이미지 제약(10MB · 13MP · 한 변 8,000px)도 자동으로 만족한다.
+ *
+ * 웹은 브라우저에서 직접 고른 사진을 같은 기준으로 줄인다(`apps/web`의 `normalize-cover-image`).
+ * 한쪽을 바꾸면 다른 쪽도 같이 맞춰야 두 경로의 결과물이 같은 크기로 유지된다.
+ */
+const COVER_MAX_EDGE = 1440;
+const COVER_JPEG_QUALITY = 0.85;
+
+/**
+ * 앨범에서 커버 사진을 한 장 고르고, 웹이 바로 쓸 수 있는 data URL로 만든다.
+ *
+ * 파일 경로(`file://`)를 넘기지 않는 이유는 WebView 안의 웹이 앱 샌드박스의 파일을 읽을 수
+ * 없기 때문이다. 경로만 받으면 미리보기도 업로드도 되지 않는다.
+ *
+ * 권한 거부와 사용자의 취소는 오류가 아니라서 상태로 구분해 돌려준다. 그 외의 실패는
+ * 던져서 호출부가 한곳에서 처리하게 한다.
+ */
+async function pickCoverImage(): Promise<PickImageResult> {
+  // 제한 접근(limited)이어도 사용자가 고른 사진은 읽을 수 있다. `granted`가 이 경우를 포함한다.
+  const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (!permission.granted) return { state: 'denied' };
+
+  const picked = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ['images'],
+    allowsMultipleSelection: false,
+  });
+  if (picked.canceled) return { state: 'cancelled' };
+
+  const asset = picked.assets[0];
+  if (asset === undefined) return { state: 'error' };
+
+  // 두 변에 같은 배율을 적용해 비율을 유지한다. 상한보다 작은 사진은 확대하지 않는다(배율 1).
+  const longEdge = Math.max(asset.width, asset.height);
+  const scale = longEdge > COVER_MAX_EDGE ? COVER_MAX_EDGE / longEdge : 1;
+
+  const rendered = await ImageManipulator.manipulate(asset.uri)
+    .resize({ width: Math.round(asset.width * scale), height: Math.round(asset.height * scale) })
+    .renderAsync();
+
+  // HEIC·PNG로 골랐어도 여기서 JPEG로 통일된다. 서버가 받는 형식은 JPEG 또는 PNG다.
+  const saved = await rendered.saveAsync({
+    format: SaveFormat.JPEG,
+    compress: COVER_JPEG_QUALITY,
+    base64: true,
+  });
+
+  if (!saved.base64) return { state: 'error' };
+
+  return { state: 'success', image: { dataUrl: `data:image/jpeg;base64,${saved.base64}` } };
+}
 
 /** 웹이 보내는 세기 → Expo 임팩트 스타일. */
 const IMPACT_STYLE = {
@@ -204,6 +267,23 @@ export default function HomeScreen() {
             });
           }
 
+          return;
+        }
+
+        case 'PICK_IMAGE': {
+          // requestId는 요청에 실려 온 값을 그대로 돌려준다 (웹이 자기 요청의 결과만 받도록)
+          const { requestId } = message;
+
+          let payload: PickImageResult;
+          try {
+            payload = await pickCoverImage();
+          } catch (error) {
+            // 웹에는 실패했다는 것만 알린다. 원인은 dev 빌드 로그로 남긴다.
+            console.warn('Failed to pick cover image', error);
+            payload = { state: 'error' };
+          }
+
+          postMessageToWeb({ type: 'PICK_IMAGE_RESULT', requestId, payload });
           return;
         }
 

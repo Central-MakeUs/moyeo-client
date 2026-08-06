@@ -1,8 +1,7 @@
 'use client';
 
 import { useSession } from '@/entities/session';
-import { BackButton, TopAppBar } from '@/shared/ui';
-import { Icon } from '@/shared/ui/icon';
+import { Avatar, BackButton, TopAppBar } from '@/shared/ui';
 import { IconButton } from '@/shared/ui/icon-button';
 import {
   EditNicknameDrawer,
@@ -24,7 +23,7 @@ export default function MyPage() {
       <main className="flex min-h-0 flex-1 flex-col px-5">
         <div className="flex flex-col items-center gap-6">
           <div className="flex w-full flex-col items-center gap-[14px] pt-6 pb-4">
-            <Icon name="profile-gray" size={84} className="bg-neutral-20 text-neutral-70" />
+            <Avatar size={84} />
             <div className="flex items-center gap-1.5">
               <span className="text-bold-16 text-neutral-850">
                 {session.viewer.nickname ?? '닉네임'}

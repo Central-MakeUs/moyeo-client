@@ -1,6 +1,6 @@
 'use client';
 
-import { useGetMeetingView } from '@/shared/api';
+import { toApiAssetUrl, useGetMeetingView } from '@/shared/api';
 
 import type { MeetingDetail } from './meeting-detail';
 
@@ -41,7 +41,7 @@ export function useMeetingDetailQuery(
       ? {
           name: data.name ?? '',
           description: data.description ?? undefined,
-          coverImageUrl: data.coverImageUrl ?? undefined,
+          coverImageUrl: toApiAssetUrl(data.coverImageUrl ?? undefined),
           capacity: data.maxParticipants ?? 0,
           joinedCount: data.participantCount ?? 0,
           planningType: data.planningType ?? 'SCHEDULE_AND_PLACE',

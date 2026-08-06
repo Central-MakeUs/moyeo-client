@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from '@/shared/ui/dialog';
 import { Icon } from '@/shared/ui/icon';
+import { Thumbnail } from '@/shared/ui/thumbnail';
 
 export interface ConfirmedMeetingDialogParticipant {
   participantId: number;
@@ -25,6 +26,13 @@ export interface ConfirmedMeetingDialogProps {
   meetingName: string;
   /** 모임 설명. 입력하지 않은 모임이면 생략. */
   description?: string;
+  /**
+   * 커버 사진. 등록하지 않은 모임이면 생략한다.
+   *
+   * 없을 때 기본 플레이스홀더를 대신 두지 않고 **영역 자체를 없앤다.** 목록 카드와 달리 여기서는
+   * 커버가 자리를 잡아 줄 이유가 없어, 빈 회색 상자만 남으면 확정 정보가 그만큼 밀린다.
+   */
+  coverImageUrl?: string;
   /** 확정된 일정. 예: "2026년 7월 18일 14시". 장소 전용 모임이면 생략. */
   scheduleLabel?: string;
   /** 확정된 장소명. 일정 전용 모임이면 생략. */
@@ -43,6 +51,7 @@ export interface ConfirmedMeetingDialogProps {
 export function ConfirmedMeetingDialog({
   meetingName,
   description,
+  coverImageUrl,
   scheduleLabel,
   placeName,
   participants,
@@ -69,6 +78,10 @@ export function ConfirmedMeetingDialog({
           무엇을 보고 있는지 알 수 없다.
         */}
         <div className="flex flex-col gap-6">
+          {coverImageUrl && (
+            <Thumbnail imageUrl={coverImageUrl} className="h-42 w-full rounded-8" />
+          )}
+
           {hasConfirmedDetail && (
             <dl className="flex flex-col gap-2 px-1">
               {scheduleLabel && (

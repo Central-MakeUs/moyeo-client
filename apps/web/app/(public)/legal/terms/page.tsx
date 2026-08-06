@@ -10,7 +10,7 @@ export default function TermsPage() {
 
       <main className="min-h-0 flex-1 overflow-y-auto px-5 py-6">
         <article className="flex flex-col pb-10 text-neutral-700">
-          <p className="mb-8 text-medium-14 text-neutral-400">최종 수정 일자: 2026.08.01</p>
+          <p className="mb-8 text-medium-14 text-neutral-400">최종 수정 일자: 2026.08.06</p>
 
           <section className="flex flex-col gap-3">
             <h2 className="text-bold-16 text-neutral-950">제1조 (목적)</h2>
@@ -38,8 +38,7 @@ export default function TermsPage() {
             <h2 className="text-bold-16 text-neutral-950">제3조 (이용 자격 및 계정)</h2>
 
             <ul className="flex list-disc flex-col gap-2 pl-5 text-medium-14 marker:text-neutral-400">
-              <li>만 14세 이상인 경우 서비스를 이용할 수 있습니다.</li>
-              <li>하나의 소셜 계정(카카오 또는 Apple)으로 하나의 계정만 사용할 수 있습니다.</li>
+              <li>하나의 소셜 계정(카카오 또는 Apple)으로는 하나의 계정만 사용할 수 있습니다.</li>
               <li>
                 계정 관리 책임은 이용자 본인에게 있으며, 계정 도용이나 유출로 발생한 문제에 대해
                 서비스는 책임지지 않습니다.
@@ -56,8 +55,8 @@ export default function TermsPage() {
                 타인의 계정을 도용하거나 타인의 개인정보를 무단으로 수집 및 이용하지 않습니다.
               </li>
               <li>
-                모임 이름, 설명, 프로필 사진, 커버 사진 등에 타인의 권리를 침해하거나 불쾌감을 주는
-                내용을 등록하지 않습니다.
+                모임 이름, 설명, 커버사진 등에 타인의 권리를 침해하거나 불쾌감을 주는 내용을
+                등록하지 않습니다.
               </li>
               <li>서비스의 정상적인 운영을 방해하는 행위를 하지 않습니다.</li>
             </ul>
@@ -67,9 +66,9 @@ export default function TermsPage() {
             <h2 className="text-bold-16 text-neutral-950">제5조 (게시물 및 콘텐츠)</h2>
 
             <p className="text-medium-14">
-              이용자가 등록한 사진, 모임 정보 등의 콘텐츠에 대한 권리는 이용자에게 있습니다. 다만
-              서비스 운영에 필요한 범위 내에서 해당 콘텐츠를 저장 및 표시할 수 있습니다. 제4조를
-              위반한 콘텐츠는 사전 통지 없이 삭제될 수 있습니다.
+              이용자가 등록한 모임 정보, 커버사진 등의 콘텐츠에 대한 권리는 이용자에게 있습니다.
+              다만 서비스 운영에 필요한 범위 내에서 해당 콘텐츠를 저장 및 표시할 수 있습니다.
+              제4조를 위반한 콘텐츠는 사전 통지 없이 삭제될 수 있습니다.
             </p>
           </section>
 

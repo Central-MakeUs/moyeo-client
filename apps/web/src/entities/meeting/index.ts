@@ -20,8 +20,8 @@ export type {
 } from './ui/confirmed-meeting-dialog';
 export { useMeetingDetailQuery } from './model/use-meeting-detail-query';
 export type { UseMeetingDetailQueryResult } from './model/use-meeting-detail-query';
-export { MeetingCard } from './ui/meeting-card';
-export type { MeetingCardProps } from './ui/meeting-card';
+export { MeetingCard, MeetingCardView } from './ui/meeting-card';
+export type { MeetingCardProps, MeetingCardViewProps } from './ui/meeting-card';
 export { ConfirmedMeetingListItem } from './ui/confirmed-meeting-list-item';
 export type { ConfirmedMeetingListItemProps } from './ui/confirmed-meeting-list-item';
 export { useInvitation } from './api/use-invitation';
@@ -35,3 +35,8 @@ export { MeetingInfoCard } from './ui/meeting-info-card';
 export type { MeetingInfoCardProps } from './ui/meeting-info-card';
 export { MeetingParticipationProgress } from './ui/meeting-participation-progress';
 export type { MeetingParticipationProgressProps } from './ui/meeting-participation-progress';
+export { toBlockedGuide, isExplainedBlockReason, type BlockedGuide } from './model/blocked-guide';
+export {
+  InviteJoinFailedDialog,
+  type InviteJoinFailedDialogProps,
+} from './ui/invite-join-failed-dialog';

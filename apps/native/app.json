@@ -74,7 +74,15 @@
       "expo-secure-store",
       "expo-navigation-bar",
       "expo-notifications",
-      "expo-updates"
+      "expo-updates",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "모임 커버사진을 등록할 때 사용합니다.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

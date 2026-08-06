@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { isValidNickname } from '@/entities/nickname';
 import {
   getGuestJoinNextPath,
+  isDraftUsableFor,
   useParticipationDraft,
 } from '@/features/meeting/invite-participation';
 import type { MeetingInvitationResponsePlanningType } from '@/shared/api';
@@ -23,7 +24,14 @@ export interface MemberEntryPageProps {
 export function MemberEntryPage({ inviteToken, planningType }: MemberEntryPageProps) {
   const router = useRouter();
   const setIdentity = useParticipationDraft((state) => state.setIdentity);
-  const [nickname, setNickname] = useState('');
+
+  const identity = useParticipationDraft((state) => state.identity);
+  const draftNickname =
+    isDraftUsableFor(identity, inviteToken) && identity?.kind === 'member'
+      ? identity.nickname
+      : null;
+
+  const [nickname, setNickname] = useState(draftNickname ?? '');
   const isNicknameValid = isValidNickname(nickname);
   const showNicknameError = nickname.length > 0 && !isNicknameValid;
 
@@ -34,11 +42,11 @@ export function MemberEntryPage({ inviteToken, planningType }: MemberEntryPagePr
   const savedNickname = session.status === 'authenticated' ? session.viewer.nickname : null;
 
   useEffect(() => {
-    if (hasPrefilledRef.current || !savedNickname) return;
+    if (hasPrefilledRef.current || draftNickname !== null || !savedNickname) return;
 
     hasPrefilledRef.current = true;
     setNickname(savedNickname);
-  }, [savedNickname]);
+  }, [savedNickname, draftNickname]);
 
   const handleSubmit = () => {
     if (!isNicknameValid) return;

@@ -18,6 +18,7 @@ const BASE: CreateMeetingDraftState = {
   scheduleResponse: null,
   departure: null,
   transportationMode: null,
+  coverImage: null,
 };
 
 const DEPARTURE = {

@@ -60,7 +60,9 @@ describe('useMeetingsQuery', () => {
     expect(result.current.data.inProgress[0]).toMatchObject({
       meetingId: 7,
       name: '데모데이에 모여',
-      coverImageUrl: '/api/meetings/7/cover-image',
+      // 서버는 상대 API 경로를 준다. 그대로 <img src>에 넣으면 웹 오리진에서 찾아 404가 나므로
+      // API 기준 URL을 붙여서 내보낸다.
+      coverImageUrl: '/backend-api/api/meetings/7/cover-image',
     });
   });
 

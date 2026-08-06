@@ -12,6 +12,25 @@ export const AXIOS_INSTANCE = Axios.create({
   baseURL: apiBaseUrl,
 });
 
+/**
+ * 서버가 준 상대 API 경로를 브라우저가 그대로 쓸 수 있는 URL로 바꾼다.
+ *
+ * 커버 이미지처럼 `<img src>`에 바로 들어가는 값은 axios를 타지 않아 baseURL이 붙지 않는다.
+ * 서버는 `/api/meetings/.../cover-image?v=...` 같은 **상대 경로**를 주므로, 그대로 넣으면
+ * 브라우저가 API 서버가 아니라 웹 오리진에서 찾아 404가 난다.
+ *
+ * 이미 절대 URL이면 손대지 않는다 — 서버가 형식을 바꾸거나 외부 URL을 주는 경우를 위해서다.
+ *
+ * @param path 서버가 준 경로. 없으면 undefined를 그대로 돌려준다.
+ */
+export function toApiAssetUrl(path: string | undefined): string | undefined {
+  if (!path) return undefined;
+  if (/^https?:\/\//.test(path)) return path;
+  if (!apiBaseUrl) return path;
+
+  return `${apiBaseUrl.replace(/\/$/, '')}${path.startsWith('/') ? '' : '/'}${path}`;
+}
+
 // 세션이 있으면 모든 요청에 Bearer 토큰을 붙인다.
 AXIOS_INSTANCE.interceptors.request.use((config) => {
   const accessToken = getAuthToken();

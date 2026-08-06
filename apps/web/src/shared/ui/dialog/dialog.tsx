@@ -106,12 +106,17 @@ function DialogContent({
         {...props}
       >
         {showCloseButton && (
-          <DialogPrimitive.Close asChild className="p-0 hover:bg-transparent">
+          // 닫기는 아이콘만 있는 보조 동작이라 버튼의 기본 상호작용 표현(배경·테두리·링·눌림)을
+          // 모두 끄고 색 변화만 남긴다. 포커스는 링 대신 색으로 드러난다.
+          <DialogPrimitive.Close
+            asChild
+            className="border-0 p-0 hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 active:bg-transparent active:not-aria-[haspopup]:translate-y-0"
+          >
             <IconButton
               icon="close"
               aria-label="닫기"
               iconSize={24}
-              className="flex justify-end text-neutral-300 hover:text-neutral-500"
+              className="flex justify-end text-neutral-300 hover:text-neutral-500 focus-visible:text-neutral-500"
             />
           </DialogPrimitive.Close>
         )}
