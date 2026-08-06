@@ -38,7 +38,7 @@ export function CoverStep({ onNext }: CoverStepProps) {
               사진을 넣어볼까요?
             </>
           }
-          description="커버사진은 나중에도 설정할 수 있어요"
+          description="커버사진은 모임이 생성되면 변경이 어려워요"
         />
       }
       footer={
@@ -51,7 +51,7 @@ export function CoverStep({ onNext }: CoverStepProps) {
         />
       }
     >
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         <div className="flex items-start gap-3">
           <button
             type="button"
