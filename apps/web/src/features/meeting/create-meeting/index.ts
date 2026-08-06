@@ -25,6 +25,7 @@ export { BackButton } from './ui/back-button';
 export { BasicStep, type BasicStepProps } from './ui/basic-step';
 export { TimeRangeStep, type TimeRangeStepProps } from './ui/time-range-step';
 export { DeadlineStep, type DeadlineStepProps } from './ui/deadline-step';
+export { CoverStep, type CoverStepProps } from './ui/cover-step';
 export { PlanningTypeDrawer, type PlanningTypeDrawerProps } from './ui/planning-type-drawer';
 export { ScheduleDatesStep, type ScheduleDatesStepProps } from './ui/schedule-dates-step';
 export { DepartureStep, type DepartureStepProps } from './ui/departure-step';

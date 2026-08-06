@@ -7,6 +7,7 @@ import CalendarIcon from '@/shared/assets/icons/calendar-icon.svg';
 import CalendarNeutral from '@/shared/assets/icons/calendar-neutral.svg';
 import CalendarPrimary from '@/shared/assets/icons/calendar-primary.svg';
 import Calendar from '@/shared/assets/icons/calendar.svg';
+import Camera from '@/shared/assets/icons/camera.svg';
 import CarSelected from '@/shared/assets/icons/car-selected.svg';
 import Car from '@/shared/assets/icons/car.svg';
 import CaretDown from '@/shared/assets/icons/caret-down.svg';
@@ -62,6 +63,7 @@ export const ICONS = {
   'calendar-neutral': CalendarNeutral,
   'calendar-primary': CalendarPrimary,
   calendar: Calendar,
+  camera: Camera,
   'car-selected': CarSelected,
   car: Car,
   'caret-down': CaretDown,

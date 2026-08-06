@@ -20,8 +20,8 @@ export type {
 } from './ui/confirmed-meeting-dialog';
 export { useMeetingDetailQuery } from './model/use-meeting-detail-query';
 export type { UseMeetingDetailQueryResult } from './model/use-meeting-detail-query';
-export { MeetingCard } from './ui/meeting-card';
-export type { MeetingCardProps } from './ui/meeting-card';
+export { MeetingCard, MeetingCardView } from './ui/meeting-card';
+export type { MeetingCardProps, MeetingCardViewProps } from './ui/meeting-card';
 export { ConfirmedMeetingListItem } from './ui/confirmed-meeting-list-item';
 export type { ConfirmedMeetingListItemProps } from './ui/confirmed-meeting-list-item';
 export { useInvitation } from './api/use-invitation';

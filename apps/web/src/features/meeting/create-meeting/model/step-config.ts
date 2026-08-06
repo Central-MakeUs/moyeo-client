@@ -3,10 +3,6 @@ import type { CreateMeetingDraftState } from './create-meeting-draft';
 /**
  * 위저드 스텝 키.
  *
- * ℹ️ CRT-05 커버사진('cover')은 **1차 MVP에서 제외**되어 여기 없다(crt-06.md 배너).
- *   후속 개발에서 갤러리 피커와 함께 재활성화할 때 'cover'를 다시 포함할 예정이다.
- *   → 그때 필요한 것: 이 유니온 · STEP_PATHS · getSteps · isStepComplete 각 한 줄.
- *
  * 🚧 CRT-04 마감 기한('deadline')은 **1차 출시에서 임시 비활성화**다.
  *   화면이 약속하는 "마감 전 리마인더 발송"이 아직 없어, 없는 기능을 걸어두지 않으려고
  *   `getSteps`의 흐름에서만 빼 두었다. 키·경로·완성 판정·화면 코드는 그대로 살려 둔다.
@@ -17,6 +13,7 @@ export type StepKey =
   | 'basic'
   | 'time-range'
   | 'deadline'
+  | 'cover'
   | 'created'
   | 'schedule-dates'
   | 'schedule-times'
@@ -35,6 +32,7 @@ const STEP_PATHS: Record<StepKey, string> = {
   basic: 'basic',
   'time-range': 'time-range',
   deadline: 'deadline',
+  cover: 'cover',
   created: 'created',
   'schedule-dates': 'schedule/dates',
   'schedule-times': 'schedule/times',
@@ -54,11 +52,9 @@ const PATH_TO_STEP = new Map<string, StepKey>(
  *   HOME의 FAB → 유형 선택 Drawer에서 먼저 정해져 draft에 들어오고, 위저드는 basic부터 시작한다.
  *   따라서 스텝 배열에도, 진행률 분모에도 유형 선택은 들어가지 않는다.
  *
- * ℹ️ 커버사진(CRT-05)은 1차 MVP 제외라 흐름이 deadline → created 로 직행한다.
- *   재활성화 시 deadline 다음에 'cover'를 포함할 예정이다(StepKey 주석 참고).
- *
- * 🚧 마감 기한(CRT-04)도 1차 출시 임시 비활성화라 흐름이 basic/time-range → created 로 직행한다.
+ * 🚧 마감 기한(CRT-04)은 1차 출시 임시 비활성화라 흐름이 basic/time-range → cover 로 건너뛴다.
  *   재활성화는 아래 주석 처리된 'deadline' 두 줄을 되살리는 것으로 끝난다(StepKey 주석 참고).
+ *   커버사진('cover')을 마감 기한 자리 바로 뒤에 두었으므로, 되살릴 때 순서를 손볼 것이 없다.
  */
 export function getSteps({ planningType, scheduleInputType }: StepFlowInput): StepKey[] {
   // 유형 미선택(= HOME Drawer를 거치지 않은 진입)이면 흐름 자체가 없다.
@@ -66,7 +62,7 @@ export function getSteps({ planningType, scheduleInputType }: StepFlowInput): St
   if (planningType === null) return [];
 
   if (planningType === 'PLACE_ONLY') {
-    return ['basic', /* 🚧 'deadline', */ 'created', 'departure'];
+    return ['basic', /* 🚧 'deadline', */ 'cover', 'created', 'departure'];
   }
 
   // 일정 조율 계열(SCHEDULE_ONLY · SCHEDULE_AND_PLACE) 공통 골격
@@ -74,6 +70,7 @@ export function getSteps({ planningType, scheduleInputType }: StepFlowInput): St
     'basic',
     'time-range',
     /* 🚧 'deadline', */
+    'cover',
     'created',
     'schedule-dates',
   ];
@@ -115,6 +112,10 @@ export function isStepComplete(step: StepKey, draft: CreateMeetingDraftState): b
       // 🚧 임시 비활성화 중이라 흐름에 없지만, 재활성화에 대비해 판정 자체는 그대로 둔다.
       if (draft.noDeadline) return true;
       return draft.deadlineMinutes !== null && draft.deadlineMinutes >= 10;
+    case 'cover':
+      // 커버 사진은 선택 입력이라 고르지 않아도 완성이다(crt-05.md F03).
+      // false로 두면 뒤따르는 스텝의 가드가 영원히 막히고, 진입점 resolver도 여기서 멈춘다.
+      return true;
     case 'created':
       // Bridge 화면 — 입력이 없으므로 항상 통과다.
       // (false로 두면 뒤따르는 host 스텝의 가드가 영원히 막힌다)
@@ -199,9 +200,8 @@ export function stepPhase(step: StepKey, input: StepFlowInput): StepPhase | null
  * deadline)에서 진행률이 **100%로 꽉 차야** 한다. 이어지는 host 입력 구간은 별개의 진행률로
  * 0부터 다시 시작한다. 모임 유형(CRT-01)은 위저드 스텝이 아니므로 어느 분모에도 없다.
  *
- * ℹ️ 'cover' 재활성화 시 create 구간 분모가 한 칸 늘어난다.
- * 🚧 'deadline'이 빠져 있는 동안 create 구간의 마지막(= 100%)은 time-range,
- *   PLACE_ONLY에서는 basic이다. 재활성화하면 다시 deadline이 그 자리를 가져간다.
+ * 🚧 'deadline'이 빠져 있는 동안 create 구간의 마지막(= 100%)은 커버사진이고, 분모는 그만큼
+ *   한 칸 적다. 재활성화하면 분모가 한 칸 늘고 마지막 자리는 그대로 커버사진이 유지된다.
  */
 export function progressPercent(step: StepKey, input: StepFlowInput): number {
   const phase = stepPhase(step, input);

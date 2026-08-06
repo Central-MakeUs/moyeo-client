@@ -24,7 +24,7 @@ describe('CreateMeetingTimeRangePage', () => {
   });
 
   // 🚧 마감 기한 스텝 임시 비활성화 — 재활성화 시 목적지가 다시 '/meetings/new/deadline'이 된다.
-  it("should push '/meetings/new/created' when 다음 is clicked with a valid time range", async () => {
+  it("should push '/meetings/new/cover' when 다음 is clicked with a valid time range", async () => {
     useCreateMeetingDraft.setState({
       scheduleInputType: 'DATE_AND_TIME',
       availableStartTime: '09:00',
@@ -34,7 +34,7 @@ describe('CreateMeetingTimeRangePage', () => {
 
     await userEvent.click(screen.getByRole('button', { name: '다음' }));
 
-    expect(push).toHaveBeenCalledWith('/meetings/new/created');
+    expect(push).toHaveBeenCalledWith('/meetings/new/cover');
   });
 
   // 유형이 없으면 흐름이 없다 → resolver를 거치지 않고 곧장 HOME으로(resolveEntryPath).
