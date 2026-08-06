@@ -36,6 +36,23 @@ describe('DepartureStep', () => {
     expect(screen.getByRole('button', { name: '다음' })).toBeEnabled();
   });
 
+  it('모임 생성 요청 중에는 다음 버튼이 잠기고 연타해도 다시 제출되지 않는다', async () => {
+    useCreateMeetingDraft.setState({
+      departure: DEPARTURE,
+      transportationMode: 'PUBLIC_TRANSIT',
+    });
+    const onNext = vi.fn();
+    renderStep({ onNext, isSubmitting: true });
+
+    const next = screen.getByRole('button', { name: '다음' });
+
+    expect(next).toBeDisabled();
+    expect(next).toHaveAttribute('aria-busy', 'true');
+
+    await userEvent.click(next);
+    expect(onNext).not.toHaveBeenCalled();
+  });
+
   it('출발지 필드를 탭하면 onSearch가 호출된다', async () => {
     const onSearch = vi.fn();
     renderStep({ onSearch });
