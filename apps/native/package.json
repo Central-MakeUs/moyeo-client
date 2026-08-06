@@ -21,7 +21,9 @@
     "build:all:dev": "cross-env EXPO_NO_CAPABILITY_SYNC=1 eas build --profile development --platform all",
     "build:all:preview": "cross-env EXPO_NO_CAPABILITY_SYNC=1 eas build --profile preview --platform all",
     "build:all:prod": "cross-env EXPO_NO_CAPABILITY_SYNC=1 eas build --profile production --platform all",
-    "submit:ios:testflight": "eas submit --profile testflight --platform ios"
+    "submit:ios:testflight": "eas submit --profile testflight --platform ios",
+    "submit:ios:prod": "eas submit --profile production --platform ios",
+    "submit:android:prod": "eas submit --profile production --platform android"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
