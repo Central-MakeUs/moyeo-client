@@ -8,6 +8,7 @@ export {
   type JoinDestination,
   type ResolveJoinDestinationParams,
 } from './model/resolve-join-destination';
+export { checkJoinDestination, type CheckedJoinDestination } from './model/check-join-destination';
 export {
   useJoinEntry,
   type UseJoinEntryParams,
