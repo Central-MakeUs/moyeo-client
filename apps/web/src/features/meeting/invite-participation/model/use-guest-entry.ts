@@ -5,10 +5,13 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { writeGuestSession } from '@/entities/guest-session';
+import { isExplainedBlockReason } from '@/entities/meeting';
 import {
   checkGuestEntry,
+  getInvitation,
   type GuestEntryRequest,
   type MeetingInvitationResponsePlanningType,
+  type ParticipationStatusResponse,
 } from '@/shared/api';
 import { toast } from '@/shared/ui';
 
@@ -28,6 +31,20 @@ const getStatus = (error: unknown): number | undefined =>
 /** 화면에 인라인으로 노출할 오류. 문구는 화면이 정한다. */
 export type GuestEntryError = 'PASSWORD_MISMATCH';
 
+/**
+ * 참여 가능 여부와 확정 상태를 확인한다. 실패하면 `null`.
+ *
+ * 확인은 편의일 뿐이고 최종 방어선은 서버의 참여 제출 거절이다. 확인이 안 된다고 참여 자체를
+ * 막지 않는다(`use-join-entry.ts`의 `resolveCheckedPath`와 같은 정책).
+ */
+async function fetchInvitationSafely(inviteToken: string) {
+  try {
+    return await getInvitation(inviteToken);
+  } catch {
+    return null;
+  }
+}
+
 export interface UseGuestEntryParams {
   inviteToken: string;
   planningType: MeetingInvitationResponsePlanningType;
@@ -42,6 +59,13 @@ export interface UseGuestEntryReturn {
   error: GuestEntryError | null;
   /** 입력이 바뀌면 오류를 지운다. */
   clearError: () => void;
+  /**
+   * 참여를 막은 서버 상태. 막히지 않았으면 `null`.
+   * 문구로 바꾸는 일은 화면이 한다(`toBlockedGuide`).
+   */
+  blockedStatus: ParticipationStatusResponse | null;
+  /** 차단 안내를 닫는다. */
+  clearBlocked: () => void;
 }
 
 /**
@@ -60,6 +84,7 @@ export function useGuestEntry({
 
   const [isEntering, setIsEntering] = useState(false);
   const [error, setError] = useState<GuestEntryError | null>(null);
+  const [blockedStatus, setBlockedStatus] = useState<ParticipationStatusResponse | null>(null);
   const isEnteringRef = useRef(false);
 
   const enter = async (request: GuestEntryRequest) => {
@@ -72,25 +97,45 @@ export function useGuestEntry({
     try {
       const entryType = toGuestEntryType(await checkGuestEntry(inviteToken, request));
 
-      // 어디로 보내야 할지 모르는 응답이다. 이동하지 않고 실패로 다룬다.
       if (entryType === null) {
         toast.add({ id: ENTRY_ERROR_TOAST_ID, description: ENTRY_ERROR_MESSAGE });
         return;
       }
 
-      // 제출로 이어지는 쪽만 초안이 필요하다. EXISTING_GUEST는 제출하지 않는다.
-      // 직전에 회원으로 입력하던 값이 있으면 `setIdentity`가 함께 비운다.
-      if (entryType === 'NEW_GUEST') {
-        setIdentity({ kind: 'guest', inviteToken, ...request });
-      }
+      const invitation = await fetchInvitationSafely(inviteToken);
 
-      // 서버가 이 모임의 게스트임을 확인해준 시점이다. 현황 화면이 신원을 알아볼 수 있도록
-      // 닉네임을 남긴다. NEW_GUEST는 아직 참여 전이라 남기지 않는다.
+      // 응답을 이미 한 게스트인 경우
       if (entryType === 'EXISTING_GUEST') {
-        writeGuestSession(inviteToken, request.nickname);
+        writeGuestSession(inviteToken, request.nickname); // 로그인 정보 저장
+        router.push(
+          getGuestEntryNextPath(
+            inviteToken,
+            planningType,
+            entryType,
+            invitation?.status === 'CONFIRMED'
+          )
+        );
+        return;
       }
 
-      router.push(getGuestEntryNextPath(inviteToken, planningType, entryType));
+      // NEW_GUEST인 경우
+      // 모임이 참여 가능 상태인지 확인
+      const status = invitation?.participationStatus;
+
+      // 모임이 기간 만료/인원 초과의 이유로 현재 참여 불가능한 경우
+      if (
+        status !== undefined &&
+        status.canJoin !== true &&
+        isExplainedBlockReason(status.reason)
+      ) {
+        setBlockedStatus(status);
+        return;
+      }
+
+      // NEW_GUEST의 초안(nickname, password)을 저장한다.
+      // 직전에 회원으로 입력하던 값이 있으면 `setIdentity`가 함께 비운다.
+      setIdentity({ kind: 'guest', inviteToken, ...request });
+      router.push(getGuestEntryNextPath(inviteToken, planningType, entryType, false));
     } catch (caught) {
       if (getStatus(caught) === DUPLICATE_NICKNAME_STATUS) {
         setError('PASSWORD_MISMATCH');
@@ -104,5 +149,12 @@ export function useGuestEntry({
     }
   };
 
-  return { enter, isEntering, error, clearError: () => setError(null) };
+  return {
+    enter,
+    isEntering,
+    error,
+    clearError: () => setError(null),
+    blockedStatus,
+    clearBlocked: () => setBlockedStatus(null),
+  };
 }
