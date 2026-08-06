@@ -2,9 +2,9 @@
 
 import * as React from 'react';
 
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { createMeeting, type CreateMeetingResponse } from '@/shared/api';
+import { createMeeting, getGetMyMeetingsQueryKey, type CreateMeetingResponse } from '@/shared/api';
 
 import { useCreateMeetingDraft } from './create-meeting-draft';
 import { toCreateMeetingRequest } from './to-create-meeting-request';
@@ -44,6 +44,7 @@ export interface UseSubmitMeetingOptions {
  * 실패 시 draft는 그대로라 다시 시도할 수 있다.
  */
 export function useSubmitMeeting({ onSuccess }: UseSubmitMeetingOptions) {
+  const queryClient = useQueryClient();
   const inFlightRef = React.useRef(false); // 제출 요청이 진행 중인지를 담고 있는 플래그
 
   const mutation = useMutation({
@@ -53,7 +54,13 @@ export function useSubmitMeeting({ onSuccess }: UseSubmitMeetingOptions) {
       // 커버 사진은 요청 본문이 아니라 별도 multipart 파트다(CRT-05).
       return createMeeting(toCreateMeetingRequest(draft), draft.coverImage);
     },
-    onSuccess,
+    onSuccess: (response) => {
+      // 방금 만든 모임이 홈 목록에 나타나야 한다. 목록에는 기본 staleTime(60초) 동안 이전
+      // 응답이 남아 있어, 비우지 않으면 만든 직후 홈에 갔을 때 새 모임이 빠진 목록을 본다.
+      void queryClient.invalidateQueries({ queryKey: getGetMyMeetingsQueryKey() });
+
+      onSuccess(response);
+    },
     onSettled: () => {
       inFlightRef.current = false;
     },

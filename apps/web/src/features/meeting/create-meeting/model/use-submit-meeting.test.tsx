@@ -4,6 +4,8 @@ import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
+import { getGetMyMeetingsQueryKey } from '@/shared/api';
+
 import { useCreateMeetingDraft, type CreateMeetingDraftState } from './create-meeting-draft';
 import { useSubmitMeeting } from './use-submit-meeting';
 
@@ -51,11 +53,13 @@ const DRAFT: Partial<CreateMeetingDraftState> = {
 function renderSubmit(onSuccess: (response: unknown) => void = () => {}) {
   const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
 
-  return renderHook(() => useSubmitMeeting({ onSuccess }), {
+  const rendered = renderHook(() => useSubmitMeeting({ onSuccess }), {
     wrapper: ({ children }) => (
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     ),
   });
+
+  return { ...rendered, queryClient };
 }
 
 beforeEach(() => {
@@ -99,6 +103,26 @@ describe('useSubmitMeeting', () => {
     // 여기서 비우면 아직 마운트된 위저드가 리렌더되고 가드가 홈으로 되돌린다.
     // 비우는 일은 도착지(CRT-07)가 맡는다.
     expect(useCreateMeetingDraft.getState().name).toBe('팀 회식');
+  });
+
+  it('성공하면 홈의 모임 목록 캐시를 무효화한다', async () => {
+    let received: unknown = null;
+    const { result, queryClient } = renderSubmit((response) => {
+      received = response;
+    });
+    queryClient.setQueryData(getGetMyMeetingsQueryKey(), {
+      planningMeetings: [],
+      confirmedMeetings: [],
+    });
+
+    act(() => result.current.submit());
+
+    await waitFor(() => expect(received).not.toBeNull());
+    // 비우지 않으면 기본 staleTime(60초) 동안 이전 목록이 남아, 만든 직후 홈에 갔을 때
+    // 방금 만든 모임이 빠진 목록을 보게 된다.
+    await waitFor(() =>
+      expect(queryClient.getQueryState(getGetMyMeetingsQueryKey())?.isInvalidated).toBe(true)
+    );
   });
 
   it('연타해도 요청을 한 번만 보낸다', async () => {
