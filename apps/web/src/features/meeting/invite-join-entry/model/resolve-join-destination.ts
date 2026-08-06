@@ -3,21 +3,15 @@ import type { ParticipationStatusResponseReason } from '@/shared/api';
 
 /** 참여하기를 눌렀을 때 갈 곳. */
 export type JoinDestination =
-  /** 세션을 읽는 중이라 아직 어디로 갈지 모른다. */
+  /** 세션을 읽는 중이라 아직 어디로 갈지 모르는 경우 */
   | { type: 'pending' }
-  /** 세션을 읽지 못했다. 참여 불가가 아니라 재시도 대상이다. */
+  /** 세션을 읽지 못한 경우 - 참여 불가가 아닌 재시도 대상 */
   | { type: 'session-error' }
-  /** 참여할 수 없다. */
+  /** 참여 불가능 */
   | { type: 'blocked' }
   | { type: 'login-drawer' }
   | { type: 'nickname'; path: string }
-  /**
-   * 이미 참여한 사용자의 목적지.
-   *
-   * `path`는 아직 조율 중인 모임 기준의 현황 화면이다. 확정 여부는 서버 응답을 봐야 알 수
-   * 있어 여기서는 판단하지 않는다 — 확정된 모임이면 `checkJoinDestination`이 결과 화면
-   * 경로로 갈아끼운다.
-   */
+  /** 이미 참여한 사용자 */
   | { type: 'joined'; path: string };
 
 /**
@@ -68,5 +62,6 @@ export function resolveJoinDestination({
   // 로그인한 사용자
   if (!canJoin) return { type: 'blocked' };
 
+  // 로그인 했으나 모임에 참여하지는 않은 사용자
   return { type: 'nickname', path: joinEntryPath(inviteCode) };
 }
