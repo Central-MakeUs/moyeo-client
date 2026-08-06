@@ -57,6 +57,13 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
+/** 로그인을 마치고 초대 화면으로 돌아온 상태. */
+const AUTHENTICATED_SESSION: SessionState = {
+  status: 'authenticated',
+  accessToken: 'token',
+  viewer: { id: 1, nickname: '소미', onboardingCompleted: true },
+};
+
 const INVITATION: MeetingInvitation = {
   name: '데모데이에 모여',
   description: '부산 BEXCO에서 열리는 데모데이에 초대합니다',
@@ -145,35 +152,107 @@ describe('InviteLandingPage', () => {
     expect(screen.getByRole('button', { name: '모임 참여하기' })).toBeEnabled();
   });
 
-  it('{ canJoin: false, reason: DEADLINE_PASSED }를 넘기면 마감 기한이 지났어요 안내가 보인다', () => {
+  // 첫 초대 화면의 헤더와 컨페티는 참여 가능 여부와 무관하게 항상 같다.
+  // 차단 사유는 **참여하기를 탭했을 때** 알린다. 화면에 들어온 것만으로 열면 새로고침마다
+  // 다시 떠서, 막힌 사용자가 초대장을 그냥 보고 있을 수 없다.
+  it('로그인한 뒤 참여하기를 탭했을 때 reason이 DEADLINE_PASSED면 마감 안내가 뜬다', async () => {
+    session.current = AUTHENTICATED_SESSION;
+    getInvitation.mockResolvedValue({
+      participationStatus: { canJoin: false, reason: 'DEADLINE_PASSED' },
+    });
     renderPage(INVITATION, { canJoin: false, reason: 'DEADLINE_PASSED' });
 
-    expect(screen.getByText('마감 기한이 지났어요')).toBeInTheDocument();
+    // 헤더는 막혀 있어도 그대로다.
+    expect(screen.getByText('모임 초대장이 왔어요!')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: '모임 참여하기' }));
+
+    expect(await screen.findByText('마감 기한이 지났어요')).toBeInTheDocument();
     expect(screen.getByText('아쉽지만 현재는 더 이상 참여할 수 없어요')).toBeInTheDocument();
   });
 
-  it('{ canJoin: false, reason: PARTICIPANT_LIMIT_EXCEEDED }를 넘기면 모임 인원이 모두 찼어요 안내가 보인다', () => {
+  it('로그인한 뒤 참여하기를 탭했을 때 reason이 PARTICIPANT_LIMIT_EXCEEDED면 정원 안내가 뜬다', async () => {
+    session.current = AUTHENTICATED_SESSION;
+    getInvitation.mockResolvedValue({
+      participationStatus: { canJoin: false, reason: 'PARTICIPANT_LIMIT_EXCEEDED' },
+    });
     renderPage(INVITATION, { canJoin: false, reason: 'PARTICIPANT_LIMIT_EXCEEDED' });
 
-    expect(screen.getByText('모임 인원이 모두 찼어요')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: '모임 참여하기' }));
+
+    expect(await screen.findByText('모임 인원이 모두 찼어요')).toBeInTheDocument();
     expect(screen.getByText('아쉽지만 현재는 더 이상 참여할 수 없어요')).toBeInTheDocument();
   });
 
-  // 버튼 활성은 canJoin에만 의존하고 reason과 무관하다. 차단 사유별로 같은 배선을
-  // 반복 검증하는 게 아니라, "무관하다"는 것 자체를 검증한다.
+  // 진입 조회는 서버 컴포넌트의 토큰 없는 fetch라 ALREADY_JOINED를 담을 수 없다. 이미 참여한
+  // 사용자(모임장 포함)의 마감된 모임은 DEADLINE_PASSED로 내려오므로, 막혔다고 나와도 토큰
+  // 실은 조회로 다시 확인해야 자기 모임으로 갈 수 있다.
+  it('진입 조회가 DEADLINE_PASSED여도 토큰 조회가 ALREADY_JOINED면 안내 대신 모임으로 이동한다', async () => {
+    session.current = AUTHENTICATED_SESSION;
+    getInvitation.mockResolvedValue({
+      status: 'PLANNING',
+      participationStatus: { canJoin: false, reason: 'ALREADY_JOINED' },
+    });
+    renderPage(INVITATION, { canJoin: false, reason: 'DEADLINE_PASSED' });
+
+    await userEvent.click(screen.getByRole('button', { name: '모임 참여하기' }));
+
+    await vi.waitFor(() => expect(push).toHaveBeenCalledWith('/meetings?code=ABC123'));
+    expect(screen.queryByText('마감 기한이 지났어요')).not.toBeInTheDocument();
+  });
+
+  it('진입 조회가 DEADLINE_PASSED여도 이미 참여한 확정 모임이면 결과 화면으로 이동한다', async () => {
+    session.current = AUTHENTICATED_SESSION;
+    getInvitation.mockResolvedValue({
+      status: 'CONFIRMED',
+      participationStatus: { canJoin: false, reason: 'ALREADY_JOINED' },
+    });
+    renderPage(INVITATION, { canJoin: false, reason: 'DEADLINE_PASSED' });
+
+    await userEvent.click(screen.getByRole('button', { name: '모임 참여하기' }));
+
+    await vi.waitFor(() => expect(push).toHaveBeenCalledWith('/meetings/confirmed?code=ABC123'));
+  });
+
+  // 탭하기 전에는 막힌 상태를 알리지 않는다. 새로고침으로 다시 들어와도 마찬가지다.
+  it('로그인했어도 참여하기를 탭하기 전에는 안내가 뜨지 않는다', () => {
+    session.current = AUTHENTICATED_SESSION;
+    renderPage(INVITATION, { canJoin: false, reason: 'DEADLINE_PASSED' });
+
+    expect(screen.queryByText('마감 기한이 지났어요')).not.toBeInTheDocument();
+  });
+
+  it('로그인 전(anonymous)에는 막혀 있어도 안내가 뜨지 않는다', () => {
+    renderPage(INVITATION, { canJoin: false, reason: 'DEADLINE_PASSED' });
+
+    expect(screen.queryByText('마감 기한이 지났어요')).not.toBeInTheDocument();
+  });
+
+  it('참여할 수 없는 모임이어도 모임 참여하기를 탭하면 로그인 Drawer는 열린다', async () => {
+    const user = userEvent.setup();
+    renderPage(INVITATION, { canJoin: false, reason: 'DEADLINE_PASSED' });
+
+    await user.click(screen.getByRole('button', { name: '모임 참여하기' }));
+
+    expect(await screen.findByRole('button', { name: /카카오/ })).toBeInTheDocument();
+  });
+
+  // 사유를 아는 차단은 눌려야 한다 — 눌러야 안내가 뜨기 때문이다.
+  // 사유별로 같은 배선을 반복 검증하는 게 아니라, "사유와 무관하다"는 것 자체를 검증한다.
   it.each(['DEADLINE_PASSED', 'PARTICIPANT_LIMIT_EXCEEDED'] as const)(
-    'canJoin이 false면 reason이 %s여도 모임 참여하기 버튼이 disabled다',
+    'canJoin이 false여도 reason이 %s면 모임 참여하기 버튼을 누를 수 있다',
     (reason) => {
       renderPage(INVITATION, { canJoin: false, reason });
 
-      expect(screen.getByRole('button', { name: '모임 참여하기' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: '모임 참여하기' })).toBeEnabled();
     }
   );
 
   it('participationStatus를 넘기지 않으면 모임 참여하기 버튼이 disabled고 헤더는 기본 문구다', () => {
     renderPage();
 
-    // 필드가 없다고 참여 가능으로 추측하지 않는다.
+    // 필드가 없다고 참여 가능으로 추측하지 않는다. 사유도 없어 안내에 쓸 문구가 없으므로,
+    // 눌러서 알려주는 대신 잠근다.
     expect(screen.getByRole('button', { name: '모임 참여하기' })).toBeDisabled();
     expect(screen.getByText('모임 초대장이 왔어요!')).toBeInTheDocument();
   });
@@ -186,10 +265,11 @@ describe('InviteLandingPage', () => {
     expect(container.querySelector('canvas')).toBeInTheDocument();
   });
 
-  it('canJoin이 false면 축하 컨페티를 렌더하지 않는다', () => {
+  // 첫 초대 화면은 참여 가능 여부와 무관하게 늘 축하 연출이다. 막힌 사실은 탭했을 때 알린다.
+  it('canJoin이 false여도 축하 컨페티는 그대로 렌더된다', () => {
     const { container } = renderPage(INVITATION, { canJoin: false, reason: 'DEADLINE_PASSED' });
 
-    expect(container.querySelector('canvas')).not.toBeInTheDocument();
+    expect(container.querySelector('canvas')).toBeInTheDocument();
   });
 
   it('참여 불가 상태여도 초대 카드의 모임명·설명·모임장은 그대로 렌더된다', () => {
@@ -200,15 +280,25 @@ describe('InviteLandingPage', () => {
     expect(screen.getByText('소미')).toBeInTheDocument();
   });
 
-  it('message가 함께 오면 그 문구는 화면에 없고 reason 대응 문구가 보인다', () => {
+  it('message가 함께 와도 안내는 서버 문구가 아니라 reason 대응 문구를 쓴다', async () => {
+    session.current = AUTHENTICATED_SESSION;
+    getInvitation.mockResolvedValue({
+      participationStatus: {
+        canJoin: false,
+        reason: 'DEADLINE_PASSED',
+        message: '서버가 준 다른 문구',
+      },
+    });
     renderPage(INVITATION, {
       canJoin: false,
       reason: 'DEADLINE_PASSED',
       message: '서버가 준 다른 문구',
     });
 
+    await userEvent.click(screen.getByRole('button', { name: '모임 참여하기' }));
+
+    expect(await screen.findByText('마감 기한이 지났어요')).toBeInTheDocument();
     expect(screen.queryByText('서버가 준 다른 문구')).not.toBeInTheDocument();
-    expect(screen.getByText('마감 기한이 지났어요')).toBeInTheDocument();
   });
 
   it('invitation이 null이면 초대 카드는 없고 헤더와 모임 참여하기 버튼은 남는다', () => {
