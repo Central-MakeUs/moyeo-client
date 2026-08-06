@@ -51,7 +51,6 @@ import PinnedPrimary from '@/shared/assets/icons/pinned-primary.svg';
 import Pinned from '@/shared/assets/icons/pinned.svg';
 import Plane from '@/shared/assets/icons/plane.svg';
 import Plus from '@/shared/assets/icons/plus.svg';
-import ProfileGray from '@/shared/assets/icons/profile-gray.svg';
 import Search from '@/shared/assets/icons/search.svg';
 
 export const ICONS = {
@@ -107,7 +106,6 @@ export const ICONS = {
   pinned: Pinned,
   plane: Plane,
   plus: Plus,
-  'profile-gray': ProfileGray,
   search: Search,
 } as const;
 
