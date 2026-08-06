@@ -9,7 +9,7 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.moyeozo.moyeo",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
