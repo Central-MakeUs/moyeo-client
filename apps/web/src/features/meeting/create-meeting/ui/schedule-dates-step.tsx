@@ -30,9 +30,19 @@ const ERROR_MESSAGE = '날짜 정보를 불러오지 못했어요';
 export interface ScheduleDatesStepProps {
   /** 다음 스텝으로 이동. 현재 화면이 마지막이면 페이지가 제출로 분기한다(Issue 6). */
   onNext: () => void;
+  /**
+   * 모임 생성 요청이 진행 중인지. 이 화면이 마지막 스텝일 때만 true가 될 수 있다.
+   *
+   * CTA를 잠가 연타를 막는다. 모델의 in-flight 가드가 중복 요청 자체는 이미 버리지만,
+   * 버튼이 그대로 눌리면 사용자는 아무 일도 일어나지 않는 화면을 계속 두드리게 된다.
+   */
+  isSubmitting?: boolean;
 }
 
-export function ScheduleDatesStep({ onNext }: ScheduleDatesStepProps): React.JSX.Element {
+export function ScheduleDatesStep({
+  onNext,
+  isSubmitting = false,
+}: ScheduleDatesStepProps): React.JSX.Element {
   const { serverToday, status, refetch } = useServerToday();
 
   const draft = useCreateMeetingDraft();
@@ -59,7 +69,7 @@ export function ScheduleDatesStep({ onNext }: ScheduleDatesStepProps): React.JSX
       footer={
         <CTASection
           primaryAction={
-            <Button fullWidth disabled={!canGoNext} onClick={onNext}>
+            <Button fullWidth disabled={!canGoNext} isLoading={isSubmitting} onClick={onNext}>
               다음
             </Button>
           }

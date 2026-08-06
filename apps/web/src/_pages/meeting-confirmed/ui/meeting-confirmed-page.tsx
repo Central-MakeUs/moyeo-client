@@ -88,6 +88,7 @@ function MeetingConfirmedContent(): React.JSX.Element {
       <ConfirmedMeetingDialog
         meetingName={data.name}
         description={data.description}
+        coverImageUrl={data.coverImageUrl}
         scheduleLabel={scheduleLabel}
         placeName={data.confirmedPlaceName}
         participants={data.participants.map((participant) => ({

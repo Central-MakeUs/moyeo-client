@@ -10,7 +10,7 @@ import {
 import { isViewerParticipant } from '@/entities/participant';
 import { formatConfirmedMeetingDate } from '@/entities/schedule';
 import { useSession } from '@/entities/session';
-import { useGetMeetingView } from '@/shared/api';
+import { toApiAssetUrl, useGetMeetingView } from '@/shared/api';
 
 export interface ConfirmedMeetingSectionProps {
   confirmed: MeetingSummary[];
@@ -89,6 +89,8 @@ function ConfirmedMeetingDetail({
     <ConfirmedMeetingDialog
       meetingName={data.name ?? ''}
       description={data.description ?? undefined}
+      // 생성 훅의 응답을 그대로 쓰는 자리라, 서버가 준 상대 API 경로를 여기서 변환한다.
+      coverImageUrl={toApiAssetUrl(data.coverImageUrl ?? undefined)}
       scheduleLabel={
         data.confirmedScheduleDate
           ? formatConfirmedMeetingDate(

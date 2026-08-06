@@ -32,6 +32,7 @@ const draft = (partial: Partial<CreateMeetingDraftState> = {}): CreateMeetingDra
   scheduleResponse: null,
   departure: null,
   transportationMode: null,
+  coverImage: null,
   ...partial,
 });
 
@@ -42,13 +43,13 @@ const flow = (planningType: PlanningType | null, scheduleInputType: ScheduleInpu
 });
 
 describe('getSteps', () => {
-  // ℹ️ CRT-05 커버('cover')는 1차 MVP 제외. 재활성화 시 아래 기대값에 'cover'를 다시 넣을 예정이다.
-  // 🚧 CRT-04 마감 기한('deadline')도 1차 출시 임시 비활성화(리마인더 미구현).
-  //   재활성화 시 아래 기대값의 'created' 앞에 'deadline'을 다시 넣는다.
+  // 🚧 CRT-04 마감 기한('deadline')은 1차 출시 임시 비활성화(리마인더 미구현).
+  //   재활성화 시 아래 기대값의 'cover' 앞에 'deadline'을 다시 넣는다.
   it("should return 5 steps ending with 'schedule-dates' when planningType is SCHEDULE_ONLY and scheduleInputType is DATE_ONLY", () => {
     expect(getSteps(flow('SCHEDULE_ONLY', 'DATE_ONLY'))).toEqual([
       'basic',
       'time-range',
+      'cover',
       'created',
       'schedule-dates',
     ]);
@@ -58,6 +59,7 @@ describe('getSteps', () => {
     expect(getSteps(flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toEqual([
       'basic',
       'time-range',
+      'cover',
       'created',
       'schedule-dates',
       'schedule-times',
@@ -68,6 +70,7 @@ describe('getSteps', () => {
     expect(getSteps(flow('SCHEDULE_AND_PLACE', 'DATE_ONLY'))).toEqual([
       'basic',
       'time-range',
+      'cover',
       'created',
       'schedule-dates',
       'departure',
@@ -78,6 +81,7 @@ describe('getSteps', () => {
     expect(getSteps(flow('SCHEDULE_AND_PLACE', 'DATE_AND_TIME'))).toEqual([
       'basic',
       'time-range',
+      'cover',
       'created',
       'schedule-dates',
       'schedule-times',
@@ -85,8 +89,19 @@ describe('getSteps', () => {
     ]);
   });
 
-  it("should return ['basic','created','departure'] when planningType is PLACE_ONLY", () => {
-    expect(getSteps(flow('PLACE_ONLY', null))).toEqual(['basic', 'created', 'departure']);
+  it("should return ['basic','cover','created','departure'] when planningType is PLACE_ONLY", () => {
+    expect(getSteps(flow('PLACE_ONLY', null))).toEqual(['basic', 'cover', 'created', 'departure']);
+  });
+
+  // 커버사진은 선택 입력이지만 흐름에는 항상 들어간다(건너뛰는 조건이 없다).
+  it("should include 'cover' right before 'created' in every flow", () => {
+    for (const steps of [
+      getSteps(flow('SCHEDULE_ONLY', 'DATE_AND_TIME')),
+      getSteps(flow('SCHEDULE_AND_PLACE', 'DATE_ONLY')),
+      getSteps(flow('PLACE_ONLY', null)),
+    ]) {
+      expect(steps.indexOf('cover')).toBe(steps.indexOf('created') - 1);
+    }
   });
 
   // 🚧 임시 비활성화가 유지되는지 지키는 테스트. 재활성화하면 이 테스트를 지운다.
@@ -286,22 +301,29 @@ describe('stepPhase (created 를 경계로 갈리는 진행률 구간)', () => {
   });
 });
 
-// ℹ️ 'cover' 재활성화 시 create 구간 분모가 한 칸 늘어난다. 그때 아래 기대값을 다시 계산한다.
 describe('progressPercent (분모 = 현재 구간의 입력 스텝 수)', () => {
-  // 🚧 'deadline' 임시 비활성화로 create 구간이 한 칸씩 줄었다(3→2칸, PLACE_ONLY는 2→1칸).
-  //   재활성화 시 아래 값은 33/67/100 · 50/100 으로 되돌아간다.
-  // create 구간: basic·time-range = 2칸
-  it("should return 50 when step is 'basic' and flow is SCHEDULE_ONLY + DATE_AND_TIME (create 2 steps)", () => {
-    expect(progressPercent('basic', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe(50);
+  // 🚧 'deadline' 임시 비활성화로 create 구간이 한 칸씩 줄었다(4→3칸, PLACE_ONLY는 3→2칸).
+  //   재활성화 시 아래 값은 25/50/75/100 · 33/67/100 으로 되돌아간다.
+  // create 구간: basic·time-range·cover = 3칸
+  it("should return 33 when step is 'basic' and flow is SCHEDULE_ONLY + DATE_AND_TIME (create 3 steps)", () => {
+    expect(progressPercent('basic', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe(33);
   });
 
-  it("should return 100 when step is 'time-range' (create 구간 마지막 — CRT-06 은 이게 꽉 차서 나온다)", () => {
-    expect(progressPercent('time-range', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe(100);
+  it("should return 67 when step is 'time-range' and flow is SCHEDULE_ONLY + DATE_AND_TIME", () => {
+    expect(progressPercent('time-range', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe(67);
   });
 
-  // create 구간: basic = 1칸 (PLACE_ONLY 는 time-range 를 건너뛴다)
-  it("should return 100 when step is 'basic' and flow is PLACE_ONLY (create 1 step)", () => {
-    expect(progressPercent('basic', flow('PLACE_ONLY', null))).toBe(100);
+  it("should return 100 when step is 'cover' (create 구간 마지막 — CRT-06 은 이게 꽉 차서 나온다)", () => {
+    expect(progressPercent('cover', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe(100);
+  });
+
+  // create 구간: basic·cover = 2칸 (PLACE_ONLY 는 time-range 를 건너뛴다)
+  it("should return 50 when step is 'basic' and flow is PLACE_ONLY (create 2 steps)", () => {
+    expect(progressPercent('basic', flow('PLACE_ONLY', null))).toBe(50);
+  });
+
+  it("should return 100 when step is 'cover' and flow is PLACE_ONLY", () => {
+    expect(progressPercent('cover', flow('PLACE_ONLY', null))).toBe(100);
   });
 
   // host 구간: created 다음부터 0에서 다시 시작한다
@@ -329,8 +351,12 @@ describe('nextStep', () => {
   });
 
   // 🚧 'deadline' 임시 비활성화 — 재활성화 시 기대값이 다시 'deadline'이 된다.
-  it("should return 'created' when step is 'basic' and flow is PLACE_ONLY (time-range 건너뜀)", () => {
-    expect(nextStep('basic', flow('PLACE_ONLY', null))).toBe('created');
+  it("should return 'cover' when step is 'basic' and flow is PLACE_ONLY (time-range 건너뜀)", () => {
+    expect(nextStep('basic', flow('PLACE_ONLY', null))).toBe('cover');
+  });
+
+  it("should return 'created' when step is 'cover' (커버사진 다음은 생성 완료 Bridge)", () => {
+    expect(nextStep('cover', flow('SCHEDULE_ONLY', 'DATE_AND_TIME'))).toBe('created');
   });
 
   it("should return 'schedule-times' when step is 'schedule-dates' and scheduleInputType is DATE_AND_TIME", () => {

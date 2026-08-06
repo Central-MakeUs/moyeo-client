@@ -1,3 +1,6 @@
+import { dataUrlToBlob } from '@/shared/lib/data-url';
+import { COVER_IMAGE_FILE_NAME } from '@/shared/lib/normalize-cover-image';
+
 import type { CreateMeetingRequest, CreateMeetingResponse } from './generated/schemas';
 
 import { customInstance } from './axios-instance';
@@ -17,8 +20,6 @@ import { customInstance } from './axios-instance';
  *
  * orval은 `clean: true`로 `generated/` 전체를 지우고 다시 만들므로 그쪽을 고쳐도 되돌아간다.
  * 스펙이 고쳐지거나 orval 설정으로 해결되면 이 파일을 지우고 생성 훅으로 돌아가면 된다.
- *
- * 커버 사진은 1차 MVP 제외라 `coverImage` 파트를 보내지 않는다.
  */
 export const CREATE_MEETING_PATH = '/api/meetings';
 
@@ -28,19 +29,33 @@ export const CREATE_MEETING_PATH = '/api/meetings';
  * 전송과 분리한 이유는 검증이다. jsdom은 XHR로 나가는 FormData의 Blob 파트 내용을 보존하지
  * 못해(파트가 `"undefined"` 문자열이 된다) 네트워크 경계에서는 본문을 확인할 수 없다.
  * 조립을 따로 두면 전송 전에 파트 타입과 내용을 그대로 검사할 수 있다.
+ *
+ * @param request 생성 요청 본문
+ * @param coverImage 커버 사진 data URL(CRT-05). 선택 입력이라 없으면 파트를 생략한다.
  */
-export function buildCreateMeetingFormData(request: CreateMeetingRequest): FormData {
+export function buildCreateMeetingFormData(
+  request: CreateMeetingRequest,
+  coverImage?: string | null
+): FormData {
   const formData = new FormData();
 
   formData.append('request', new Blob([JSON.stringify(request)], { type: 'application/json' }));
 
+  // 문서상 "사진이 없으면 이 파트를 생략합니다" — 빈 파트를 보내면 서버가 파일로 해석한다.
+  if (coverImage) {
+    formData.append('coverImage', dataUrlToBlob(coverImage), COVER_IMAGE_FILE_NAME);
+  }
+
   return formData;
 }
 
-export function createMeeting(request: CreateMeetingRequest): Promise<CreateMeetingResponse> {
+export function createMeeting(
+  request: CreateMeetingRequest,
+  coverImage?: string | null
+): Promise<CreateMeetingResponse> {
   return customInstance<CreateMeetingResponse>({
     url: CREATE_MEETING_PATH,
     method: 'POST',
-    data: buildCreateMeetingFormData(request),
+    data: buildCreateMeetingFormData(request, coverImage),
   });
 }

@@ -47,10 +47,12 @@ export function useSubmitMeeting({ onSuccess }: UseSubmitMeetingOptions) {
   const inFlightRef = React.useRef(false); // 제출 요청이 진행 중인지를 담고 있는 플래그
 
   const mutation = useMutation({
-    mutationFn: () =>
-      createMeeting(
-        toCreateMeetingRequest({ ...useCreateMeetingDraft.getState(), ...NO_DEADLINE })
-      ),
+    mutationFn: () => {
+      const draft = { ...useCreateMeetingDraft.getState(), ...NO_DEADLINE };
+
+      // 커버 사진은 요청 본문이 아니라 별도 multipart 파트다(CRT-05).
+      return createMeeting(toCreateMeetingRequest(draft), draft.coverImage);
+    },
     onSuccess,
     onSettled: () => {
       inFlightRef.current = false;

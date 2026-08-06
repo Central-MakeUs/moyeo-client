@@ -33,7 +33,7 @@ export function PageHeader({
         className
       )}
     >
-      <div className="space-y-0.5">
+      <div className="space-y-1">
         <h1 className={cn('text-extrabold-22 break-keep text-neutral-900', titleClassName)}>
           {title}
         </h1>

@@ -28,9 +28,14 @@ const ERROR_MESSAGE = '시간표를 불러오지 못했어요';
 export interface ScheduleTimesStepProps {
   /** 다음 스텝으로 이동. 현재 화면이 마지막이면 페이지가 제출로 분기한다(Issue 6). */
   onNext: () => void;
+  /** 모임 생성 요청이 진행 중인지. CTA를 잠가 연타를 막는다. */
+  isSubmitting?: boolean;
 }
 
-export function ScheduleTimesStep({ onNext }: ScheduleTimesStepProps): React.JSX.Element {
+export function ScheduleTimesStep({
+  onNext,
+  isSubmitting = false,
+}: ScheduleTimesStepProps): React.JSX.Element {
   const { serverToday, status, refetch } = useServerToday();
 
   /**
@@ -68,7 +73,7 @@ export function ScheduleTimesStep({ onNext }: ScheduleTimesStepProps): React.JSX
       footer={
         <CTASection
           primaryAction={
-            <Button fullWidth disabled={!canGoNext} onClick={onNext}>
+            <Button fullWidth disabled={!canGoNext} isLoading={isSubmitting} onClick={onNext}>
               다음
             </Button>
           }

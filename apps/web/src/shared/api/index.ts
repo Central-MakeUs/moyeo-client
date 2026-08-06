@@ -23,7 +23,7 @@ export * from './generated/schemas';
 export { createMeeting, buildCreateMeetingFormData, CREATE_MEETING_PATH } from './create-meeting';
 export { fetchServerToday } from './fetch-server-today';
 
-export { AXIOS_INSTANCE, customInstance } from './axios-instance';
+export { AXIOS_INSTANCE, customInstance, toApiAssetUrl } from './axios-instance';
 export type { BodyType, ErrorType } from './axios-instance';
 
 export {

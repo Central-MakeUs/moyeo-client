@@ -28,6 +28,14 @@ export interface CreateMeetingDraftState {
   departure: DepartureDraft | null;
   /** INV-03 방장 이동수단. 출발지 선택 전에도 독립적으로 고를 수 있다. */
   transportationMode: TransportationMode | null;
+  /**
+   * CRT-05 커버 사진. 선택 입력이라 없으면 null이다.
+   *
+   * `File`이 아니라 정규화된 data URL 문자열로 들고 있다. 이 초안은 스텝을 넘길 때마다
+   * `sessionStorage`에 직렬화되는데 `File`·`Blob`은 JSON으로 직렬화되지 않아, 파일로 두면
+   * 다음 스텝으로 넘어가는 순간 사라진다. 전송 직전에만 Blob으로 되돌린다.
+   */
+  coverImage: string | null;
 }
 
 interface CreateMeetingDraftActions {
@@ -44,6 +52,7 @@ interface CreateMeetingDraftActions {
   setScheduleResponse: (value: ScheduleResponseRequest | null) => void;
   setDeparture: (value: DepartureDraft | null) => void;
   setTransportationMode: (value: TransportationMode | null) => void;
+  setCoverImage: (value: string | null) => void;
   reset: () => void;
 }
 
@@ -63,6 +72,7 @@ const initialState: CreateMeetingDraftState = {
   scheduleResponse: null,
   departure: null,
   transportationMode: null,
+  coverImage: null,
 };
 
 /** 조율 범위를 이루는 세 필드. 하나라도 바뀌면 방장 응답을 다시 걸러야 한다. */
@@ -114,6 +124,7 @@ export const useCreateMeetingDraft = create<CreateMeetingDraftStore>()(
       setScheduleResponse: (value) => set({ scheduleResponse: value }),
       setDeparture: (value) => set({ departure: value }),
       setTransportationMode: (value) => set({ transportationMode: value }),
+      setCoverImage: (value) => set({ coverImage: value }),
       reset: () => set(initialState),
     }),
     {
