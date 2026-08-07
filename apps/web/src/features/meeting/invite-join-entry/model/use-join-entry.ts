@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { isExplainedBlockReason } from '@/entities/meeting';
 import { useSession } from '@/entities/session';
 import { type ParticipationStatusResponse } from '@/shared/api';
-import { isNativeContext } from '@/shared/model';
+import { isKakaoInAppBrowser, isNativeContext, openAppLink } from '@/shared/model';
 
 import { checkJoinDestination } from './check-join-destination';
 import {
@@ -112,8 +112,8 @@ export function useJoinEntry({
   /**
    * 참여하기를 탭한 결과로만 안내를 연다.
    */
-  const participate = async () => {
-    // 세션을 모르는 동안은 아무 일도 하지 않는다. 재시도는 `retrySession`가 담당한다.
+  const continueParticipation = async () => {
+    // `participate`에서 이미 걸렀지만, 이 함수만 봐도 안전하도록 한 번 확인
     if (isSessionUnresolved(destination)) return;
 
     if (destination.type === 'login-drawer') {
@@ -142,6 +142,27 @@ export function useJoinEntry({
       isCheckingRef.current = false;
       setChecking(false);
     }
+  };
+
+  const participate = async () => {
+    // 세션을 모르는 동안은 앱을 실행하지 않음
+    if (isSessionUnresolved(destination)) return;
+
+    // 카카오톡 인앱 브라우저인 경우 커스텀 스킴을 사용해 앱을 실행한다.
+    // 앱이 없으면 브라우저에서 계속 진행
+    if (!isNativeContext() && isKakaoInAppBrowser()) {
+      setChecking(true);
+
+      openAppLink(`/i/${inviteCode}`, {
+        onUnavailable: () => {
+          setChecking(false);
+          void continueParticipation();
+        },
+      });
+      return;
+    }
+
+    await continueParticipation();
   };
 
   return {
