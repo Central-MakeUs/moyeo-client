@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "moyeo",
+    "scheme": ["moyeo", "kakaofc34323fae719e4e73b7e5861fe38e62"],
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
