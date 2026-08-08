@@ -13,7 +13,7 @@ export function HomeTopBar(): React.JSX.Element {
 
   return (
     <TopAppBar
-      leading={<Image src={Logo} alt="MOYEO" width={78} height={32} priority />}
+      leading={<Image src={Logo} alt="MOYEO" width={78} height={32} priority draggable={false} />}
       trailing={
         <button
           type="button"
