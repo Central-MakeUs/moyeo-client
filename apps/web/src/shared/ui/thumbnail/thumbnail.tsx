@@ -37,6 +37,7 @@ export function Thumbnail({
           alt={alt ?? ''}
           fill
           unoptimized
+          draggable={false}
           className="object-cover"
           onError={() => setHasError(true)}
         />
