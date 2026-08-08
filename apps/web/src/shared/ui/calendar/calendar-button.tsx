@@ -8,11 +8,11 @@ import { Button } from '@/shared/ui/button';
 const calendarDayButtonClasses = cn(
   // 터치 드래그 선택 중 페이지 스크롤 하이재킹 방지(셀에 상시 적용).
   'touch-none',
-  'flex w-full h-full items-center justify-center rounded-8 px-0 text-medium-14 transition-colors border-0 text-neutral-850',
+  'relative flex w-full h-full items-center justify-center rounded-8 px-0 text-medium-14 transition-colors border-0 text-neutral-850',
   // hover
   'hover:bg-accessible-100',
   // today
-  'data-[today=true]:not-data-[selected=true]:text-primary',
+  'data-[today=true]:not-data-[selected=true]:[&:not(:disabled)]:text-primary data-[today=true]:not-data-[selected=true]:[&:not(:disabled)]:text-bold-14',
 
   // selected single
   'data-[selected-single=true]:bg-accessible-400 data-[selected-single=true]:text-white',
@@ -33,6 +33,7 @@ export function CalendarDayButton({
   className,
   day,
   modifiers,
+  children,
   ...props
 }: React.ComponentProps<typeof DayButton>) {
   const ref = React.useRef<HTMLButtonElement>(null);
@@ -63,6 +64,11 @@ export function CalendarDayButton({
       data-disabled={modifiers.disabled}
       className={cn(calendarDayButtonClasses, className)}
       {...props}
-    />
+    >
+      {children}
+      {modifiers.today && (
+        <span className="absolute inset-x-0 bottom-[1px] text-extrabold-8">오늘</span>
+      )}
+    </Button>
   );
 }

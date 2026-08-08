@@ -159,10 +159,9 @@ export function DraggableCalendar({
 
   return (
     // 취소 판정의 기준이 되는 요소라 캘린더와 같은 크기여야 한다.
-    // Calendar 루트가 w-fit이므로 래퍼도 w-fit으로 맞춘다 —
-    // 래퍼가 더 넓으면 캘린더 좌우 여백이 여전히 '안'이라 pointerleave가 뜨지 않는다.
+    // Calendar 루트와 함께 부모 너비를 채워 pointerleave 경계를 일치시킨다.
     <div
-      className={cn('w-fit', className)}
+      className={cn('w-full', className)}
       onPointerLeave={() => {
         if (anchorRef.current) cancelDrag();
       }}
