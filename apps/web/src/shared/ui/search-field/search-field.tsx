@@ -115,17 +115,20 @@ export const SearchField = React.forwardRef<HTMLInputElement, SearchFieldProps>(
           containerClassName
         )}
       >
-        <Icon
-          name="search"
+        <span
+          aria-hidden="true"
           className={cn(
-            'size-5 shrink-0',
-            'overflow-hidden opacity-100',
+            'flex w-5 shrink-0 overflow-hidden opacity-100',
             'transition-[width,opacity] duration-150 ease-in-out',
             'group-focus-within/search-field:w-0',
-            'group-focus-within/search-field:opacity-0',
-            'text-neutral-400 group-has-disabled/search-field:text-neutral-200'
+            'group-focus-within/search-field:opacity-0'
           )}
-        />
+        >
+          <Icon
+            name="search"
+            className="size-5 max-w-none shrink-0 text-neutral-400 group-has-disabled/search-field:text-neutral-200"
+          />
+        </span>
 
         <input
           {...props}
@@ -161,6 +164,10 @@ export const SearchField = React.forwardRef<HTMLInputElement, SearchFieldProps>(
           <button
             type="button"
             aria-label={clearLabel}
+            onPointerDown={(event) => {
+              // 포커스를 유지해 clear 버튼이 click 전에 숨지 않도록 처리
+              event.preventDefault();
+            }}
             onClick={clear}
             className={cn(
               'relative flex size-5 shrink-0 items-center justify-center',
