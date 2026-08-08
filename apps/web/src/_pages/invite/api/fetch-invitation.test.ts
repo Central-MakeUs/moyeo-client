@@ -46,3 +46,16 @@ describe('fetchInvitationOrNull', () => {
     await expect(fetchInvitationOrNull('INVALID')).resolves.toBeNull();
   });
 });
+
+describe('캐시 정책', () => {
+  it('삭제된 모임이 즉시 반영되도록 캐시하지 않는다', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', API_BASE_URL);
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(Response.json({ status: 'RECRUITING' }));
+
+    await fetchInvitationResult('ABC123');
+
+    expect(fetchSpy).toHaveBeenCalledWith(expect.any(String), { cache: 'no-store' });
+  });
+});

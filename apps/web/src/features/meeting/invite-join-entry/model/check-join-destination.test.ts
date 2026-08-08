@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+import { AxiosError, type AxiosResponse } from 'axios';
+
 import { checkJoinDestination } from './check-join-destination';
 
 const { getInvitation } = vi.hoisted(() => ({ getInvitation: vi.fn() }));
@@ -97,5 +99,18 @@ describe('checkJoinDestination', () => {
     const checked = await checkJoinDestination(INVITE_CODE, FALLBACK_PATH);
 
     expect(checked).toEqual({ type: 'move', path: FALLBACK_PATH });
+  });
+
+  // 진행시키면 참여 화면의 가드가 초대 화면으로 되돌려 보내 제자리를 돈다.
+  it('모임이 삭제됐으면 진행시키지 않고 not-found로 알린다', async () => {
+    getInvitation.mockRejectedValue(
+      new AxiosError('not found', undefined, undefined, undefined, {
+        status: 404,
+      } as AxiosResponse)
+    );
+
+    const checked = await checkJoinDestination(INVITE_CODE, FALLBACK_PATH);
+
+    expect(checked).toEqual({ type: 'not-found' });
   });
 });

@@ -1,3 +1,5 @@
+import { isAxiosError } from 'axios';
+
 import { isExplainedBlockReason } from '@/entities/meeting';
 import { getInvitation, type ParticipationStatusResponse } from '@/shared/api';
 
@@ -14,7 +16,9 @@ export type CheckedJoinDestination =
   /** 이동해도 된다. */
   | { type: 'move'; path: string }
   /** 그새 마감되거나 정원이 찼다. 사유를 화면이 안내한다. */
-  | { type: 'blocked'; status: ParticipationStatusResponse };
+  | { type: 'blocked'; status: ParticipationStatusResponse }
+  /** 모임이 사라졌다. 참여할 대상 자체가 없다. */
+  | { type: 'not-found' };
 
 /**
  * 이미 참여한 사용자가 갈 곳.
@@ -34,6 +38,9 @@ function joinedPath(inviteCode: string, isConfirmed: boolean): string {
  *
  * 조회에 실패하면 `fallbackPath`로 보낸다. 확인은 편의일 뿐이고 최종 방어선은 서버의 참여
  * 제출 거절이다. 확인이 안 된다고 참여 자체를 막지 않는다.
+ *
+ * 단 404는 예외다. 삭제된 모임은 재시도로 살아나지 않는데, 이때 `fallbackPath`로 보내면
+ * 그 화면의 가드가 다시 초대 화면으로 되돌려 보내 제자리를 도는 것처럼 보인다.
  */
 export async function checkJoinDestination(
   inviteCode: string,
@@ -69,7 +76,9 @@ export async function checkJoinDestination(
     }
 
     return { type: 'move', path: fallbackPath };
-  } catch {
+  } catch (error) {
+    if (isAxiosError(error) && error.response?.status === 404) return { type: 'not-found' };
+
     return { type: 'move', path: fallbackPath };
   }
 }
