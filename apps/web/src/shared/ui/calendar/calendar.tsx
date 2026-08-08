@@ -68,7 +68,7 @@ function Calendar({
         ...formatters,
       }}
       classNames={{
-        root: cn('w-full mx-auto max-w-[343px]'),
+        root: cn('w-full mx-auto'),
         months: cn('relative flex flex-col'),
         month: cn('flex w-full flex-col gap-6'),
         nav: cn('absolute inset-x-0 top-0 flex w-full items-center justify-center gap-[110px]'),
