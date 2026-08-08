@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 import { toInviteMetadata } from '@/features/meeting/invite-share';
 
-import { fetchInvitationForPage } from '../api/fetch-invitation';
+import { fetchInvitationOrNull } from '../api/fetch-invitation';
 import type { InvitePageProps } from '../model/types';
 
 /**
@@ -16,7 +16,7 @@ import type { InvitePageProps } from '../model/types';
  */
 export async function generateMetadata({ params }: InvitePageProps): Promise<Metadata> {
   const { inviteToken } = await params;
-  const invitation = await fetchInvitationForPage(inviteToken);
+  const invitation = await fetchInvitationOrNull(inviteToken);
 
   return toInviteMetadata(invitation, {
     url: `/i/${inviteToken}`,

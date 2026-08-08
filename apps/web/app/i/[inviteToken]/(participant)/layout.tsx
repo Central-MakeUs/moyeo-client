@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation';
 
-import { fetchInvitationForPage } from '@/_pages/invite';
+import { fetchInvitationOrNull } from '@/_pages/invite';
 import { ParticipationTopBar } from '@/features/meeting/invite-participation';
 
 interface ParticipantLayoutProps {
@@ -15,7 +15,7 @@ interface ParticipantLayoutProps {
 // 실제 가드는 후속 작업에서 구현한다.
 export default async function ParticipantLayout({ children, params }: ParticipantLayoutProps) {
   const { inviteToken } = await params;
-  const invitation = await fetchInvitationForPage(inviteToken);
+  const invitation = await fetchInvitationOrNull(inviteToken);
 
   if (!invitation?.planningType) {
     redirect(`/i/${inviteToken}`);
