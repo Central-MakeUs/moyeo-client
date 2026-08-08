@@ -68,7 +68,7 @@ function Calendar({
         ...formatters,
       }}
       classNames={{
-        root: cn('w-fit'),
+        root: cn('w-full mx-auto max-w-[343px]'),
         months: cn('relative flex flex-col'),
         month: cn('flex w-full flex-col gap-6'),
         nav: cn('absolute inset-x-0 top-0 flex w-full items-center justify-center gap-[110px]'),
@@ -87,7 +87,7 @@ function Calendar({
         weekday: cn('flex-1 text-bold-14 text-neutral-500 select-none'),
         week: cn('mt-2 flex w-full'),
         day: cn(
-          'group/day relative flex w-[49px] h-[44px] p-0 text-center select-none [&:last-child[data-selected=true]_button]:rounded-r-8 data-[range-middle=true]:bg-accessible-50',
+          'group/day relative flex aspect-[45.71/44] min-w-0 flex-1 basis-0 p-0 text-center select-none [&:last-child[data-selected=true]_button]:rounded-r-8 data-[range-middle=true]:bg-accessible-50',
           props.showWeekNumber
             ? '[&:nth-child(2)[data-selected=true]_button]:rounded-l-8'
             : '[&:first-child[data-selected=true]_button]:rounded-l-8'
