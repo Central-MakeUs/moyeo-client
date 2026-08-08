@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { SearchField } from './search-field';
@@ -39,5 +39,13 @@ describe('SearchField', () => {
 
     expect(input).toHaveValue('');
     expect(screen.queryByRole('button', { name: '검색어 지우기' })).not.toBeInTheDocument();
+  });
+
+  it('지우기 버튼을 누르기 시작해도 input의 포커스를 빼앗지 않는다', () => {
+    render(<SearchField aria-label="검색" defaultValue="강남역" />);
+
+    const clearButton = screen.getByRole('button', { name: '검색어 지우기' });
+
+    expect(fireEvent.pointerDown(clearButton)).toBe(false);
   });
 });
