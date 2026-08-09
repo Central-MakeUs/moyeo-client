@@ -63,7 +63,8 @@ export const SearchField = React.forwardRef<HTMLInputElement, SearchFieldProps>(
     };
 
     const clear = () => {
-      if (disabled || readOnly) {
+      // pointerdown 뒤에 이어지는 click의 중복 실행을 막는다.
+      if (!canClear) {
         return;
       }
 
@@ -73,6 +74,10 @@ export const SearchField = React.forwardRef<HTMLInputElement, SearchFieldProps>(
 
       onClear?.();
 
+      // iOS에서는 포커스 복구를 미루면 키보드가 닫힐 수 있다.
+      internalRef.current?.focus();
+
+      // 버튼이 사라지면서 뒤늦게 발생하는 blur 이후에도 포커스를 유지한다.
       requestAnimationFrame(() => {
         internalRef.current?.focus();
       });
@@ -165,10 +170,16 @@ export const SearchField = React.forwardRef<HTMLInputElement, SearchFieldProps>(
             type="button"
             aria-label={clearLabel}
             onPointerDown={(event) => {
-              // 포커스를 유지해 clear 버튼이 click 전에 숨지 않도록 처리
+              // iOS에서는 input이 blur되며 버튼이 사라져 click이 생략될 수 있다.
               event.preventDefault();
+              clear();
             }}
-            onClick={clear}
+            onClick={(event) => {
+              // 포인터 입력은 pointerdown에서, 키보드 입력은 click에서 처리한다.
+              if (event.detail === 0) {
+                clear();
+              }
+            }}
             className={cn(
               'relative flex size-5 shrink-0 items-center justify-center',
               'rounded-full bg-neutral-500 text-white',
