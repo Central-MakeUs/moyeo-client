@@ -18,7 +18,6 @@ describe('SearchField', () => {
     expect(input).toHaveValue('');
     expect(screen.queryByRole('button', { name: '검색어 지우기' })).not.toBeInTheDocument();
     expect(onClear).toHaveBeenCalledOnce();
-    // 지우기 버튼이 사라지면서 포커스를 잃으므로 다음 프레임에 입력으로 되돌린다.
     await waitFor(() => expect(input).toHaveFocus());
   });
 
@@ -41,11 +40,15 @@ describe('SearchField', () => {
     expect(screen.queryByRole('button', { name: '검색어 지우기' })).not.toBeInTheDocument();
   });
 
-  it('지우기 버튼을 누르기 시작해도 input의 포커스를 빼앗지 않는다', () => {
-    render(<SearchField aria-label="검색" defaultValue="강남역" />);
+  // iOS에서는 input이 blur되며 click 전에 버튼이 사라질 수 있다.
+  it('click 없이 pointerdown만으로도 검색어가 지워진다', () => {
+    const onClear = vi.fn();
 
-    const clearButton = screen.getByRole('button', { name: '검색어 지우기' });
+    render(<SearchField aria-label="검색" defaultValue="강남역" onClear={onClear} />);
 
-    expect(fireEvent.pointerDown(clearButton)).toBe(false);
+    fireEvent.pointerDown(screen.getByRole('button', { name: '검색어 지우기' }));
+
+    expect(screen.getByRole('searchbox', { name: '검색' })).toHaveValue('');
+    expect(onClear).toHaveBeenCalledOnce();
   });
 });
