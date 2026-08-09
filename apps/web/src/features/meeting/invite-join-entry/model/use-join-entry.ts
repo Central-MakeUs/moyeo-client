@@ -137,6 +137,14 @@ export function useJoinEntry({
         return;
       }
 
+      // 모임이 사라졌다. 지금 화면이 곧 초대 화면이라, 다시 렌더시키면 서버가 `notFound()`로
+      // 넘겨 초대 404 화면이 뜬다. 여기서 직접 경로를 정하지 않는 이유는 그 판단이 이미
+      // 초대 페이지에 있기 때문이다.
+      if (checked.type === 'not-found') {
+        router.refresh();
+        return;
+      }
+
       router.push(checked.path);
     } finally {
       isCheckingRef.current = false;

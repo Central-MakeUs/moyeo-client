@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-import { fetchInvitationForPage, type InvitePageProps } from '@/_pages/invite';
+import { fetchInvitationOrNull, type InvitePageProps } from '@/_pages/invite';
 import { GuestScheduleTimesPage } from '@/_pages/invite-guest';
 import { SchedulePage } from '@/_pages/invite-participation';
 import { fetchServerToday } from '@/shared/api';
@@ -10,7 +10,7 @@ export default async function RespondSchedulePage({ params }: InvitePageProps) {
 
   // 서로를 기다릴 이유가 없다. 둘 다 없으면 화면을 그릴 수 없어 아래에서 함께 판정한다.
   const [invitation, serverToday] = await Promise.all([
-    fetchInvitationForPage(inviteToken),
+    fetchInvitationOrNull(inviteToken),
     fetchServerToday(),
   ]);
 

@@ -71,14 +71,19 @@
           "backgroundColor": "#fef2f2"
         }
       ],
-      "expo-secure-store",
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": false
+        }
+      ],
       "expo-navigation-bar",
       "expo-notifications",
       "expo-updates",
       [
         "expo-image-picker",
         {
-          "photosPermission": "모임 커버사진을 등록할 때 사용합니다.",
+          "photosPermission": "모임 커버사진을 직접 선택해 등록하기 위해 사진 라이브러리에 접근합니다.",
           "cameraPermission": false,
           "microphonePermission": false
         }
