@@ -83,7 +83,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "모임 커버사진을 직접 선택해 등록하기 위해 사진 라이브러리에 접근합니다.",
+          "photosPermission": "모임 커버사진으로 등록할 이미지를 선택하기 위해 사진 라이브러리에 접근하며, 선택한 사진만 업로드됩니다.",
           "cameraPermission": false,
           "microphonePermission": false
         }
