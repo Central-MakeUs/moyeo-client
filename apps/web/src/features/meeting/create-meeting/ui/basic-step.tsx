@@ -29,7 +29,7 @@ export interface BasicStepProps {
 }
 
 const NAME_MAX = 15;
-const DESCRIPTION_MAX = 100;
+const DESCRIPTION_MAX = 50;
 
 export function BasicStep({ onNext }: BasicStepProps) {
   const draft = useCreateMeetingDraft();

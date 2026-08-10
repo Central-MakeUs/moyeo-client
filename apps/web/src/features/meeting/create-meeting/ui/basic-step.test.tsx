@@ -105,12 +105,12 @@ describe('BasicStep', () => {
     expect(screen.getByText('최대 15자까지 입력할 수 있어요')).toBeInTheDocument();
   });
 
-  it("should show '최대 100자까지 입력할 수 있어요' error when description exceeds 100 characters", () => {
-    useCreateMeetingDraft.setState({ name: '주말 등산', description: 'ㄱ'.repeat(101) });
+  it('모임 설명이 50자를 초과하면 최대 글자 수 에러를 표시한다', () => {
+    useCreateMeetingDraft.setState({ name: '주말 등산', description: 'ㄱ'.repeat(51) });
 
     render(<BasicStep onNext={vi.fn()} />);
 
-    expect(screen.getByText('최대 100자까지 입력할 수 있어요')).toBeInTheDocument();
+    expect(screen.getByText('최대 50자까지 입력할 수 있어요')).toBeInTheDocument();
   });
 
   it('should open the participants picker drawer when the participants field is tapped', async () => {

@@ -92,8 +92,8 @@ export function isStepComplete(step: StepKey, draft: CreateMeetingDraftState): b
         // 이름 필수: trim 1자 이상, 최대 15자
         draft.name.trim().length >= 1 &&
         draft.name.length <= 15 &&
-        // 설명 선택: 있으면 최대 100자
-        draft.description.length <= 100 &&
+        // 설명 선택: 있으면 최대 50자
+        draft.description.length <= 50 &&
         // 인원 필수: 2~20 선택됨
         draft.maxParticipants !== null &&
         draft.maxParticipants >= 2 &&
