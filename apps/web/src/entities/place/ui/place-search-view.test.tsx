@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+
+import { runBackHandlers } from '@/shared/model';
 
 import { PlaceSearchView } from './place-search-view';
 
@@ -9,6 +11,24 @@ const { usePlaceSearch } = vi.hoisted(() => ({
 }));
 
 vi.mock('../model/use-place-search', () => ({ usePlaceSearch }));
+
+// picker 열림 상태는 URL이 소유한다. usePickerRoute는 목킹하지 않고 실제로 돌린다 —
+// 목으로 갈아끼우면 "버튼 → URL → 렌더" 배선이 검증에서 빠진다.
+const { push, back, replace, navigation } = vi.hoisted(() => ({
+  push: vi.fn(),
+  back: vi.fn(),
+  replace: vi.fn(),
+  navigation: {
+    pathname: '/meetings/new/departure/search',
+    searchParams: new URLSearchParams(),
+  },
+}));
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push, back, replace }),
+  usePathname: () => navigation.pathname,
+  useSearchParams: () => navigation.searchParams,
+}));
 
 const SEARCH_RESULT = {
   type: 'PLACE',
@@ -46,6 +66,11 @@ const renderStep = (props?: Partial<React.ComponentProps<typeof PlaceSearchView>
 beforeEach(() => {
   usePlaceSearch.mockReset();
   mockQuery();
+  push.mockClear();
+  back.mockClear();
+  replace.mockClear();
+  navigation.pathname = '/meetings/new/departure/search';
+  navigation.searchParams = new URLSearchParams();
 });
 
 describe('PlaceSearchView', () => {
@@ -75,10 +100,12 @@ describe('PlaceSearchView', () => {
     });
   });
 
-  it('검색어가 비어 있으면 검색 안내를 표시한다', () => {
+  it('검색어가 비어 있으면 출발지 빠른 선택을 표시한다', () => {
     renderStep();
 
-    expect(screen.getByText('서울·경기 내 출발지를 검색해주세요')).toBeInTheDocument();
+    // idle 안내 문구는 DepartureQuickSelect로 대체됐다 (INV-03-A).
+    expect(screen.getByRole('button', { name: /현재 위치로 찾기/ })).toBeInTheDocument();
+    expect(screen.getByText('저장된 출발지')).toBeInTheDocument();
     expect(screen.queryByText(/검색 결과가 없어요/)).not.toBeInTheDocument();
   });
 
@@ -138,5 +165,55 @@ describe('PlaceSearchView', () => {
     await userEvent.click(screen.getByRole('button', { name: '뒤로가기' }));
 
     expect(onBack).toHaveBeenCalledTimes(1);
+  });
+
+  describe('현재 위치로 찾기', () => {
+    const openedByQuery = () => {
+      navigation.searchParams = new URLSearchParams('picker=current');
+    };
+
+    const getPicker = () => screen.getByRole('dialog', { name: '현재 위치 확인' });
+
+    it('"현재 위치로 찾기"를 클릭하면 router.push가 ?picker=current로 1회 호출된다', async () => {
+      renderStep();
+
+      await userEvent.click(screen.getByRole('button', { name: /현재 위치로 찾기/ }));
+
+      expect(push).toHaveBeenCalledTimes(1);
+      expect(push).toHaveBeenCalledWith('/meetings/new/departure/search?picker=current');
+    });
+
+    it('URL이 ?picker=current면 위치 확인 화면이 렌더되고 검색 입력 필드가 그대로 남아 있다', () => {
+      openedByQuery();
+
+      renderStep();
+
+      expect(getPicker()).toBeInTheDocument();
+      // 검색 본문을 언마운트하지 않는다 — 입력값이 날아가고 복귀 시 깜빡인다 (R3).
+      expect(screen.getByRole('search')).toBeInTheDocument();
+    });
+
+    // URL을 직접 세팅한 것은 §4-5의 "직접 진입"이라 되감을 항목이 없다 — replace로 닫는다.
+    // push로 열고 back으로 닫는 경로는 use-picker-route.test.ts가 잡는다.
+    it('?picker=current로 직접 진입한 상태에서 위치 확인 화면의 뒤로가기를 클릭하면 router.replace로 닫히고 onSelect는 호출되지 않는다', async () => {
+      openedByQuery();
+      const onSelect = vi.fn();
+      renderStep({ onSelect });
+
+      await userEvent.click(within(getPicker()).getByRole('button', { name: '뒤로가기' }));
+
+      expect(replace).toHaveBeenCalledTimes(1);
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('?picker=current에서 runBackHandlers()를 실행하면 picker의 닫기 경로를 타고 onBack은 호출되지 않는다', () => {
+      openedByQuery();
+      const onBack = vi.fn();
+      renderStep({ onBack });
+
+      expect(runBackHandlers()).toBe(true);
+      expect(replace).toHaveBeenCalledTimes(1);
+      expect(onBack).not.toHaveBeenCalled();
+    });
   });
 });
