@@ -109,6 +109,31 @@ export type PickImageResult =
   | { state: 'error' };
 
 /**
+ * 현재 좌표 획득 결과
+ *
+ * 실패 사유마다 안내할 다음 행동이 다르다 — `denied`는 다시 물어볼 수 있지만 `blocked`는
+ * OS 설정을 거쳐야 하고, `servicesDisabled`는 앱 권한과 무관하다. `PickImageResult`와 같은 이유로
+ * 실패를 한 가지로 뭉치지 않는다.
+ *
+ * 앱(브리지)과 브라우저(`navigator.geolocation`)가 이 타입 하나로 수렴한다.
+ * 브리지 메시지는 앱 릴리스(2차)에서 추가한다 — 1차는 브라우저 경로만 쓴다.
+ */
+export type CurrentLocationResult =
+  | {
+      state: 'success';
+      coords: { latitude: number; longitude: number; accuracy: number | null };
+    }
+  /** 사용자가 이번 요청을 거부했다. 다시 물어볼 수 있다. */
+  | { state: 'denied' }
+  /** OS가 더 이상 묻지 않는다(`canAskAgain === false`). 설정에서만 바꿀 수 있다. 네이티브만 생성한다. */
+  | { state: 'blocked' }
+  /** 기기의 위치 서비스 자체가 꺼져 있다. 앱 권한과 무관하다. 네이티브만 생성한다. */
+  | { state: 'servicesDisabled' }
+  /** 권한은 있으나 제한 시간 안에 좌표를 얻지 못했다. */
+  | { state: 'timeout' }
+  | { state: 'error' };
+
+/**
  * 웹에서 네이티브 앱으로 전달하는 메시지
  *
  * 개별 응답을 기다리는 요청은 `requestId`를 전송 메타데이터로 사용한다.
