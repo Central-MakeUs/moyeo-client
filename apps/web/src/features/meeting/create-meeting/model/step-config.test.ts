@@ -177,6 +177,24 @@ describe('isStepComplete', () => {
     );
   });
 
+  it("모임 설명이 정확히 50자이면 'basic' 단계를 완료한다", () => {
+    expect(
+      isStepComplete(
+        'basic',
+        draft({ name: '주말 등산', description: 'ㄱ'.repeat(50), maxParticipants: 6 })
+      )
+    ).toBe(true);
+  });
+
+  it("모임 설명이 50자를 초과하면 'basic' 단계를 완료하지 않는다", () => {
+    expect(
+      isStepComplete(
+        'basic',
+        draft({ name: '주말 등산', description: 'ㄱ'.repeat(51), maxParticipants: 6 })
+      )
+    ).toBe(false);
+  });
+
   it("should return true for 'time-range' when scheduleInputType DATE_AND_TIME and start '09:00' end '18:00'", () => {
     expect(
       isStepComplete(
