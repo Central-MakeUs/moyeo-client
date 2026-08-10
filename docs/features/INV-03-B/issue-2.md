@@ -96,28 +96,28 @@ export function useCurrentLocation(): CurrentLocation;
 
 ### 정상 (happy path)
 
-- [ ] [정상] toCurrentLocationResult — `coords: { latitude: 37.5666805, longitude: 126.9784147, accuracy: 12 }` 를 넘기면 `{ state: 'success', coords: { latitude: 37.5666805, longitude: 126.9784147, accuracy: 12 } }` 를 반환한다
-- [ ] [정상] toCurrentLocationError — `code` 가 `1`(PERMISSION_DENIED)이면 `{ state: 'denied' }` 를 반환한다
-- [ ] [정상] toCurrentLocationError — `code` 가 `3`(TIMEOUT)이면 `{ state: 'timeout' }` 를 반환한다
-- [ ] [정상] useCurrentLocation — 마운트하면 `getCurrentPosition` 이 `{ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }` 옵션으로 정확히 1회 호출된다
-- [ ] [정상] useCurrentLocation — 요청이 끝나기 전에는 `result` 가 `null` 이다
-- [ ] [정상] useCurrentLocation — 성공 콜백이 오면 `result.state` 가 `'success'` 가 된다
-- [ ] [정상] useCurrentLocation — `code` 가 `1` 인 실패 콜백이 오면 `result.state` 가 `'denied'` 가 된다
-- [ ] [정상] useCurrentLocation — 실패한 뒤 `retry()` 를 부르면 `getCurrentPosition` 이 한 번 더 호출되고 `result` 가 다시 `null` 이 된다
-- [ ] [정상] CurrentLocationPicker — 좌표 요청 중이면 `현재 위치를 찾고 있어요` 가 렌더되고 확인 CTA가 비활성이다
+- [x] [정상] toCurrentLocationResult — `coords: { latitude: 37.5666805, longitude: 126.9784147, accuracy: 12 }` 를 넘기면 `{ state: 'success', coords: { latitude: 37.5666805, longitude: 126.9784147, accuracy: 12 } }` 를 반환한다
+- [x] [정상] toCurrentLocationError — `code` 가 `1`(PERMISSION_DENIED)이면 `{ state: 'denied' }` 를 반환한다
+- [x] [정상] toCurrentLocationError — `code` 가 `3`(TIMEOUT)이면 `{ state: 'timeout' }` 를 반환한다
+- [x] [정상] useCurrentLocation — 마운트하면 `getCurrentPosition` 이 `{ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }` 옵션으로 정확히 1회 호출된다
+- [x] [정상] useCurrentLocation — 요청이 끝나기 전에는 `result` 가 `null` 이다
+- [x] [정상] useCurrentLocation — 성공 콜백이 오면 `result.state` 가 `'success'` 가 된다
+- [x] [정상] useCurrentLocation — `code` 가 `1` 인 실패 콜백이 오면 `result.state` 가 `'denied'` 가 된다
+- [x] [정상] useCurrentLocation — 실패한 뒤 `retry()` 를 부르면 `getCurrentPosition` 이 한 번 더 호출되고 `result` 가 다시 `null` 이 된다
+- [x] [정상] CurrentLocationPicker — 좌표 요청 중이면 `현재 위치를 찾고 있어요` 가 렌더되고 확인 CTA가 비활성이다
 
 ### 경계 (boundary)
 
-- [ ] [경계] toCurrentLocationResult — `accuracy` 가 `null` 이면 `coords.accuracy` 가 `null` 인 success를 반환한다
-- [ ] [경계] toCurrentLocationError — `code` 가 `2`(POSITION_UNAVAILABLE)이면 `{ state: 'error' }` 를 반환한다
-- [ ] [경계] useCurrentLocation — 요청이 끝나기 전에 `retry()` 를 부르면 `getCurrentPosition` 이 추가로 호출되지 않는다
+- [x] [경계] toCurrentLocationResult — `accuracy` 가 `null` 이면 `coords.accuracy` 가 `null` 인 success를 반환한다
+- [x] [경계] toCurrentLocationError — `code` 가 `2`(POSITION_UNAVAILABLE)이면 `{ state: 'error' }` 를 반환한다
+- [x] [경계] useCurrentLocation — 요청이 끝나기 전에 `retry()` 를 부르면 `getCurrentPosition` 이 추가로 호출되지 않는다
 
 ### 예외 (exception)
 
-- [ ] [예외] toCurrentLocationError — 알 수 없는 `code`(예 `99`)면 `{ state: 'error' }` 를 반환한다
-- [ ] [예외] useCurrentLocation — `navigator.geolocation` 이 없으면 `result.state` 가 `'error'` 가 되고 `getCurrentPosition` 을 호출하지 않는다
-- [ ] [예외] CurrentLocationPicker — `denied` 면 `다시 시도` 와 `검색으로 돌아가기` 가 렌더되고 지도는 렌더되지 않는다
-- [ ] [예외] CurrentLocationPicker — `timeout` 에서 `다시 시도` 를 클릭하면 좌표를 다시 요청한다
+- [x] [예외] toCurrentLocationError — 알 수 없는 `code`(예 `99`)면 `{ state: 'error' }` 를 반환한다
+- [x] [예외] useCurrentLocation — `navigator.geolocation` 이 없으면 `result.state` 가 `'error'` 가 되고 `getCurrentPosition` 을 호출하지 않는다
+- [x] [예외] CurrentLocationPicker — `denied` 면 `다시 시도` 와 `검색으로 돌아가기` 가 렌더되고 지도는 렌더되지 않는다
+- [x] [예외] CurrentLocationPicker — `timeout` 에서 `다시 시도` 를 클릭하면 좌표를 다시 요청한다
 
 ## AC 커버리지
 
