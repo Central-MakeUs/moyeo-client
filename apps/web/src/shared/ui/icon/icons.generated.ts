@@ -25,6 +25,7 @@ import Close from '@/shared/assets/icons/close.svg';
 import Confetti from '@/shared/assets/icons/confetti.svg';
 import Edit from '@/shared/assets/icons/edit.svg';
 import Envelope from '@/shared/assets/icons/envelope.svg';
+import Error from '@/shared/assets/icons/error.svg';
 import EyeOff from '@/shared/assets/icons/eye-off.svg';
 import Eye from '@/shared/assets/icons/eye.svg';
 import Feedback from '@/shared/assets/icons/feedback.svg';
@@ -47,6 +48,7 @@ import MoyeoLogo from '@/shared/assets/icons/moyeo-logo.svg';
 import NotePrimary from '@/shared/assets/icons/note-primary.svg';
 import Note from '@/shared/assets/icons/note.svg';
 import Person from '@/shared/assets/icons/person.svg';
+import PinnedNeutral from '@/shared/assets/icons/pinned-neutral.svg';
 import PinnedPrimary from '@/shared/assets/icons/pinned-primary.svg';
 import Pinned from '@/shared/assets/icons/pinned.svg';
 import Plane from '@/shared/assets/icons/plane.svg';
@@ -80,6 +82,7 @@ export const ICONS = {
   confetti: Confetti,
   edit: Edit,
   envelope: Envelope,
+  error: Error,
   'eye-off': EyeOff,
   eye: Eye,
   feedback: Feedback,
@@ -102,6 +105,7 @@ export const ICONS = {
   'note-primary': NotePrimary,
   note: Note,
   person: Person,
+  'pinned-neutral': PinnedNeutral,
   'pinned-primary': PinnedPrimary,
   pinned: Pinned,
   plane: Plane,
