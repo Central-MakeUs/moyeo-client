@@ -14,11 +14,30 @@ export interface KakaoMap {
   relayout: () => void;
 }
 
+/** `coord2Address` 응답 1건. 카카오 응답 필드명을 그대로 쓴다. */
+export interface Coord2AddressDocument {
+  road_address: { address_name: string } | null;
+  address: { address_name: string; region_1depth_name: string } | null;
+}
+
+export interface KakaoGeocoder {
+  /** ⚠️ 카카오는 **경도가 먼저**다. 뒤집으면 엉뚱한 주소가 조용히 온다. */
+  coord2Address: (
+    longitude: number,
+    latitude: number,
+    callback: (result: Coord2AddressDocument[], status: string) => void
+  ) => void;
+}
+
 export interface KakaoMaps {
   LatLng: new (latitude: number, longitude: number) => KakaoLatLng;
   Map: new (container: HTMLElement, options: { center: KakaoLatLng; level: number }) => KakaoMap;
   event: {
     addListener: (target: KakaoMap, type: string, handler: () => void) => void;
+  };
+  services: {
+    Geocoder: new () => KakaoGeocoder;
+    Status: { OK: string };
   };
 }
 
