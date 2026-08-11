@@ -8,8 +8,12 @@ const apiBaseUrl =
     ? apiProxyPath || process.env.NEXT_PUBLIC_API_BASE_URL
     : process.env.NEXT_PUBLIC_API_BASE_URL;
 
+/** 사용자가 복구 UI 없이 요청을 무기한 기다리지 않도록 하는 공통 상한. */
+export const API_REQUEST_TIMEOUT_MS = 15_000;
+
 export const AXIOS_INSTANCE = Axios.create({
   baseURL: apiBaseUrl,
+  timeout: API_REQUEST_TIMEOUT_MS,
 });
 
 /**

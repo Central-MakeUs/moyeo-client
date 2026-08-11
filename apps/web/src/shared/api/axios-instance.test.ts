@@ -63,3 +63,17 @@ describe('toApiAssetUrl', () => {
     expect(toApiAssetUrl('/api/cover.jpg')).toBe('/api/cover.jpg');
   });
 });
+
+describe('AXIOS_INSTANCE', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it('응답이 끝나지 않는 요청을 15초 뒤 중단한다', async () => {
+    const { API_REQUEST_TIMEOUT_MS, AXIOS_INSTANCE } = await importWith('/backend-api');
+
+    expect(API_REQUEST_TIMEOUT_MS).toBe(15_000);
+    expect(AXIOS_INSTANCE.defaults.timeout).toBe(API_REQUEST_TIMEOUT_MS);
+  });
+});

@@ -23,7 +23,7 @@ export interface SpinnerProps extends Omit<
  *
  * 화면 구조를 미리 그릴 수 있는 페이지 로딩에는 Spinner보다 Skeleton을 우선합니다.
  */
-export function Spinner({ size = 'lg', label = '불러오는 중', className, ...props }: SpinnerProps) {
+export function Spinner({ size = 'md', label = '불러오는 중', className, ...props }: SpinnerProps) {
   return (
     <span
       role="status"
