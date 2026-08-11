@@ -3,9 +3,21 @@
 import { useRef, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { writeGuestSession } from '@/entities/guest-session';
-import { joinGuest, joinMember, type MeetingInvitationResponsePlanningType } from '@/shared/api';
+import {
+  getGetGuestParticipationQueryKey,
+  getGetInvitationQueryKey,
+  getGetMeetingViewQueryKey,
+  getGetMyMeetingsQueryKey,
+  getGetMyParticipationQueryKey,
+  getGetPlaceViewQueryKey,
+  getGetScheduleViewQueryKey,
+  joinGuest,
+  joinMember,
+  type MeetingInvitationResponsePlanningType,
+} from '@/shared/api';
 import { toast } from '@/shared/ui';
 
 import { isParticipationDraftComplete } from './is-participation-draft-complete';
@@ -44,6 +56,7 @@ export function useSubmitParticipation({
   planningType,
 }: UseSubmitParticipationParams): UseSubmitParticipationReturn {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
 
@@ -72,6 +85,23 @@ export function useSubmitParticipation({
         writeGuestSession(inviteCode, identity.nickname);
       } else {
         await joinMember(inviteCode, toMemberJoinRequest({ identity, ...draft }));
+      }
+
+      const staleKeys: readonly (readonly unknown[])[] = [
+        getGetMeetingViewQueryKey(inviteCode),
+        // params 없는 키로 정렬별 일정 캐시를 함께 무효화한다.
+        getGetScheduleViewQueryKey(inviteCode),
+        getGetPlaceViewQueryKey(inviteCode),
+        getGetInvitationQueryKey(inviteCode),
+        identity.kind === 'guest'
+          ? getGetGuestParticipationQueryKey(inviteCode, identity.nickname)
+          : getGetMyParticipationQueryKey(inviteCode),
+        ...(identity.kind === 'member' ? [getGetMyMeetingsQueryKey()] : []),
+      ];
+
+      // 이동 직전 재조회는 시작하지 않고, 다음 화면에서 최신 값을 읽도록 stale 표시만 남긴다.
+      for (const queryKey of staleKeys) {
+        void queryClient.invalidateQueries({ queryKey, refetchType: 'none' });
       }
 
       router.replace(participationCompletePath(inviteCode));
