@@ -11,6 +11,7 @@ export type LoginErrorReason =
   | 'cancelled' // 사용자가 공급자 화면에서 취소
   | 'state_mismatch' // 저장한 state와 불일치 (CSRF 방어 또는 트랜잭션 유실)
   | 'no_code' // 공급자가 인가 코드를 주지 않음
+  | 'timed_out' // 토큰 교환이 제한 시간 안에 끝나지 않음
   | 'exchange_failed' // 서버 토큰 교환 실패
   | 'start_failed' // 로그인 시작 자체가 실패 (state/nonce 생성 불가 등)
   | 'unsupported_provider'; // 지원하지 않는 공급자 경로
@@ -21,6 +22,7 @@ const MESSAGES: Record<LoginErrorReason, string> = {
   cancelled: '로그인을 취소했어요.',
   state_mismatch: '로그인 요청이 만료됐어요. 다시 시도해 주세요.',
   no_code: '로그인 정보를 받지 못했어요. 다시 시도해 주세요.',
+  timed_out: '로그인 처리 시간이 초과됐어요. 네트워크 연결을 확인하고 다시 시도해 주세요.',
   exchange_failed: '로그인에 실패했어요. 잠시 후 다시 시도해 주세요.',
   start_failed: '로그인을 시작하지 못했어요. 다시 시도해 주세요.',
   unsupported_provider: '지원하지 않는 로그인 방식이에요.',
