@@ -17,6 +17,21 @@ async function importWith(proxyPath?: string) {
   return import('./axios-instance');
 }
 
+describe('AXIOS_INSTANCE', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it('응답이 오지 않는 요청이 영원히 남지 않도록 타임아웃을 건다', async () => {
+    const { AXIOS_INSTANCE, REQUEST_TIMEOUT_MS } = await importWith('/backend-api');
+
+    // axios는 0(기본값)을 "무한 대기"로 다룬다. 그러면 실패 처리 자체가 호출되지 않는다.
+    expect(REQUEST_TIMEOUT_MS).toBeGreaterThan(0);
+    expect(AXIOS_INSTANCE.defaults.timeout).toBe(REQUEST_TIMEOUT_MS);
+  });
+});
+
 describe('toApiAssetUrl', () => {
   beforeEach(() => {
     vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.example.com');

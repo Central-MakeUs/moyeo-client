@@ -8,8 +8,24 @@ const apiBaseUrl =
     ? apiProxyPath || process.env.NEXT_PUBLIC_API_BASE_URL
     : process.env.NEXT_PUBLIC_API_BASE_URL;
 
+/**
+ * 요청 하나가 응답을 기다리는 최대 시간.
+ *
+ * axios 기본값은 무한이라, 응답이 오지 않는 요청은 영원히 pending으로 남는다. 그러면
+ * 실패 처리(`onError`·`isError`)가 **아예 호출되지 않아** 화면이 스플래시에 고착된다.
+ * 오류 처리가 없어서가 아니라 오류가 발생하지 않아서 생기는 고착이다.
+ *
+ * 프로덕션에서는 브라우저가 백엔드를 직접 호출하므로(`NEXT_PUBLIC_API_PROXY_PATH` 미사용)
+ * 중간에 끊어줄 계층이 없다. 이 값이 클라이언트가 가진 유일한 상한이다.
+ *
+ * 값은 서버의 정상 실패 시간보다 넉넉히 잡는다. 서버가 스스로 끊고 사유가 담긴 오류를
+ * 주는 편이 항상 낫고, 이 타임아웃은 그마저도 오지 않을 때만 동작해야 한다.
+ */
+export const REQUEST_TIMEOUT_MS = 15_000;
+
 export const AXIOS_INSTANCE = Axios.create({
   baseURL: apiBaseUrl,
+  timeout: REQUEST_TIMEOUT_MS,
 });
 
 /**
