@@ -12,7 +12,7 @@ export default function PrivacyPage() {
 
       <main className="min-h-0 flex-1 overflow-y-auto px-5 py-6">
         <article className="flex flex-col pb-10 break-keep text-neutral-600">
-          <p className="mb-8 text-medium-12 text-neutral-500">최종 수정 일자: 2026.08.09</p>
+          <p className="mb-8 text-medium-12 text-neutral-500">최종 수정 일자: 2026.08.11</p>
 
           <div className="flex flex-col gap-8">
             <PolicySection label="1." title="수집하는 개인정보 항목">
@@ -66,8 +66,8 @@ export default function PrivacyPage() {
 
             <PolicySection label="3." title="이미지 파일 및 정보의 처리">
               <p className="text-medium-14">
-                모임 커버 사진 및 모임 사진은 사진 라이브러리 접근 권한을 통해 이용자가 직접 선택한
-                파일만 수집하며, 선택하지 않은 사진은 열람하지 않습니다.
+                모임 커버사진은 사진 라이브러리 접근 권한을 통해 이용자가 직접 선택한 파일만
+                수집하며, 선택하지 않은 사진은 열람하지 않습니다.
               </p>
 
               <p className="text-medium-14">
@@ -96,6 +96,19 @@ export default function PrivacyPage() {
                 회원 탈퇴 요청 시 수집된 개인정보를 즉시 삭제하며, 이용자가 생성한 모임 정보 및 참여
                 데이터도 함께 삭제됩니다.
               </p>
+
+              <p className="mt-2 text-semibold-14 text-neutral-800">탈퇴 시 모임 데이터 처리</p>
+
+              <ul className="flex list-disc flex-col gap-2 pl-4 text-medium-14 marker:text-neutral-300">
+                <li>
+                  이용자가 생성한 모임은 삭제되며, 해당 모임의 참여자에게도 더 이상 표시되지
+                  않습니다.
+                </li>
+                <li>
+                  참여자로만 속한 모임에서는 해당 이용자의 정보만 삭제되며, 모임 자체는 유지됩니다.
+                </li>
+                <li>삭제된 데이터는 복구할 수 없습니다.</li>
+              </ul>
             </PolicySection>
 
             <PolicySection label="6." title="제3자 제공">
@@ -114,14 +127,26 @@ export default function PrivacyPage() {
             <PolicySection label="7." title="이용자의 권리">
               <p className="text-medium-14">
                 이용자는 언제든지 자신의 개인정보에 대해 열람, 수정, 삭제를 요청할 수 있습니다. 앱
-                내 회원 탈퇴 기능을 통해 계정과 관련 데이터를 직접 삭제할 수 있으며, 아래 이메일로
-                문의하실 수도 있습니다.
+                내 회원 탈퇴 기능을 통해 계정과 관련 데이터를 직접 삭제할 수 있으며, 앱을 설치하지
+                않은 상태에서도 이메일로 삭제를 요청할 수 있습니다.
               </p>
+
+              <p className="mt-2 text-semibold-14 text-neutral-800">탈퇴 방법</p>
+
+              <ul className="flex list-disc flex-col gap-2 pl-4 text-medium-14 marker:text-neutral-300">
+                <li>앱 내: 마이페이지 → 도움말 → 회원 탈퇴</li>
+                <li className="break-keep">
+                  앱 없이 요청: <span className="break-all">moyeo.contact@gmail.com</span> 으로 가입
+                  시 사용한 소셜 로그인 종류(카카오/Apple)와 서비스 내 닉네임을 보내주시면, 영업일
+                  기준 7일 이내에 삭제 처리 후 회신드립니다.
+                </li>
+              </ul>
             </PolicySection>
 
             <PolicySection label="8." title="개인정보 보호책임자">
               <ul className="flex list-disc flex-col gap-2 pl-4 text-medium-14 marker:text-neutral-300">
                 <li>서비스명: 모여(MOYEO)</li>
+                <li>개인정보 보호책임자: 김세린</li>
                 <li className="break-all">이메일: moyeo.contact@gmail.com</li>
               </ul>
             </PolicySection>
