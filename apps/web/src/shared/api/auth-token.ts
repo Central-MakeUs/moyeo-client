@@ -35,7 +35,7 @@ export function notifyUnauthorized(): void {
 /**
  * 로그인 시도 자체의 실패는 세션 만료가 아니므로 401 처리 대상에서 제외
  */
-const UNAUTHORIZED_EXEMPT_PATHS = ['/api/auth/dev/tokens', '/api/auth/apple'];
+const UNAUTHORIZED_EXEMPT_PATHS = ['/api/auth/dev/tokens', '/api/auth/apple', '/api/auth/kakao'];
 
 export function isUnauthorizedExempt(url: string | undefined): boolean {
   if (!url) return false;
