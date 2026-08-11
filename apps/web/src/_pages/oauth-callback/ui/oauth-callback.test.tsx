@@ -226,9 +226,11 @@ describe('OAuthCallbackPage Apple 로그인', () => {
     render(<OAuthCallbackPage />);
     await act(async () => {});
 
-    mocks.appleMutation?.onSuccess?.({
-      accessToken: 'access-token',
-      user: { id: 1, nickname: '모여', onboardingCompleted: true },
+    await act(async () => {
+      mocks.appleMutation?.onSuccess?.({
+        accessToken: 'access-token',
+        user: { id: 1, nickname: '모여', onboardingCompleted: true },
+      });
     });
     expect(mocks.replace).toHaveBeenCalledWith('/');
 

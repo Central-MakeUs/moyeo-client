@@ -138,6 +138,8 @@ describe('ProtectedGuard', () => {
     renderGuard();
 
     expect(screen.queryByText('보호된 화면')).not.toBeInTheDocument();
+    expect(screen.getByText(/로그인 상태를 확인하지 못했어요/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '다시 시도' })).toBeInTheDocument();
     expect(replace).not.toHaveBeenCalled();
   });
 });
