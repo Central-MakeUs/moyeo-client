@@ -76,7 +76,7 @@ export function MapLocationPicker(props: MapLocationPickerProps): React.JSX.Elem
 | 핀 겹침         | 컨테이너에 `isolation: isolate`, 핀에 양의 `z-index`. 없으면 카카오 내부 레이어에 가린다 (스파이크에서 실제로 겪음)                                                                                             |
 | 크기 변경       | `ResizeObserver` 로 감지해 `map.relayout()`. 오버레이라 애니메이션 중 마운트될 수 있다                                                                                                                          |
 | SDK 로드 실패   | 지도 대신 `role="alert"` 안내. 지도 컨테이너는 렌더하지 않는다                                                                                                                                                  |
-| 지도 레벨       | `level: 3` (스파이크 값). 디자인 확정 전까지 모듈 상수                                                                                                                                                          |
+| 지도 레벨       | `level: 1`. 현재 위치 주변을 더 확대해 보여주기 위한 값이며 모듈 상수로 관리한다                                                                                                                                |
 | 중복 로드       | `loadKakaoMapSdk()` 는 스크립트를 한 번만 주입하고 이후 같은 Promise를 돌려준다                                                                                                                                 |
 | 언마운트 경합   | SDK Promise가 언마운트 뒤 resolve되면 `Map` 을 생성하지 않는다                                                                                                                                                  |
 | 키 부재         | `NEXT_PUBLIC_KAKAO_JS_KEY` 가 비어 있으면 주입하지 않고 reject한다                                                                                                                                              |
@@ -86,23 +86,23 @@ export function MapLocationPicker(props: MapLocationPickerProps): React.JSX.Elem
 
 ### 정상 (happy path)
 
-- [ ] [정상] loadKakaoMapSdk — 처음 호출하면 `dapi.kakao.com/v2/maps/sdk.js` 스크립트가 문서에 1개 주입된다
-- [ ] [정상] MapLocationPicker — `center: { latitude: 37.5666805, longitude: 126.9784147 }` 를 넘기면 `LatLng` 이 그 좌표로 생성되고 `Map` 이 그것을 `center` 로 1회 생성된다
-- [ ] [정상] MapLocationPicker — SDK가 준비되면 `aria-label="지도"` 컨테이너와 중앙 핀이 렌더된다
-- [ ] [정상] MapLocationPicker — 컨테이너 크기가 바뀌면 `map.relayout()` 이 1회 호출된다
+- [x] [정상] loadKakaoMapSdk — 처음 호출하면 `dapi.kakao.com/v2/maps/sdk.js` 스크립트가 문서에 1개 주입된다
+- [x] [정상] MapLocationPicker — `center: { latitude: 37.5666805, longitude: 126.9784147 }` 를 넘기면 `LatLng` 이 그 좌표로 생성되고 `Map` 이 그것을 `center` 로 1회 생성된다
+- [x] [정상] MapLocationPicker — SDK가 준비되면 `aria-label="지도"` 컨테이너와 중앙 핀이 렌더된다
+- [x] [정상] MapLocationPicker — 컨테이너 크기가 바뀌면 `map.relayout()` 이 1회 호출된다
 
 ### 경계 (boundary)
 
-- [ ] [경계] loadKakaoMapSdk — 두 번 호출해도 스크립트를 다시 주입하지 않고 같은 Promise를 돌려준다
-- [ ] [경계] MapLocationPicker — `center` 가 바뀌어 리렌더돼도 `Map` 을 다시 생성하지 않는다
-- [ ] [경계] MapLocationPicker — SDK Promise가 언마운트 뒤에 resolve되면 `Map` 을 생성하지 않는다
+- [x] [경계] loadKakaoMapSdk — 두 번 호출해도 스크립트를 다시 주입하지 않고 같은 Promise를 돌려준다
+- [x] [경계] MapLocationPicker — `center` 가 바뀌어 리렌더돼도 `Map` 을 다시 생성하지 않는다
+- [x] [경계] MapLocationPicker — SDK Promise가 언마운트 뒤에 resolve되면 `Map` 을 생성하지 않는다
 
 ### 예외 (exception)
 
-- [ ] [예외] loadKakaoMapSdk — 스크립트 로드가 실패하면 reject된다
-- [ ] [예외] loadKakaoMapSdk — `NEXT_PUBLIC_KAKAO_JS_KEY` 가 비어 있으면 스크립트를 주입하지 않고 reject된다
-- [ ] [예외] loadKakaoMapSdk — `maps.load()` 콜백이 오지 않으면 제한 시간 뒤 reject된다
-- [ ] [예외] MapLocationPicker — SDK 로드가 실패하면 `role="alert"` 이 렌더되고 `aria-label="지도"` 는 렌더되지 않는다
+- [x] [예외] loadKakaoMapSdk — 스크립트 로드가 실패하면 reject된다
+- [x] [예외] loadKakaoMapSdk — `NEXT_PUBLIC_KAKAO_JS_KEY` 가 비어 있으면 스크립트를 주입하지 않고 reject된다
+- [x] [예외] loadKakaoMapSdk — `maps.load()` 콜백이 오지 않으면 제한 시간 뒤 reject된다
+- [x] [예외] MapLocationPicker — SDK 로드가 실패하면 `role="alert"` 이 렌더되고 `aria-label="지도"` 는 렌더되지 않는다
 
 ## AC 커버리지
 
@@ -113,7 +113,7 @@ export function MapLocationPicker(props: MapLocationPickerProps): React.JSX.Elem
 | AC-3 | 통합 | [예외] MapLocationPicker — SDK 실패 시 `role="alert"`, 지도 미렌더                         |
 | AC-4 | 단위 | [정상] MapLocationPicker — 크기 변경 시 `relayout()` 1회                                   |
 
-시나리오 10개 = 로더 4 + 컴포넌트 6.
+시나리오 11개 = 로더 5 + 컴포넌트 6.
 
 > **AC-2의 "핀이 지도보다 위에 그려진다"는 테스트로 강제하지 않는다.** jsdom이 레이아웃을
 > 계산하지 않아 클래스 존재로 대신할 수밖에 없는데, 그건 구현 세부를 박제하는 약한 테스트다.
