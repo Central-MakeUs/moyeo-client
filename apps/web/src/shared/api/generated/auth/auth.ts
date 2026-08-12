@@ -26,6 +26,7 @@ import type {
   AuthResponse,
   AuthUserResponse,
   KakaoLoginRequest,
+  KakaoNativeLoginRequest,
 } from '../schemas';
 
 import { customInstance } from '../../axios-instance';
@@ -133,6 +134,94 @@ export const useLoginKakao = <TError = ErrorType<unknown>, TContext = unknown>(
   TContext
 > => {
   return useMutation(getLoginKakaoMutationOptions(options), queryClient);
+};
+/**
+ * 네이티브 앱이 카카오 SDK로 발급받은 Access Token을 전달합니다.
+ * 서버는 토큰으로 카카오 사용자 정보를 조회해 회원번호를 확인한 뒤 Moyeo Access Token을 발급합니다.
+ * 카카오 Access Token은 로그인 요청 처리 후 저장하지 않습니다.
+ * 브라우저 로그인은 별도 `POST /api/auth/kakao` API를 사용합니다.
+ * @summary 카카오 네이티브 SDK 로그인
+ */
+export const loginKakaoNative = (
+  kakaoNativeLoginRequest: BodyType<KakaoNativeLoginRequest>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<AuthResponse>(
+    {
+      url: `/api/auth/kakao/native`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: kakaoNativeLoginRequest,
+      signal,
+    },
+    options
+  );
+};
+
+export const getLoginKakaoNativeMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof loginKakaoNative>>,
+    TError,
+    { data: BodyType<KakaoNativeLoginRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof loginKakaoNative>>,
+  TError,
+  { data: BodyType<KakaoNativeLoginRequest> },
+  TContext
+> => {
+  const mutationKey = ['loginKakaoNative'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof loginKakaoNative>>,
+    { data: BodyType<KakaoNativeLoginRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return loginKakaoNative(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type LoginKakaoNativeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof loginKakaoNative>>
+>;
+export type LoginKakaoNativeMutationBody = BodyType<KakaoNativeLoginRequest>;
+export type LoginKakaoNativeMutationError = ErrorType<unknown>;
+
+/**
+ * @summary 카카오 네이티브 SDK 로그인
+ */
+export const useLoginKakaoNative = <TError = ErrorType<unknown>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof loginKakaoNative>>,
+      TError,
+      { data: BodyType<KakaoNativeLoginRequest> },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof loginKakaoNative>>,
+  TError,
+  { data: BodyType<KakaoNativeLoginRequest> },
+  TContext
+> => {
+  return useMutation(getLoginKakaoNativeMutationOptions(options), queryClient);
 };
 /**
  * 프론트가 Apple GET 콜백에서 받은 일회용 code, 로그인 요청 전에 만든 nonce, 콜백 환경 식별자를 전달합니다.

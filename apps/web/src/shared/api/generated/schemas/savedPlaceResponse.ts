@@ -5,6 +5,7 @@
  * CMC Moyeo MVP server API
  * OpenAPI spec version: v1
  */
+import type { SavedPlaceResponseCategory } from './savedPlaceResponseCategory';
 import type { SavedPlaceResponseType } from './savedPlaceResponseType';
 
 /**
@@ -17,6 +18,8 @@ export interface SavedPlaceResponse {
   alias?: string;
   /** 원본 검색 결과 유형입니다. `STATION`은 지하철역, `ADDRESS`는 도로명·지번주소, `PLACE`는 상호·시설 등 일반 장소를 의미합니다. */
   type?: SavedPlaceResponseType;
+  /** 회원이 지정한 장소 용도입니다. 프론트엔드는 이 값으로 아이콘을 표시합니다. */
+  category?: SavedPlaceResponseCategory;
   /** 검색 결과의 원본 표시명 */
   displayName?: string;
   /** 대표 주소 */

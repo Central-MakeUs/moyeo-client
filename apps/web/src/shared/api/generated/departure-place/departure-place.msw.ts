@@ -10,7 +10,7 @@ import { faker } from '@faker-js/faker';
 import { HttpResponse, http } from 'msw';
 import type { RequestHandlerOptions } from 'msw';
 
-import type { DeparturePlaceSearchResponse } from '../schemas';
+import type { DeparturePlaceSearchResponse, ReverseGeocodingResponse } from '../schemas';
 
 import { getResultMock } from '../schemas/index.faker';
 
@@ -21,6 +21,20 @@ export const getSearchResponseMock = (
     Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
       ...getResultMock(),
     })),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getReverseGeocodeResponseMock = (
+  overrideResponse: Partial<Extract<ReverseGeocodingResponse, object>> = {}
+): ReverseGeocodingResponse => ({
+  roadAddress: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  jibunAddress: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
   ...overrideResponse,
@@ -49,4 +63,28 @@ export const getSearchMockHandler = (
     options
   );
 };
-export const getDeparturePlaceMock = () => [getSearchMockHandler()];
+
+export const getReverseGeocodeMockHandler = (
+  overrideResponse?:
+    | ReverseGeocodingResponse
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0]
+      ) => Promise<ReverseGeocodingResponse> | ReverseGeocodingResponse),
+  options?: RequestHandlerOptions
+) => {
+  return http.get(
+    '*/api/departure-places/reverse-geocodes',
+    async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+      return HttpResponse.json(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getReverseGeocodeResponseMock(),
+        { status: 200 }
+      );
+    },
+    options
+  );
+};
+export const getDeparturePlaceMock = () => [getSearchMockHandler(), getReverseGeocodeMockHandler()];
