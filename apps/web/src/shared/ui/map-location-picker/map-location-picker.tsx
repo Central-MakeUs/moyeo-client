@@ -3,7 +3,7 @@
 import * as React from 'react';
 
 import { cn } from '@/shared/lib/cn';
-import { loadKakaoMapSdk, type KakaoMap } from '@/shared/lib/kakao-map-sdk';
+import { loadKakaoMapSdk, type KakaoMap, type KakaoMaps } from '@/shared/lib/kakao-map-sdk';
 import { Icon } from '@/shared/ui/icon';
 
 /** 지도 생성 시 적용하는 확대 수준. 숫자가 작을수록 더 확대된다. */
@@ -18,11 +18,18 @@ export interface Coords {
 /**
  * - `center`: 지도를 처음 생성할 때 사용할 중심 좌표
  * - `onMoveStart`: 드래그/줌 시작 시 호출되는 핸들러
- * - `onIdle`: 카메라 이동이 끝나면 실제 중앙 좌표를 읽어 상위 컴포넌트에 전달하는 핸들러
+ * - `onIdle`: 지도 이동이 끝나면 실제 중앙 좌표를 읽어 상위 컴포넌트에 전달하는 핸들러
  */
+export interface MapLocationPickerHandle {
+  /** 지도 중심을 좌표로 옮긴다. 지도 생성 전이거나 이미 그 좌표면 아무것도 하지 않는다. */
+  moveTo: (coords: Coords) => void;
+}
+
 export interface MapLocationPickerProps {
   /** 지도를 처음 생성할 때 사용할 중심 좌표. */
   center: Coords;
+  /** 부모가 지도 중심을 명령형으로 옮길 때 사용하는 핸들. */
+  ref?: React.Ref<MapLocationPickerHandle>;
   /** 지도 이동이 시작됐다. 직전 주소로 확정되는 것을 막는 신호다. */
   onMoveStart?: () => void;
   /** 이동이 멎으면 화면 중앙의 핀 좌표를 알린다. */
@@ -31,12 +38,20 @@ export interface MapLocationPickerProps {
 
 export function MapLocationPicker({
   center,
+  ref,
   onMoveStart,
   onIdle,
 }: MapLocationPickerProps): React.JSX.Element {
-  /** DOM 요소와 지도 인스턴스 참조. */
+  /** 카카오 지도를 삽입할 DOM 요소. */
   const containerRef = React.useRef<HTMLDivElement>(null); // 카카오 지도를 삽입할 div
-  const mapRef = React.useRef<KakaoMap | null>(null); // 생성된 카카오 지도 인스턴스 보관
+
+  /**
+   * 지도 인스턴스와 SDK 네임스페이스.
+   *
+   * `LatLng` 생성자를 쓰려면 네임스페이스가 필요한데, 둘은 SDK 로드 성공 시 함께 채워지고
+   * 그 전까지 함께 비어 있다. 한 ref에 담아 "한쪽만 있는 상태"가 아예 표현되지 않게 한다.
+   */
+  const mapRuntimeRef = React.useRef<{ map: KakaoMap; maps: KakaoMaps } | null>(null);
 
   const [hasLoadFailed, setHasLoadFailed] = React.useState(false); // 카카오 SDK 로드 실패 여부
 
@@ -54,10 +69,36 @@ export function MapLocationPicker({
   });
 
   /**
+   * 지도 중심을 명령형으로 옮긴다 (F06 현재 위치 재정렬).
+   *
+   * 이미 그 좌표면 아무것도 하지 않는다. `setCenter` 로 지도 중심이 바뀌지 않으면 `idle` 이
+   * 오지 않는데, `onMoveStart` 만 쏘고 나면 이동 중 상태가 풀리지 않고 굳는다.
+   * 갱신은 별도 경로를 만들지 않고 기존 `idle` → `onIdle` 에 합류한다 (§6-4).
+   */
+  React.useImperativeHandle(ref, () => ({
+    moveTo: (coords: Coords) => {
+      const mapRuntime = mapRuntimeRef.current;
+
+      if (mapRuntime === null) return;
+
+      const { map, maps } = mapRuntime;
+      const currentCenter = map.getCenter();
+      const isAlreadyThere =
+        currentCenter.getLat() === coords.latitude && currentCenter.getLng() === coords.longitude;
+
+      if (isAlreadyThere) return;
+
+      setIsMoving(true);
+      onMoveStartRef.current?.();
+      map.setCenter(new maps.LatLng(coords.latitude, coords.longitude));
+    },
+  }));
+
+  /**
    * 컴포넌트가 처음 받은 지도 생성용 좌표를 저장한다.
    *
    * `center` 가 바뀔 때마다 지도를 다시 만들면 사용자가 끌어놓은 위치가 리셋된다.
-   * 카메라를 프로그램적으로 옮기는 것은 F06(현재 위치 재정렬)에서 처리한다.
+   * 지도 중심을 프로그램적으로 옮기는 것은 F06(현재 위치 재정렬)에서 처리한다.
    */
   const initialCenterRef = React.useRef(center);
 
@@ -78,7 +119,7 @@ export function MapLocationPicker({
           level: MAP_LEVEL,
         });
 
-        mapRef.current = map;
+        mapRuntimeRef.current = { map, maps };
 
         // 드래그와 줌을 모두 지도 이동으로 처리한다.
         const handleMoveStart = () => {
@@ -89,7 +130,7 @@ export function MapLocationPicker({
         maps.event.addListener(map, 'dragstart', handleMoveStart);
         maps.event.addListener(map, 'zoom_start', handleMoveStart);
 
-        // `idle` 은 프로그램적 카메라 이동에서도 발생한다. 같은 경로를 탄다 (§6-4).
+        // `idle` 은 프로그램적인 지도 중심 이동에서도 발생한다. 같은 경로를 탄다 (§6-4).
         function handleIdle() {
           setIsMoving(false);
 
@@ -118,7 +159,7 @@ export function MapLocationPicker({
     const container = containerRef.current;
     if (container === null) return;
 
-    const observer = new ResizeObserver(() => mapRef.current?.relayout());
+    const observer = new ResizeObserver(() => mapRuntimeRef.current?.map.relayout());
     observer.observe(container);
 
     return () => observer.disconnect();

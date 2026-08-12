@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import * as React from 'react';
 import { act, render, screen, waitFor } from '@testing-library/react';
 
-import { MapLocationPicker } from './map-location-picker';
+import { MapLocationPicker, type MapLocationPickerHandle } from './map-location-picker';
 
 // jsdom에서 카카오 SDK를 실제로 띄울 수 없다. 검증하는 것은 "우리 코드가 SDK를 올바른
 // 인자로 호출하는가"이지 지도가 그려지는가가 아니다 (issue-3.md 테스트 환경 메모).
@@ -153,5 +154,73 @@ describe('MapLocationPicker', () => {
 
     expect(await screen.findByRole('alert')).toBeInTheDocument();
     expect(screen.queryByLabelText('지도')).not.toBeInTheDocument();
+  });
+
+  describe('moveTo', () => {
+    /** 지도가 만들어진 뒤의 핸들. 목의 현재 중심은 GANGNAM_STATION이다. */
+    const renderWithHandle = async (
+      props?: Partial<React.ComponentProps<typeof MapLocationPicker>>
+    ) => {
+      const ref = React.createRef<MapLocationPickerHandle>();
+      render(<MapLocationPicker ref={ref} center={SEOUL_CITY_HALL} {...props} />);
+      await waitFor(() => expect(KakaoMapConstructor).toHaveBeenCalledTimes(1));
+
+      // 지도 생성에서 이미 한 번 불린 LatLng을 걷어내고 moveTo만 본다.
+      LatLng.mockClear();
+
+      return ref;
+    };
+
+    it('ref.moveTo({ latitude: 37.5666805, longitude: 126.9784147 })를 호출하면 LatLng이 그 좌표로 생성되고 map.setCenter가 1회 호출된다', async () => {
+      const ref = await renderWithHandle();
+
+      act(() => ref.current?.moveTo(SEOUL_CITY_HALL));
+
+      expect(LatLng).toHaveBeenCalledWith(37.5666805, 126.9784147);
+      expect(map.setCenter).toHaveBeenCalledTimes(1);
+    });
+
+    it('ref.moveTo로 다른 좌표를 넘기면 onMoveStart가 1회 호출된다', async () => {
+      const onMoveStart = vi.fn();
+      const ref = await renderWithHandle({ onMoveStart });
+
+      act(() => ref.current?.moveTo(SEOUL_CITY_HALL));
+
+      // 프로그램적 이동도 사용자 드래그와 같은 경로를 타야 확정이 막힌다 (§6-4).
+      expect(onMoveStart).toHaveBeenCalledTimes(1);
+    });
+
+    it('현재 지도 중심과 같은 좌표로 moveTo를 호출하면 map.setCenter와 onMoveStart가 모두 호출되지 않는다', async () => {
+      const onMoveStart = vi.fn();
+      const ref = await renderWithHandle({ onMoveStart });
+
+      // 카메라가 움직이지 않으면 idle이 오지 않는다. onMoveStart만 쏘면 이동 중 상태가 굳는다.
+      act(() => ref.current?.moveTo(GANGNAM_STATION));
+
+      expect(map.setCenter).not.toHaveBeenCalled();
+      expect(onMoveStart).not.toHaveBeenCalled();
+    });
+
+    it('moveTo 뒤 idle이 발생하면 기존 onIdle 경로로 중심 좌표가 전달된다', async () => {
+      const onIdle = vi.fn();
+      const ref = await renderWithHandle({ onIdle });
+
+      act(() => ref.current?.moveTo(SEOUL_CITY_HALL));
+      act(() => mapListeners.get('idle')?.());
+
+      // 재정렬 전용 갱신 경로를 따로 만들지 않는다.
+      expect(onIdle).toHaveBeenCalledTimes(1);
+      expect(onIdle).toHaveBeenCalledWith({ latitude: 37.4979, longitude: 127.0276 });
+    });
+
+    it('지도가 생성되기 전에 moveTo를 호출하면 map.setCenter가 호출되지 않고 에러도 던지지 않는다', () => {
+      // SDK가 아직 준비되지 않은 상태.
+      loadKakaoMapSdk.mockReturnValue(new Promise(() => {}));
+      const ref = React.createRef<MapLocationPickerHandle>();
+      render(<MapLocationPicker ref={ref} center={SEOUL_CITY_HALL} />);
+
+      expect(() => act(() => ref.current?.moveTo(SEOUL_CITY_HALL))).not.toThrow();
+      expect(map.setCenter).not.toHaveBeenCalled();
+    });
   });
 });

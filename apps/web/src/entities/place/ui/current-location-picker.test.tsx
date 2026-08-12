@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import * as React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -18,9 +19,16 @@ const { useReverseGeocode } = vi.hoisted(() => ({ useReverseGeocode: vi.fn() }))
 vi.mock('../model/use-current-location', () => ({ useCurrentLocation }));
 vi.mock('../model/use-reverse-geocode', () => ({ useReverseGeocode }));
 
-// 지도 자체는 슬라이스 3에서 검증했다. 여기서는 렌더 여부만 본다.
+// 지도 자체는 슬라이스 3에서 검증했다. 여기서는 렌더 여부와, 화면이 카메라를 어떻게
+// 명령하는지만 본다. moveTo 구현은 map-location-picker.test.tsx가 검증한다.
+const { moveTo } = vi.hoisted(() => ({ moveTo: vi.fn() }));
+
 vi.mock('@/shared/ui/map-location-picker', () => ({
-  MapLocationPicker: () => <div aria-label="지도" />,
+  MapLocationPicker: ({ ref }: { ref?: React.Ref<{ moveTo: (coords: unknown) => void }> }) => {
+    React.useImperativeHandle(ref, () => ({ moveTo }));
+
+    return <div aria-label="지도" />;
+  },
 }));
 
 const retry = vi.fn();
@@ -518,6 +526,60 @@ describe('CurrentLocationPicker', () => {
       rerender();
 
       expect(screen.getByText(LOW_ACCURACY_MESSAGE)).toBeInTheDocument();
+    });
+  });
+
+  describe('현재 위치로 이동', () => {
+    const queryRecenterButton = () => screen.queryByRole('button', { name: '현재 위치로 이동' });
+
+    it('좌표를 확보하면 현재 위치로 이동 버튼이 렌더된다', () => {
+      mockLocation(SUCCESS);
+
+      render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />);
+
+      expect(queryRecenterButton()).toBeInTheDocument();
+    });
+
+    it('현재 위치로 이동을 클릭하면 지도의 moveTo가 최초 GPS 좌표로 1회 호출된다', async () => {
+      mockLocation(SUCCESS);
+      // 지도를 옮겨 다른 주소를 보고 있는 상태에서 되돌린다.
+      mockGeocode({
+        lastResult: RESOLVED_SEOUL,
+        requestStatus: 'resolved',
+        canConfirmLocation: true,
+      });
+
+      render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />);
+      await userEvent.click(screen.getByRole('button', { name: '현재 위치로 이동' }));
+
+      expect(moveTo).toHaveBeenCalledTimes(1);
+      expect(moveTo).toHaveBeenCalledWith(SUCCESS.coords);
+    });
+
+    it('현재 위치로 이동을 클릭해도 좌표를 다시 요청하지 않는다', async () => {
+      mockLocation(SUCCESS);
+
+      render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />);
+      await userEvent.click(screen.getByRole('button', { name: '현재 위치로 이동' }));
+
+      // 재요청하면 권한 팝업이 다시 뜬다 (F06).
+      expect(retry).not.toHaveBeenCalled();
+    });
+
+    it('좌표 요청 중이면 현재 위치로 이동 버튼이 렌더되지 않는다', () => {
+      mockLocation(null);
+
+      render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />);
+
+      expect(queryRecenterButton()).not.toBeInTheDocument();
+    });
+
+    it('좌표 획득에 실패하면 현재 위치로 이동 버튼이 렌더되지 않는다', () => {
+      mockLocation({ state: 'denied' });
+
+      render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />);
+
+      expect(queryRecenterButton()).not.toBeInTheDocument();
     });
   });
 });

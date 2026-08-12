@@ -8,7 +8,7 @@ import { cn } from '@/shared/lib/cn';
 import { useBackHandler } from '@/shared/model';
 import { Button } from '@/shared/ui/button';
 import { IconButton } from '@/shared/ui/icon-button';
-import { MapLocationPicker } from '@/shared/ui/map-location-picker';
+import { MapLocationPicker, type MapLocationPickerHandle } from '@/shared/ui/map-location-picker';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { Spinner } from '@/shared/ui/spinner';
 import { TopAppBar } from '@/shared/ui/top-app-bar';
@@ -57,6 +57,9 @@ export function CurrentLocationPicker({
     resolve: resolveAddress,
     retry: retryAddress,
   } = useReverseGeocode(); // 좌표를 주소로 바꾸는 작업 관련 훅
+
+  /** `MapLocationPicker`의 지도 중심 이동 명령을 호출하기 위한 ref. */
+  const mapPickerRef = React.useRef<MapLocationPickerHandle>(null);
 
   // picker가 열려 있는 동안 뒤로가기를 처리하고,
   // 아래 화면으로 전달되지 않도록 true를 반환한다.
@@ -186,8 +189,23 @@ export function CurrentLocationPicker({
         )}
 
         {coords !== null && (
-          <div className="min-h-0 flex-1">
-            <MapLocationPicker center={coords} onMoveStart={startMoving} onIdle={resolveAddress} />
+          <div className="relative min-h-0 flex-1">
+            <MapLocationPicker
+              ref={mapPickerRef}
+              center={coords}
+              onMoveStart={startMoving}
+              onIdle={resolveAddress}
+            />
+
+            {/* 좌표를 다시 요청하지 않고 지도 중심만 최초 위치로 되돌린다 (F06). */}
+            <IconButton
+              icon="current-location"
+              aria-label="현재 위치로 이동"
+              shape="circle"
+              variant="outline"
+              className="absolute right-4 bottom-4 z-10"
+              onClick={() => mapPickerRef.current?.moveTo(coords)}
+            />
           </div>
         )}
 
