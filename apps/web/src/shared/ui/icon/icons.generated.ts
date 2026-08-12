@@ -23,6 +23,7 @@ import CircleInformation from '@/shared/assets/icons/circle-information.svg';
 import Clock from '@/shared/assets/icons/clock.svg';
 import Close from '@/shared/assets/icons/close.svg';
 import Confetti from '@/shared/assets/icons/confetti.svg';
+import CurrentLocation from '@/shared/assets/icons/current-location.svg';
 import Edit from '@/shared/assets/icons/edit.svg';
 import Envelope from '@/shared/assets/icons/envelope.svg';
 import Error from '@/shared/assets/icons/error.svg';
@@ -80,6 +81,7 @@ export const ICONS = {
   clock: Clock,
   close: Close,
   confetti: Confetti,
+  'current-location': CurrentLocation,
   edit: Edit,
   envelope: Envelope,
   error: Error,
