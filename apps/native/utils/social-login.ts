@@ -59,11 +59,13 @@ function isAppleCancelled(error: unknown): boolean {
 
 async function requestAppleToken(nonce?: string): Promise<SocialLoginResult> {
   try {
+    // `requestedScopes`를 넘기지 않는다. 서버는 identityToken의 `sub`만으로 회원을 식별하고
+    // 이름·이메일은 쓰지 않는다. 스코프를 요청하면 최초 가입 시 "이메일 공개/가리기" 선택
+    // 화면이 하나 더 뜨는데, 쓰지도 않을 값 때문에 마찰을 늘리는 셈이다.
+    //
+    // 기존 웹 경로(`buildAppleAuthorizeUrl`)도 scope 파라미터를 보내지 않는다. 두 경로가
+    // 사용자에게 같은 것을 묻도록 맞춘다.
     const credential = await AppleAuthentication.signInAsync({
-      requestedScopes: [
-        AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-        AppleAuthentication.AppleAuthenticationScope.EMAIL,
-      ],
       // Apple은 이 값을 변형 없이 identityToken의 `nonce` 클레임에 담아 돌려준다.
       // 덕분에 서버가 웹 경로와 동일한 규칙으로 검증할 수 있다.
       ...(nonce ? { nonce } : {}),
