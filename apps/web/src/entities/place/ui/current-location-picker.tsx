@@ -13,6 +13,8 @@ import { Skeleton } from '@/shared/ui/skeleton';
 import { Spinner } from '@/shared/ui/spinner';
 import { TopAppBar } from '@/shared/ui/top-app-bar';
 
+import type { DepartureDraft } from '../model/departure-draft';
+import { toDepartureDraft } from '../model/to-departure-draft';
 import { useCurrentLocation } from '../model/use-current-location';
 import { useReverseGeocode, type ReverseGeocodeState } from '../model/use-reverse-geocode';
 
@@ -34,11 +36,16 @@ const FAILURE: Record<FailureState, { message: string; canRetry: boolean }> = {
 };
 
 export interface CurrentLocationPickerProps {
-  /** 선택 없이 위치 확인 화면을 닫는다. 실제 위치 확정은 슬라이스 5에서 연결한다. */
+  /** 선택 없이 위치 확인 화면을 닫는다. */
   onClose: () => void;
+  /** 현재 핀의 확정 가능한 주소를 출발지로 전달한다. */
+  onConfirm: (place: DepartureDraft) => void;
 }
 
-export function CurrentLocationPicker({ onClose }: CurrentLocationPickerProps): React.JSX.Element {
+export function CurrentLocationPicker({
+  onClose,
+  onConfirm,
+}: CurrentLocationPickerProps): React.JSX.Element {
   const { result, retry } = useCurrentLocation(); // 현재 기기의 좌표 관련 훅
   const {
     state: geocode,
@@ -69,6 +76,23 @@ export function CurrentLocationPicker({ onClose }: CurrentLocationPickerProps): 
 
     resolveAddress(coords);
   }, [coords, resolveAddress]);
+
+  /**
+   * 확정 가능한 출발지. 하나라도 어긋나면 `null` 이고 CTA는 비활성이다.
+   *
+   * - `canConfirmLocation` — `lastResult` 가 **현재 핀**의 주소인가 (이동 중·조회 중·실패 중이면 false)
+   * - `toDepartureDraft` — 도로명도 지번도 없으면 확정 주소가 아니다 (§6-2)
+   */
+  const confirmableDraft =
+    geocode.canConfirmLocation && geocode.lastResult !== null
+      ? toDepartureDraft(geocode.lastResult.document, geocode.lastResult.coords)
+      : null;
+
+  const confirmLocation = () => {
+    if (confirmableDraft === null) return;
+
+    onConfirm(confirmableDraft);
+  };
 
   return (
     <div
@@ -132,8 +156,12 @@ export function CurrentLocationPicker({ onClose }: CurrentLocationPickerProps): 
 
             {/* CTA 영역 */}
             <div className="flex w-full flex-col items-center gap-1 pt-5 pb-11">
-              {/* 주소 확정과 CTA 활성화는 슬라이스 5에서 구현한다. */}
-              <Button type="button" fullWidth disabled>
+              <Button
+                type="button"
+                fullWidth
+                disabled={confirmableDraft === null}
+                onClick={confirmLocation}
+              >
                 이 위치로 주소 등록
               </Button>
             </div>

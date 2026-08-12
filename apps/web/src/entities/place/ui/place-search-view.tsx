@@ -12,6 +12,7 @@ import { TopAppBar } from '@/shared/ui/top-app-bar';
 
 import type { DepartureDraft } from '../model/departure-draft';
 import { toPlaceLabel } from '../model/to-place-label';
+import { useDeferredPickerSelection } from '../model/use-deferred-picker-selection';
 import { usePickerRoute } from '../model/use-picker-route';
 import { usePlaceSearch } from '../model/use-place-search';
 import { CurrentLocationPicker } from './current-location-picker';
@@ -37,6 +38,7 @@ export function PlaceSearchView({
   const [inputValue, setInputValue] = React.useState('');
   const search = usePlaceSearch(inputValue, inviteCode);
   const { isPickerOpen, openPicker, closePicker } = usePickerRoute();
+  const { confirmSelection } = useDeferredPickerSelection({ isPickerOpen, closePicker, onSelect });
 
   // picker가 열려 있을 때는 검색 화면의 핸들러를 빼고,
   // 가장 위에 있는 화면만 뒤로가기를 처리하게 한다.
@@ -127,7 +129,7 @@ export function PlaceSearchView({
       </div>
 
       {/* 검색 본문을 언마운트하지 않고 위에 오버레이 */}
-      {isPickerOpen && <CurrentLocationPicker onClose={closePicker} />}
+      {isPickerOpen && <CurrentLocationPicker onClose={closePicker} onConfirm={confirmSelection} />}
     </div>
   );
 }

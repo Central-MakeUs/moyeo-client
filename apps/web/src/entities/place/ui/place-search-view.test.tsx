@@ -12,6 +12,19 @@ const { usePlaceSearch } = vi.hoisted(() => ({
 
 vi.mock('../model/use-place-search', () => ({ usePlaceSearch }));
 
+// 위치 확인 화면의 좌표·주소 획득은 목으로 고정한다. jsdom에는 Geolocation도 카카오 SDK도
+// 없어서, 목이 없으면 진입 즉시 실패 상태가 되어 확인 CTA까지 도달할 수 없다.
+// 확정 상태를 만드는 것은 목이지만, picker를 여닫는 URL 전환은 실제 usePickerRoute가 돈다.
+const { useCurrentLocation } = vi.hoisted(() => ({ useCurrentLocation: vi.fn() }));
+const { useReverseGeocode } = vi.hoisted(() => ({ useReverseGeocode: vi.fn() }));
+
+vi.mock('../model/use-current-location', () => ({ useCurrentLocation }));
+vi.mock('../model/use-reverse-geocode', () => ({ useReverseGeocode }));
+
+vi.mock('@/shared/ui/map-location-picker', () => ({
+  MapLocationPicker: () => <div aria-label="지도" />,
+}));
+
 // picker 열림 상태는 URL이 소유한다. usePickerRoute는 목킹하지 않고 실제로 돌린다 —
 // 목으로 갈아끼우면 "버튼 → URL → 렌더" 배선이 검증에서 빠진다.
 const { push, back, replace, navigation } = vi.hoisted(() => ({
@@ -63,9 +76,49 @@ const mockQuery = (overrides: Record<string, unknown> = {}) => {
 const renderStep = (props?: Partial<React.ComponentProps<typeof PlaceSearchView>>) =>
   render(<PlaceSearchView onSelect={vi.fn()} onBack={vi.fn()} {...props} />);
 
+/** 위치 확인 화면의 핀 좌표. 기기의 현재 좌표와 구분하려고 다른 값을 쓴다. */
+const PIN = { latitude: 37.57, longitude: 126.98 };
+
+const CURRENT_COORDS = { latitude: 37.5666805, longitude: 126.9784147, accuracy: 12 };
+
+const SEOUL_CITY_HALL = {
+  document: {
+    road_address: { address_name: '서울특별시 중구 세종대로 110' },
+    address: { address_name: '서울 중구 태평로1가 31', region_1depth_name: '서울' },
+  },
+  coords: PIN,
+};
+
+/** `null` 이면 좌표 요청 중이다. */
+const mockCurrentLocation = (result: unknown = null) => {
+  useCurrentLocation.mockReturnValue({ result, retry: vi.fn() });
+};
+
+/** 지정하지 않은 필드는 "아직 아무것도 조회하지 않은" 기본값이다. */
+const mockGeocode = (state: Record<string, unknown> = {}) => {
+  useReverseGeocode.mockReturnValue({
+    state: { lastResult: null, requestStatus: 'idle', canConfirmLocation: false, ...state },
+    resolve: vi.fn(),
+    startMoving: vi.fn(),
+    retry: vi.fn(),
+  });
+};
+
+/** 지도가 뜨고 현재 핀의 주소까지 확정된 상태 — 확인 CTA가 활성인 조건이다. */
+const mockConfirmableAddress = () => {
+  mockCurrentLocation({ state: 'success', coords: CURRENT_COORDS });
+  mockGeocode({
+    lastResult: SEOUL_CITY_HALL,
+    requestStatus: 'resolved',
+    canConfirmLocation: true,
+  });
+};
+
 beforeEach(() => {
   usePlaceSearch.mockReset();
   mockQuery();
+  mockCurrentLocation();
+  mockGeocode();
   push.mockClear();
   back.mockClear();
   replace.mockClear();
@@ -214,6 +267,124 @@ describe('PlaceSearchView', () => {
       expect(runBackHandlers()).toBe(true);
       expect(replace).toHaveBeenCalledTimes(1);
       expect(onBack).not.toHaveBeenCalled();
+    });
+
+    describe('확인 CTA로 출발지 확정', () => {
+      const SEARCH_URL = '/meetings/new/departure/search';
+
+      /** props를 고정한 채 URL 변화만 반영하려면 같은 element로 rerender해야 한다. */
+      const renderView = (props: Partial<React.ComponentProps<typeof PlaceSearchView>>) => {
+        const merged = { onSelect: vi.fn(), onBack: vi.fn(), ...props };
+        const view = render(<PlaceSearchView {...merged} />);
+
+        return { rerender: () => view.rerender(<PlaceSearchView {...merged} />) };
+      };
+
+      /** back/replace는 목이라 URL이 저절로 바뀌지 않는다. 닫힘 반영을 수동으로 만든다. */
+      const closedByUrl = () => {
+        navigation.searchParams = new URLSearchParams();
+      };
+
+      const clickCta = () =>
+        userEvent.click(within(getPicker()).getByRole('button', { name: '이 위치로 주소 등록' }));
+
+      it('현재 위치로 찾기로 연 뒤 확인 CTA를 클릭하면 router.back이 1회 호출되고 그 시점에는 onSelect가 호출되지 않는다', async () => {
+        mockConfirmableAddress();
+        const onSelect = vi.fn();
+        const { rerender } = renderView({ onSelect });
+
+        await userEvent.click(screen.getByRole('button', { name: /현재 위치로 찾기/ }));
+        openedByQuery();
+        rerender();
+
+        await clickCta();
+
+        // push로 연 항목을 되감는다. replace가 아니다 (spec-fixed.md §4-4).
+        expect(back).toHaveBeenCalledTimes(1);
+        expect(replace).not.toHaveBeenCalled();
+        // 같은 tick에 선택까지 태우지 않는다.
+        expect(onSelect).not.toHaveBeenCalled();
+      });
+
+      it('확인 CTA 클릭 후 picker 쿼리가 사라지면 onSelect가 핀 좌표 draft로 정확히 1회 호출된다', async () => {
+        mockConfirmableAddress();
+        const onSelect = vi.fn();
+        const { rerender } = renderView({ onSelect });
+
+        await userEvent.click(screen.getByRole('button', { name: /현재 위치로 찾기/ }));
+        openedByQuery();
+        rerender();
+        await clickCta();
+
+        closedByUrl();
+        rerender();
+
+        expect(onSelect).toHaveBeenCalledTimes(1);
+        // 좌표는 기기의 현재 좌표가 아니라 핀 좌표다 (§6-2).
+        expect(onSelect).toHaveBeenCalledWith({
+          name: '서울특별시 중구 세종대로 110',
+          address: '서울특별시 중구 세종대로 110',
+          latitude: 37.57,
+          longitude: 126.98,
+        });
+      });
+
+      it('onSelect가 호출된 뒤 추가로 rerender해도 onSelect 호출 횟수는 1회다', async () => {
+        mockConfirmableAddress();
+        const onSelect = vi.fn();
+        const { rerender } = renderView({ onSelect });
+
+        await userEvent.click(screen.getByRole('button', { name: /현재 위치로 찾기/ }));
+        openedByQuery();
+        rerender();
+        await clickCta();
+
+        closedByUrl();
+        rerender();
+        rerender();
+        rerender();
+
+        expect(onSelect).toHaveBeenCalledTimes(1);
+      });
+
+      it('?picker=current로 직접 진입한 상태에서 확인 CTA를 클릭하면 router.replace로 닫힌 뒤 onSelect가 1회 호출된다', async () => {
+        openedByQuery();
+        mockConfirmableAddress();
+        const onSelect = vi.fn();
+        const { rerender } = renderView({ onSelect });
+
+        await clickCta();
+
+        // 되감을 항목이 없는 진입이라 back이 아니라 replace다 (§4-5).
+        expect(replace).toHaveBeenCalledTimes(1);
+        expect(replace).toHaveBeenCalledWith(SEARCH_URL);
+        expect(back).not.toHaveBeenCalled();
+        expect(onSelect).not.toHaveBeenCalled();
+
+        closedByUrl();
+        rerender();
+
+        expect(onSelect).toHaveBeenCalledTimes(1);
+      });
+
+      it('지도 이동 중에 확인 CTA를 클릭하면 router.back·router.replace·onSelect가 모두 호출되지 않는다', async () => {
+        openedByQuery();
+        mockCurrentLocation({ state: 'success', coords: CURRENT_COORDS });
+        // 이동 중에는 직전 주소가 남아 있어도 현재 핀의 주소가 아니다.
+        mockGeocode({
+          lastResult: SEOUL_CITY_HALL,
+          requestStatus: 'resolved',
+          canConfirmLocation: false,
+        });
+        const onSelect = vi.fn();
+        renderView({ onSelect });
+
+        await clickCta();
+
+        expect(back).not.toHaveBeenCalled();
+        expect(replace).not.toHaveBeenCalled();
+        expect(onSelect).not.toHaveBeenCalled();
+      });
     });
   });
 });

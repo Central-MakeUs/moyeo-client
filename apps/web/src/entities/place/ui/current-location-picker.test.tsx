@@ -71,7 +71,7 @@ beforeEach(() => {
 describe('CurrentLocationPicker', () => {
   it('마운트된 상태에서 runBackHandlers()를 실행하면 onClose가 1회 호출되고 true를 반환한다', () => {
     const onClose = vi.fn();
-    render(<CurrentLocationPicker onClose={onClose} />);
+    render(<CurrentLocationPicker onClose={onClose} onConfirm={vi.fn()} />);
 
     // true를 반환해야 아래 PlaceSearchView 핸들러로 내려가지 않는다 (spec-fixed.md §4-3).
     expect(runBackHandlers()).toBe(true);
@@ -80,7 +80,7 @@ describe('CurrentLocationPicker', () => {
 
   it('화면 내 뒤로가기 버튼을 클릭하면 onClose가 1회 호출된다', async () => {
     const onClose = vi.fn();
-    render(<CurrentLocationPicker onClose={onClose} />);
+    render(<CurrentLocationPicker onClose={onClose} onConfirm={vi.fn()} />);
 
     await userEvent.click(screen.getByRole('button', { name: '뒤로가기' }));
 
@@ -90,7 +90,7 @@ describe('CurrentLocationPicker', () => {
   it('좌표 요청 중이면 로딩 상태가 안내되고 확인 CTA가 비활성이다', () => {
     mockLocation(null);
 
-    render(<CurrentLocationPicker onClose={vi.fn()} />);
+    render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />);
 
     expect(screen.getByRole('status', { name: '현재 위치를 찾고 있어요' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '이 위치로 주소 등록' })).toBeDisabled();
@@ -99,7 +99,7 @@ describe('CurrentLocationPicker', () => {
   it('denied면 다시 시도와 검색으로 돌아가기가 렌더되고 지도는 렌더되지 않는다', () => {
     mockLocation({ state: 'denied' });
 
-    render(<CurrentLocationPicker onClose={vi.fn()} />);
+    render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />);
 
     expect(screen.getByRole('button', { name: '다시 시도' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '검색으로 돌아가기' })).toBeInTheDocument();
@@ -110,7 +110,7 @@ describe('CurrentLocationPicker', () => {
   it('timeout에서 다시 시도를 클릭하면 좌표를 다시 요청한다', async () => {
     mockLocation({ state: 'timeout' });
 
-    render(<CurrentLocationPicker onClose={vi.fn()} />);
+    render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />);
 
     await userEvent.click(screen.getByRole('button', { name: '다시 시도' }));
 
@@ -121,7 +121,7 @@ describe('CurrentLocationPicker', () => {
     it('최초 좌표를 확보하면 그 좌표로 역지오코딩이 정확히 1회 시작된다', () => {
       mockLocation(SUCCESS);
 
-      render(<CurrentLocationPicker onClose={vi.fn()} />);
+      render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />);
 
       // 사용자가 지도를 움직이지 않아도 첫 주소를 조회한다.
       expect(resolveAddress).toHaveBeenCalledTimes(1);
@@ -132,7 +132,7 @@ describe('CurrentLocationPicker', () => {
       mockLocation(SUCCESS);
       mockGeocode({ requestStatus: 'resolving' });
 
-      render(<CurrentLocationPicker onClose={vi.fn()} />);
+      render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />);
 
       expect(screen.getByRole('status')).toBeInTheDocument();
       expect(document.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(2);
@@ -147,7 +147,7 @@ describe('CurrentLocationPicker', () => {
         canConfirmLocation: true,
       });
 
-      render(<CurrentLocationPicker onClose={vi.fn()} />);
+      render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />);
 
       expect(screen.getByText('서울특별시 중구 세종대로 110')).toBeInTheDocument();
       expect(screen.getByText('서울 중구 태평로1가 31')).toBeInTheDocument();
@@ -164,7 +164,7 @@ describe('CurrentLocationPicker', () => {
         canConfirmLocation: true,
       });
 
-      render(<CurrentLocationPicker onClose={vi.fn()} />);
+      render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />);
 
       expect(screen.getByText('서울 중구 태평로1가 31')).toBeInTheDocument();
       expect(screen.queryByText('서울특별시 중구 세종대로 110')).not.toBeInTheDocument();
@@ -179,7 +179,7 @@ describe('CurrentLocationPicker', () => {
         canConfirmLocation: false,
       });
 
-      render(<CurrentLocationPicker onClose={vi.fn()} />);
+      render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />);
 
       expect(screen.getByText('서울특별시 중구 세종대로 110')).toBeInTheDocument();
       expect(screen.queryByRole('status')).not.toBeInTheDocument();
@@ -194,7 +194,7 @@ describe('CurrentLocationPicker', () => {
         canConfirmLocation: false,
       });
 
-      render(<CurrentLocationPicker onClose={vi.fn()} />);
+      render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />);
 
       expect(screen.getByText('서울특별시 중구 세종대로 110')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: '이 위치로 주소 등록' })).toBeDisabled();
@@ -208,7 +208,7 @@ describe('CurrentLocationPicker', () => {
         canConfirmLocation: false,
       });
 
-      render(<CurrentLocationPicker onClose={vi.fn()} />);
+      render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />);
 
       expect(screen.getByText('서울특별시 중구 세종대로 110')).toBeInTheDocument();
       expect(screen.getByText('주소를 확인할 수 없어요')).toBeInTheDocument();
@@ -220,7 +220,7 @@ describe('CurrentLocationPicker', () => {
       mockLocation(SUCCESS);
       mockGeocode({ requestStatus: 'failed' });
 
-      render(<CurrentLocationPicker onClose={vi.fn()} />);
+      render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />);
 
       expect(screen.getByText('주소를 확인할 수 없어요')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: '다시 시도' })).toBeInTheDocument();
@@ -232,12 +232,125 @@ describe('CurrentLocationPicker', () => {
       mockLocation(SUCCESS);
       mockGeocode({ requestStatus: 'failed' });
 
-      render(<CurrentLocationPicker onClose={vi.fn()} />);
+      render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />);
       await userEvent.click(screen.getByRole('button', { name: '다시 시도' }));
 
       // 좌표 재요청(retry)이 아니라 주소 재조회(retryAddress)여야 한다.
       expect(retryAddress).toHaveBeenCalledTimes(1);
       expect(retry).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('확인 CTA', () => {
+    const getCta = () => screen.getByRole('button', { name: '이 위치로 주소 등록' });
+
+    it('확정 주소를 확보하면 확인 CTA가 활성이다', () => {
+      mockLocation(SUCCESS);
+      mockGeocode({
+        lastResult: RESOLVED_SEOUL,
+        requestStatus: 'resolved',
+        canConfirmLocation: true,
+      });
+
+      render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />);
+
+      expect(getCta()).toBeEnabled();
+    });
+
+    it('활성 CTA를 클릭하면 onConfirm이 도로명 주소와 핀 좌표로 1회 호출된다', async () => {
+      const onConfirm = vi.fn();
+      mockLocation(SUCCESS);
+      mockGeocode({
+        lastResult: RESOLVED_SEOUL,
+        requestStatus: 'resolved',
+        canConfirmLocation: true,
+      });
+
+      render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={onConfirm} />);
+      await userEvent.click(getCta());
+
+      expect(onConfirm).toHaveBeenCalledTimes(1);
+      // 좌표는 현재 GPS 좌표(SUCCESS.coords)가 아니라 조회 당시의 핀 좌표다 (§6-2).
+      expect(onConfirm).toHaveBeenCalledWith({
+        name: '서울특별시 중구 세종대로 110',
+        address: '서울특별시 중구 세종대로 110',
+        latitude: 37.57,
+        longitude: 126.98,
+      });
+    });
+
+    it('도로명이 없고 지번만 있으면 CTA가 활성이고 onConfirm이 지번 주소로 호출된다', async () => {
+      const onConfirm = vi.fn();
+      mockLocation(SUCCESS);
+      mockGeocode({
+        lastResult: {
+          document: { road_address: null, address: ROAD_AND_JIBUN.address },
+          coords: PIN,
+        },
+        requestStatus: 'resolved',
+        canConfirmLocation: true,
+      });
+
+      render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={onConfirm} />);
+      expect(getCta()).toBeEnabled();
+
+      await userEvent.click(getCta());
+
+      expect(onConfirm).toHaveBeenCalledWith({
+        name: '서울 중구 태평로1가 31',
+        address: '서울 중구 태평로1가 31',
+        latitude: 37.57,
+        longitude: 126.98,
+      });
+    });
+
+    it('지도 이동 중이면 이전 주소가 남아 있어도 CTA가 비활성이고 클릭해도 onConfirm이 호출되지 않는다', async () => {
+      const onConfirm = vi.fn();
+      mockLocation(SUCCESS);
+      // 이동 중에는 lastResult가 현재 핀의 주소가 아니다.
+      mockGeocode({
+        lastResult: RESOLVED_SEOUL,
+        requestStatus: 'resolved',
+        canConfirmLocation: false,
+      });
+
+      render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={onConfirm} />);
+      expect(getCta()).toBeDisabled();
+
+      await userEvent.click(getCta());
+
+      expect(onConfirm).not.toHaveBeenCalled();
+    });
+
+    it('도로명과 지번이 모두 없으면 CTA가 비활성이다', () => {
+      mockLocation(SUCCESS);
+      // 확정 주소가 아니다 — toDepartureDraft가 null을 반환한다 (§6-2).
+      mockGeocode({
+        lastResult: { document: { road_address: null, address: null }, coords: PIN },
+        requestStatus: 'resolved',
+        canConfirmLocation: true,
+      });
+
+      render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />);
+
+      expect(getCta()).toBeDisabled();
+    });
+
+    it('새 좌표의 주소 조회가 실패해 직전 주소만 남은 상태면 CTA가 비활성이고 클릭해도 onConfirm이 호출되지 않는다', async () => {
+      const onConfirm = vi.fn();
+      mockLocation(SUCCESS);
+      mockGeocode({
+        lastResult: RESOLVED_SEOUL,
+        requestStatus: 'failed',
+        canConfirmLocation: false,
+      });
+
+      render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={onConfirm} />);
+      expect(getCta()).toBeDisabled();
+
+      await userEvent.click(getCta());
+
+      expect(onConfirm).not.toHaveBeenCalled();
     });
   });
 });
