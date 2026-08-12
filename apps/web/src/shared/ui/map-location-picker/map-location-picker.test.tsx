@@ -14,8 +14,24 @@ const GANGNAM_STATION = { latitude: 37.4979, longitude: 127.0276 };
 
 const map = { getCenter: vi.fn(), setCenter: vi.fn(), relayout: vi.fn() };
 const LatLng = vi.fn();
-const KakaoMapConstructor = vi.fn(() => map);
-const maps = { LatLng, Map: KakaoMapConstructor, event: { addListener: vi.fn() } };
+// 화살표 함수로 만들면 `new`로 호출할 수 없다 — vitest가 "did not use 'function' or 'class'"로
+// 경고하고 `not a constructor`로 던진다. 생성자로 쓰이는 목은 반드시 function 선언이어야 한다.
+const KakaoMapConstructor = vi.fn(function () {
+  return map;
+});
+
+/** 컴포넌트가 등록한 지도 이벤트 핸들러를 붙잡아 테스트에서 직접 발화시킨다. */
+const mapListeners = new Map<string, () => void>();
+
+const maps = {
+  LatLng,
+  Map: KakaoMapConstructor,
+  event: {
+    addListener: vi.fn((_target: unknown, type: string, handler: () => void) => {
+      mapListeners.set(type, handler);
+    }),
+  },
+};
 
 /** jsdom에는 ResizeObserver가 없다. 콜백을 붙잡아 테스트에서 직접 발화시킨다. */
 let notifyResize: (() => void) | undefined;
@@ -36,7 +52,9 @@ const pin = () => document.querySelector('[data-slot="map-center-pin"]');
 beforeEach(() => {
   vi.clearAllMocks();
   notifyResize = undefined;
+  mapListeners.clear();
   loadKakaoMapSdk.mockResolvedValue(maps);
+  map.getCenter.mockReturnValue({ getLat: () => 37.4979, getLng: () => 127.0276 });
 });
 
 describe('MapLocationPicker', () => {
@@ -48,7 +66,7 @@ describe('MapLocationPicker', () => {
     expect(LatLng).toHaveBeenCalledWith(37.5666805, 126.9784147);
     expect(KakaoMapConstructor).toHaveBeenCalledWith(
       expect.any(HTMLElement),
-      expect.objectContaining({ level: 3 })
+      expect.objectContaining({ level: 1 })
     );
   });
 
@@ -94,6 +112,38 @@ describe('MapLocationPicker', () => {
     });
 
     expect(KakaoMapConstructor).not.toHaveBeenCalled();
+  });
+
+  it('idle 이벤트가 발생하면 onIdle이 지도 중심 좌표로 1회 호출된다', async () => {
+    const onIdle = vi.fn();
+    render(<MapLocationPicker center={SEOUL_CITY_HALL} onIdle={onIdle} />);
+    await waitFor(() => expect(KakaoMapConstructor).toHaveBeenCalledTimes(1));
+
+    act(() => mapListeners.get('idle')?.());
+
+    expect(onIdle).toHaveBeenCalledTimes(1);
+    expect(onIdle).toHaveBeenCalledWith({ latitude: 37.4979, longitude: 127.0276 });
+  });
+
+  it('dragstart 이벤트가 발생하면 onMoveStart가 1회 호출된다', async () => {
+    const onMoveStart = vi.fn();
+    render(<MapLocationPicker center={SEOUL_CITY_HALL} onMoveStart={onMoveStart} />);
+    await waitFor(() => expect(KakaoMapConstructor).toHaveBeenCalledTimes(1));
+
+    act(() => mapListeners.get('dragstart')?.());
+
+    expect(onMoveStart).toHaveBeenCalledTimes(1);
+  });
+
+  it('zoom_start 이벤트가 발생하면 onMoveStart가 1회 호출된다', async () => {
+    const onMoveStart = vi.fn();
+    render(<MapLocationPicker center={SEOUL_CITY_HALL} onMoveStart={onMoveStart} />);
+    await waitFor(() => expect(KakaoMapConstructor).toHaveBeenCalledTimes(1));
+
+    // 줌만 빠지면 확대하는 동안 직전 주소로 확정된다.
+    act(() => mapListeners.get('zoom_start')?.());
+
+    expect(onMoveStart).toHaveBeenCalledTimes(1);
   });
 
   it('SDK 로드가 실패하면 role="alert"이 렌더되고 aria-label="지도"는 렌더되지 않는다', async () => {
