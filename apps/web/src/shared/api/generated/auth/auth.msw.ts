@@ -59,6 +59,21 @@ export const getLoginAppleResponseMock = (
   ...overrideResponse,
 });
 
+export const getLoginAppleNativeResponseMock = (
+  overrideResponse: Partial<Extract<AuthResponse, object>> = {}
+): AuthResponse => ({
+  accessToken: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  tokenType: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  user: faker.helpers.arrayElement([{ ...getAuthUserResponseMock() }, undefined]),
+  ...overrideResponse,
+});
+
 export const getMeResponseMock = (
   overrideResponse: Partial<Extract<AuthUserResponse, object>> = {}
 ): AuthUserResponse => ({
@@ -144,6 +159,30 @@ export const getLoginAppleMockHandler = (
   );
 };
 
+export const getLoginAppleNativeMockHandler = (
+  overrideResponse?:
+    | AuthResponse
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0]
+      ) => Promise<AuthResponse> | AuthResponse),
+  options?: RequestHandlerOptions
+) => {
+  return http.post(
+    '*/api/auth/apple/native',
+    async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+      return HttpResponse.json(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getLoginAppleNativeResponseMock(),
+        { status: 200 }
+      );
+    },
+    options
+  );
+};
+
 export const getMeMockHandler = (
   overrideResponse?:
     | AuthUserResponse
@@ -171,5 +210,6 @@ export const getAuthMock = () => [
   getLoginKakaoMockHandler(),
   getLoginKakaoNativeMockHandler(),
   getLoginAppleMockHandler(),
+  getLoginAppleNativeMockHandler(),
   getMeMockHandler(),
 ];
