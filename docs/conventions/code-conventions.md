@@ -2,16 +2,19 @@
 
 ## 네이밍
 
+아래는 표기법 요약이다. boolean·함수·이벤트·상태 모델의 의미 기반 기준은
+[code-naming.md](./code-naming.md)를 따른다.
+
 ### 코드 내부
 
-| 대상              | 규칙               | 예시                 |
-| ----------------- | ------------------ | -------------------- |
-| 컴포넌트          | `PascalCase`       | `InputField`         |
-| 타입 / 인터페이스 | `PascalCase`       | `RoomSummary`        |
-| Props 인터페이스  | `{Component}Props` | `ButtonProps`        |
-| 변수 / 함수       | `camelCase`        | `formatDate`         |
-| 상수              | `SNAKE_CASE`       | `MAX_PARTICIPANTS`   |
-| boolean           | `is*` / `has*`     | `isOpen`, `hasError` |
+| 대상              | 규칙               | 예시                             |
+| ----------------- | ------------------ | -------------------------------- |
+| 컴포넌트          | `PascalCase`       | `InputField`                     |
+| 타입 / 인터페이스 | `PascalCase`       | `RoomSummary`                    |
+| Props 인터페이스  | `{Component}Props` | `ButtonProps`                    |
+| 변수 / 함수       | `camelCase`        | `formatDate`                     |
+| 상수              | `SNAKE_CASE`       | `MAX_PARTICIPANTS`               |
+| boolean           | 의미 기반 접두사   | `isOpen`, `hasError`, `canRetry` |
 
 ### 경로 및 파일명
 

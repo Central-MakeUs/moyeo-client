@@ -7,13 +7,14 @@ Moyeo 프론트엔드 팀의 개발 컨벤션 모음이다. 처음 합류했거�
 
 ## 문서 지도
 
-| 문서                                           | 언제 보나                                         |
-| ---------------------------------------------- | ------------------------------------------------- |
-| [tech-stack.md](./tech-stack.md)               | 무슨 기술을 쓰는지 (스택 전체)                    |
-| [project-structure.md](./project-structure.md) | 어디에 코드를 두는지 (모노레포 + FSD)             |
-| [code-conventions.md](./code-conventions.md)   | 어떻게 쓰는지 (네이밍·TypeScript·ESLint·Prettier) |
-| [git-conventions.md](./git-conventions.md)     | 커밋·브랜치·이슈·PR을 어떤 형식으로 쓰는지        |
-| [git-workflow.md](./git-workflow.md)           | 브랜치를 어떻게 흘려보내고 배포하는지             |
+| 문서                                           | 언제 보나                                  |
+| ---------------------------------------------- | ------------------------------------------ |
+| [tech-stack.md](./tech-stack.md)               | 무슨 기술을 쓰는지 (스택 전체)             |
+| [project-structure.md](./project-structure.md) | 어디에 코드를 두는지 (모노레포 + FSD)      |
+| [code-conventions.md](./code-conventions.md)   | 어떻게 쓰는지 (TypeScript·ESLint·Prettier) |
+| [code-naming.md](./code-naming.md)             | 이름을 어떻게 결정하고 리뷰하는지          |
+| [git-conventions.md](./git-conventions.md)     | 커밋·브랜치·이슈·PR을 어떤 형식으로 쓰는지 |
+| [git-workflow.md](./git-workflow.md)           | 브랜치를 어떻게 흘려보내고 배포하는지      |
 
 ## 치트시트
 
