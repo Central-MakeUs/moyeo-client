@@ -77,6 +77,10 @@ describe('loadKakaoMapSdk', () => {
     const { loadKakaoMapSdk } = await importLoader();
     const promise = loadKakaoMapSdk();
 
+    // 거부 핸들러를 타이머를 감기 전에 붙인다. advanceTimersByTimeAsync 안에서 reject되는데
+    // 그 뒤에 붙이면 핸들러 없는 tick이 생겨 unhandled rejection으로 보고된다.
+    const rejection = expect(promise).rejects.toThrow();
+
     // 스크립트도 내려왔고 네임스페이스도 있지만, 번들을 받아오는 체인이 조용히 멈춘 상황.
     // 카카오 로더의 체인 스크립트에는 onerror가 없어 실패해도 콜백이 오지 않는다.
     stubKakaoNamespace(vi.fn());
@@ -84,6 +88,6 @@ describe('loadKakaoMapSdk', () => {
 
     await vi.advanceTimersByTimeAsync(10_000);
 
-    await expect(promise).rejects.toThrow();
+    await rejection;
   });
 });
