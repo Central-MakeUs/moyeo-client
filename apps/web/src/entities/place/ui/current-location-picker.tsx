@@ -14,6 +14,7 @@ import { Spinner } from '@/shared/ui/spinner';
 import { TopAppBar } from '@/shared/ui/top-app-bar';
 
 import type { DepartureDraft } from '../model/departure-draft';
+import { isSupportedRegion } from '../model/is-supported-region';
 import { toDepartureDraft } from '../model/to-departure-draft';
 import { useCurrentLocation } from '../model/use-current-location';
 import { useReverseGeocode, type ReverseGeocodeState } from '../model/use-reverse-geocode';
@@ -34,6 +35,9 @@ const FAILURE: Record<FailureState, { message: string; canRetry: boolean }> = {
   timeout: { message: '현재 위치를 찾지 못했어요', canRetry: true },
   error: { message: '현재 위치를 찾지 못했어요', canRetry: true },
 };
+
+/** 이 값을 넘으면 조정 유도 안내를 덧붙인다. 확정을 막지는 않는다 (§5-3 — 정확도 하한 없음). */
+const LOW_ACCURACY_THRESHOLD_M = 100;
 
 export interface CurrentLocationPickerProps {
   /** 선택 없이 위치 확인 화면을 닫는다. */
@@ -78,15 +82,63 @@ export function CurrentLocationPicker({
   }, [coords, resolveAddress]);
 
   /**
+   * 현재 핀의 주소로 확정할 수 있는 조회 결과.
+   *
+   * `canConfirmLocation` 이 false면(이동 중·조회 중·실패 중) `lastResult` 가 남아 있어도
+   * 현재 핀의 주소가 아니다. CTA 활성과 draft 생성만 이 값을 쓴다.
+   */
+  const currentGeocodeResult = geocode.canConfirmLocation ? geocode.lastResult : null;
+
+  /**
+   * 안내 문구의 기준은 **마지막으로 주소 조회에 성공한 결과**다.
+   *
+   * 이동 중에 문구를 내리면 지도를 움직이는 내내 안내가 깜빡인다. 주소 카드가 직전 주소를
+   * 유지하는 것과 같은 원리로, 문구도 새 주소 조회가 성공할 때 함께 바뀐다.
+   */
+  const lastGeocodeResult = geocode.lastResult;
+
+  /** 지도는 그대로 두고 CTA만 막는다. 지도를 옮겨 지원 지역으로 갈 수 있어야 한다 (§7). */
+  const isOutOfSupportedRegion =
+    lastGeocodeResult !== null &&
+    !isSupportedRegion(lastGeocodeResult.document.address?.region_1depth_name ?? null);
+
+  /**
+   * 핀이 아직 최초 GPS 좌표인가.
+   *
+   * 핀이 최초 GPS 좌표와 다르면 사용자가 지정한 위치이므로 측정 정확도를 말할 자리가 아니다.
+   * 좌표 동일성으로만 판정하고 이동 이력을 따로 기억하지 않는다.
+   */
+  const isPinAtInitialCoords =
+    lastGeocodeResult !== null &&
+    coords !== null &&
+    lastGeocodeResult.coords.latitude === coords.latitude &&
+    lastGeocodeResult.coords.longitude === coords.longitude;
+
+  /** 확정을 막지는 않고 조정을 유도한다 (§5-3 — 정확도 하한 없음). */
+  const shouldShowLowAccuracyHint =
+    isPinAtInitialCoords &&
+    coords !== null &&
+    coords.accuracy !== null &&
+    coords.accuracy > LOW_ACCURACY_THRESHOLD_M;
+
+  /**
    * 확정 가능한 출발지. 하나라도 어긋나면 `null` 이고 CTA는 비활성이다.
    *
-   * - `canConfirmLocation` — `lastResult` 가 **현재 핀**의 주소인가 (이동 중·조회 중·실패 중이면 false)
+   * - `currentGeocodeResult` — 현재 핀의 주소인가
+   * - `isOutOfSupportedRegion` — 서버가 허용하는 지역인가 (§7)
    * - `toDepartureDraft` — 도로명도 지번도 없으면 확정 주소가 아니다 (§6-2)
    */
   const confirmableDraft =
-    geocode.canConfirmLocation && geocode.lastResult !== null
-      ? toDepartureDraft(geocode.lastResult.document, geocode.lastResult.coords)
+    currentGeocodeResult !== null && !isOutOfSupportedRegion
+      ? toDepartureDraft(currentGeocodeResult.document, currentGeocodeResult.coords)
       : null;
+
+  /** 지원 지역 밖이 정확도 안내보다 앞선다 — 차단 사유를 먼저 알려야 지도를 옮긴다. */
+  const hintMessage = isOutOfSupportedRegion
+    ? '서울·경기 내 주소만 선택할 수 있어요'
+    : shouldShowLowAccuracyHint
+      ? '위치가 정확하지 않을 수 있어요. 지도를 움직여 조정해주세요'
+      : '표시된 주소가 맞는지 확인해주세요.';
 
   const confirmLocation = () => {
     if (confirmableDraft === null) return;
@@ -151,7 +203,7 @@ export function CurrentLocationPicker({
                 geocode.lastResult === null && 'invisible'
               )}
             >
-              표시된 주소가 맞는지 확인해주세요.
+              {hintMessage}
             </div>
 
             {/* CTA 영역 */}

@@ -57,6 +57,24 @@ const mockGeocode = (state: Partial<ReverseGeocodeState> = {}) => {
 
 const RESOLVED_SEOUL = { document: ROAD_AND_JIBUN, coords: PIN };
 
+/** 지원 지역(서울·경기) 밖 주소. */
+const BUSAN: Coord2AddressDocument = {
+  road_address: { address_name: '부산광역시 해운대구 해운대해변로 264' },
+  address: { address_name: '부산 해운대구 우동 1413', region_1depth_name: '부산' },
+};
+
+const RESOLVED_BUSAN = { document: BUSAN, coords: PIN };
+
+/** 정확도만 바꾼 성공 결과. */
+const successWithAccuracy = (accuracy: number | null): CurrentLocationResult => ({
+  state: 'success',
+  coords: { latitude: 37.5666805, longitude: 126.9784147, accuracy },
+});
+
+const OUT_OF_REGION_MESSAGE = '서울·경기 내 주소만 선택할 수 있어요';
+const LOW_ACCURACY_MESSAGE = '위치가 정확하지 않을 수 있어요. 지도를 움직여 조정해주세요';
+const CONFIRM_HINT_MESSAGE = '표시된 주소가 맞는지 확인해주세요.';
+
 /** `null` 이면 좌표 요청 중이다. */
 const mockLocation = (result: CurrentLocationResult | null) => {
   useCurrentLocation.mockReturnValue({ result, retry });
@@ -351,6 +369,155 @@ describe('CurrentLocationPicker', () => {
       await userEvent.click(getCta());
 
       expect(onConfirm).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('지원 지역과 정확도 안내', () => {
+    const getCta = () => screen.getByRole('button', { name: '이 위치로 주소 등록' });
+
+    /** 확정 주소를 확보한 상태 — 여기서부터 지역·정확도 판정이 갈린다. */
+    const resolved = (lastResult: ReverseGeocodeState['lastResult']) => {
+      mockGeocode({ lastResult, requestStatus: 'resolved', canConfirmLocation: true });
+    };
+
+    const renderPicker = () => {
+      const view = render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />);
+
+      return {
+        rerender: () =>
+          view.rerender(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />),
+      };
+    };
+
+    it('region_1depth_name이 부산이면 지도는 렌더되고 서울·경기 안내와 함께 CTA가 비활성이다', () => {
+      mockLocation(SUCCESS);
+      resolved(RESOLVED_BUSAN);
+
+      renderPicker();
+
+      // 진입 즉시 막지 않는다 — 지도를 옮겨 지원 지역으로 갈 수 있어야 한다 (§7).
+      expect(screen.getByLabelText('지도')).toBeInTheDocument();
+      expect(screen.getByText(OUT_OF_REGION_MESSAGE)).toBeInTheDocument();
+      expect(getCta()).toBeDisabled();
+    });
+
+    it('accuracy가 150이고 주소가 서울이면 정확도 안내가 렌더되고 CTA는 활성이다', () => {
+      mockLocation(successWithAccuracy(150));
+      // 진입 직후 — 첫 조회는 GPS 좌표 그대로 들어간다 (핀을 아직 옮기지 않았다).
+      resolved({
+        document: ROAD_AND_JIBUN,
+        coords: { latitude: 37.5666805, longitude: 126.9784147 },
+      });
+
+      renderPicker();
+
+      // 정확도 하한을 두지 않는다 — 안내만 덧붙이고 확정은 막지 않는다 (§5-3).
+      expect(screen.getByText(LOW_ACCURACY_MESSAGE)).toBeInTheDocument();
+      expect(getCta()).toBeEnabled();
+    });
+
+    it('지원 지역 밖으로 CTA가 비활성인 상태에서 서울 주소로 갱신되면 CTA가 활성이 되고 안내가 사라진다', () => {
+      mockLocation(SUCCESS);
+      resolved(RESOLVED_BUSAN);
+
+      const { rerender } = renderPicker();
+      expect(getCta()).toBeDisabled();
+
+      // 지도를 옮겨 새 idle이 서울 주소로 확정된 상황.
+      resolved(RESOLVED_SEOUL);
+      rerender();
+
+      expect(getCta()).toBeEnabled();
+      expect(screen.queryByText(OUT_OF_REGION_MESSAGE)).not.toBeInTheDocument();
+    });
+
+    it('accuracy가 정확히 100이면 정확도 안내 대신 기본 확인 문구가 렌더된다', () => {
+      mockLocation(successWithAccuracy(100));
+      resolved(RESOLVED_SEOUL);
+
+      renderPicker();
+
+      // 조건은 100 초과다. 100은 경계 안쪽이라 안내하지 않는다.
+      expect(screen.queryByText(LOW_ACCURACY_MESSAGE)).not.toBeInTheDocument();
+      expect(screen.getByText(CONFIRM_HINT_MESSAGE)).toBeInTheDocument();
+    });
+
+    it('accuracy가 null이면 정확도 안내가 렌더되지 않는다', () => {
+      mockLocation(successWithAccuracy(null));
+      resolved(RESOLVED_SEOUL);
+
+      renderPicker();
+
+      // 브라우저가 값을 주지 않은 것이지 부정확하다는 뜻이 아니다.
+      expect(screen.queryByText(LOW_ACCURACY_MESSAGE)).not.toBeInTheDocument();
+    });
+
+    it('지원 지역 밖이면서 accuracy가 150이면 서울·경기 안내만 렌더된다', () => {
+      mockLocation(successWithAccuracy(150));
+      resolved(RESOLVED_BUSAN);
+
+      renderPicker();
+
+      // 차단 사유를 먼저 알려야 사용자가 지도를 옮긴다.
+      expect(screen.getByText(OUT_OF_REGION_MESSAGE)).toBeInTheDocument();
+      expect(screen.queryByText(LOW_ACCURACY_MESSAGE)).not.toBeInTheDocument();
+    });
+
+    it('지번 주소가 없어 region_1depth_name을 알 수 없으면 CTA가 비활성이고 서울·경기 안내가 렌더된다', () => {
+      mockLocation(SUCCESS);
+      // 도로명은 있어 주소는 확정되지만 지역을 판정할 수 없다.
+      resolved({
+        document: { road_address: ROAD_AND_JIBUN.road_address, address: null },
+        coords: PIN,
+      });
+
+      renderPicker();
+
+      expect(getCta()).toBeDisabled();
+      expect(screen.getByText(OUT_OF_REGION_MESSAGE)).toBeInTheDocument();
+    });
+
+    it('지도 이동 중이면 직전 주소의 안내를 유지해 서울·경기 안내가 그대로 렌더되고 CTA는 비활성이다', () => {
+      mockLocation(SUCCESS);
+      // 이동 중에도 안내는 직전 결과를 따라간다. 확정만 canConfirmLocation이 막는다.
+      mockGeocode({
+        lastResult: RESOLVED_BUSAN,
+        requestStatus: 'resolved',
+        canConfirmLocation: false,
+      });
+
+      renderPicker();
+
+      expect(screen.getByText(OUT_OF_REGION_MESSAGE)).toBeInTheDocument();
+      expect(getCta()).toBeDisabled();
+    });
+
+    it('accuracy가 150이어도 핀 좌표가 최초 GPS 좌표와 다르면 정확도 안내 대신 기본 확인 문구가 렌더된다', () => {
+      mockLocation(successWithAccuracy(150));
+      // 사용자가 지도를 옮겨 확정한 위치다 — 측정 정확도를 말할 자리가 아니다.
+      resolved({ document: ROAD_AND_JIBUN, coords: { latitude: 37.58, longitude: 126.99 } });
+
+      renderPicker();
+
+      expect(screen.queryByText(LOW_ACCURACY_MESSAGE)).not.toBeInTheDocument();
+      expect(screen.getByText(CONFIRM_HINT_MESSAGE)).toBeInTheDocument();
+    });
+
+    it('지도를 옮겼다가 최초 GPS 좌표와 같은 지점으로 다시 확정되면 정확도 안내가 다시 렌더된다', () => {
+      mockLocation(successWithAccuracy(150));
+      resolved({ document: ROAD_AND_JIBUN, coords: { latitude: 37.58, longitude: 126.99 } });
+
+      const { rerender } = renderPicker();
+      expect(screen.queryByText(LOW_ACCURACY_MESSAGE)).not.toBeInTheDocument();
+
+      // 판정은 좌표 동일성뿐이다. dragstart 이력을 따로 기억하지 않는다.
+      resolved({
+        document: ROAD_AND_JIBUN,
+        coords: { latitude: 37.5666805, longitude: 126.9784147 },
+      });
+      rerender();
+
+      expect(screen.getByText(LOW_ACCURACY_MESSAGE)).toBeInTheDocument();
     });
   });
 });
