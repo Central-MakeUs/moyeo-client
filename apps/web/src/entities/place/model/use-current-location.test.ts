@@ -29,14 +29,14 @@ afterEach(() => {
 });
 
 describe('useCurrentLocation', () => {
-  it('마운트하면 getCurrentPosition이 { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 } 옵션으로 정확히 1회 호출된다', () => {
+  it('마운트하면 getCurrentPosition이 { enableHighAccuracy: true, timeout: 10000, maximumAge: 180000 } 옵션으로 정확히 1회 호출된다', () => {
     renderHook(() => useCurrentLocation());
 
     expect(getCurrentPosition).toHaveBeenCalledTimes(1);
     expect(getCurrentPosition).toHaveBeenCalledWith(expect.any(Function), expect.any(Function), {
       enableHighAccuracy: true,
       timeout: 10_000,
-      maximumAge: 0,
+      maximumAge: 180_000,
     });
   });
 

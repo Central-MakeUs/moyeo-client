@@ -7,13 +7,16 @@ import type { CurrentLocationResult } from '@repo/types';
 import { toCurrentLocationError, toCurrentLocationResult } from './to-current-location-result';
 
 /**
- * 캐시된 위치를 사용하지 않고 고정밀 좌표를 한 번 요청한다.
- * 연속 추적이 아니므로 `watchPosition`은 사용하지 않는다.
+ * 고정밀 좌표를 한 번 요청한다. 연속 추적이 아니므로 `watchPosition`은 사용하지 않는다.
+ *
+ * `maximumAge` 는 3분이다. picker는 닫으면 언마운트되므로 검색 화면을 오갈 때마다 좌표를
+ * 새로 요청하는데, 고정밀 측정은 실내에서 수 초가 걸린다. 3분 이내면 브라우저가 방금 잡아둔
+ * 좌표를 재사용할 수 있다. 오래되거나 정확도가 낮은 좌표는 사용자가 지도를 움직여 교정한다.
  */
 const GEOLOCATION_OPTIONS: PositionOptions = {
   enableHighAccuracy: true,
   timeout: 10_000,
-  maximumAge: 0,
+  maximumAge: 180_000,
 };
 
 export interface CurrentLocation {
