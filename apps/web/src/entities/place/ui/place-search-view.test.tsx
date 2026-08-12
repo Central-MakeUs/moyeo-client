@@ -16,10 +16,10 @@ vi.mock('../model/use-place-search', () => ({ usePlaceSearch }));
 // 없어서, 목이 없으면 진입 즉시 실패 상태가 되어 확인 CTA까지 도달할 수 없다.
 // 확정 상태를 만드는 것은 목이지만, picker를 여닫는 URL 전환은 실제 usePickerRoute가 돈다.
 const { useCurrentLocation } = vi.hoisted(() => ({ useCurrentLocation: vi.fn() }));
-const { useReverseGeocode } = vi.hoisted(() => ({ useReverseGeocode: vi.fn() }));
+const { usePinAddress } = vi.hoisted(() => ({ usePinAddress: vi.fn() }));
 
 vi.mock('../model/use-current-location', () => ({ useCurrentLocation }));
-vi.mock('../model/use-reverse-geocode', () => ({ useReverseGeocode }));
+vi.mock('../model/use-pin-address', () => ({ usePinAddress }));
 
 vi.mock('@/shared/ui/map-location-picker', () => ({
   MapLocationPicker: () => <div aria-label="지도" />,
@@ -82,9 +82,10 @@ const PIN = { latitude: 37.57, longitude: 126.98 };
 const CURRENT_COORDS = { latitude: 37.5666805, longitude: 126.9784147, accuracy: 12 };
 
 const SEOUL_CITY_HALL = {
-  document: {
-    road_address: { address_name: '서울특별시 중구 세종대로 110' },
-    address: { address_name: '서울 중구 태평로1가 31', region_1depth_name: '서울' },
+  details: {
+    roadAddress: '서울특별시 중구 세종대로 110',
+    jibunAddress: '서울 중구 태평로1가 31',
+    isSupportedRegion: true,
   },
   coords: PIN,
 };
@@ -96,9 +97,9 @@ const mockCurrentLocation = (result: unknown = null) => {
 
 /** 지정하지 않은 필드는 "아직 아무것도 조회하지 않은" 기본값이다. */
 const mockGeocode = (state: Record<string, unknown> = {}) => {
-  useReverseGeocode.mockReturnValue({
+  usePinAddress.mockReturnValue({
     state: { lastResult: null, requestStatus: 'idle', canConfirmLocation: false, ...state },
-    resolve: vi.fn(),
+    requestAddress: vi.fn(),
     startMoving: vi.fn(),
     retry: vi.fn(),
   });

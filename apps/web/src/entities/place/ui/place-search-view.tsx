@@ -129,7 +129,13 @@ export function PlaceSearchView({
       </div>
 
       {/* 검색 본문을 언마운트하지 않고 위에 오버레이 */}
-      {isPickerOpen && <CurrentLocationPicker onClose={closePicker} onConfirm={confirmSelection} />}
+      {isPickerOpen && (
+        <CurrentLocationPicker
+          inviteCode={inviteCode}
+          onClose={closePicker}
+          onConfirm={confirmSelection}
+        />
+      )}
     </div>
   );
 }

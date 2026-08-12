@@ -55,9 +55,9 @@ export function MapLocationPicker({
 
   const [hasLoadFailed, setHasLoadFailed] = React.useState(false); // 카카오 SDK 로드 실패 여부
 
-  const [isMoving, setIsMoving] = React.useState(false); // 지도 이동 중 여부
+  const [isMoving, setIsMoving] = React.useState(false); // 지도 이동 중 여부 - 화면 렌더링용
   /** 연속된 지도 이동 이벤트에서 시작 알림을 한 번만 보내기 위한 동기 상태. */
-  const isMovingRef = React.useRef(false);
+  const isMovingRef = React.useRef(false); // SDK 이벤트 중복 방지용
 
   // 카카오 지도 이벤트를 지도 생성 시 한 번만 등록.
   // 부모가 리렌더 되어 콜백이 새로 만들어져도 재등록하지 않도록 ref에 담는다.
@@ -90,6 +90,7 @@ export function MapLocationPicker({
 
       if (isAlreadyThere) return;
 
+      // 지도 SDK에 이동을 요청
       map.setCenter(new maps.LatLng(coords.latitude, coords.longitude));
     },
   }));
@@ -126,22 +127,22 @@ export function MapLocationPicker({
           if (isMovingRef.current) return;
 
           isMovingRef.current = true;
-          setIsMoving(true); // 중앙 핀을 이동 중 상태로 바꾼다.
+          setIsMoving(true); // 중앙 핀을 들어 올린다.
           onMoveStartRef.current?.(); // 부모에게 지도 이동 시작을 알린다.
         };
 
-        maps.event.addListener(map, 'dragstart', handleMoveStart);
-        maps.event.addListener(map, 'zoom_start', handleMoveStart);
-        maps.event.addListener(map, 'center_changed', handleMoveStart);
+        maps.event.addListener(map, 'dragstart', handleMoveStart); // 손가락 이동
+        maps.event.addListener(map, 'zoom_start', handleMoveStart); // 확대, 축소
+        maps.event.addListener(map, 'center_changed', handleMoveStart); //프로그램적 이동
 
         // `idle` 은 프로그램적인 지도 중심 이동에서도 발생한다. 같은 경로를 탄다 (§6-4).
         function handleIdle() {
-          isMovingRef.current = false;
-          setIsMoving(false);
+          isMovingRef.current = false; // 중복 이벤트 방지용 ref 해제
+          setIsMoving(false); // 핀 애니메이션용 state 해제
 
           const mapCenter = map.getCenter();
 
-          onIdleRef.current?.({ latitude: mapCenter.getLat(), longitude: mapCenter.getLng() });
+          onIdleRef.current?.({ latitude: mapCenter.getLat(), longitude: mapCenter.getLng() }); // 최종 중심 좌표 부모로 전달
         }
 
         maps.event.addListener(map, 'idle', handleIdle);

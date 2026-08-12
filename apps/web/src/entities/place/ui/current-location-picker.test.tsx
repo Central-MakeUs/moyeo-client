@@ -5,19 +5,19 @@ import userEvent from '@testing-library/user-event';
 
 import type { CurrentLocationResult } from '@repo/types';
 
-import type { Coord2AddressDocument } from '@/shared/lib/kakao-map-sdk';
+import type { ReverseGeocodingResponse } from '@/shared/api';
 import { runBackHandlers } from '@/shared/model';
 
-import type { ReverseGeocodeState } from '../model/use-reverse-geocode';
+import type { PinAddressState } from '../model/use-pin-address';
 import { CurrentLocationPicker } from './current-location-picker';
 
 // 상태별 렌더를 제어하려면 좌표 획득을 목으로 고정해야 한다.
 // jsdom에는 Geolocation API가 없어 목이 없으면 항상 실패 상태로만 뜬다.
 const { useCurrentLocation } = vi.hoisted(() => ({ useCurrentLocation: vi.fn() }));
-const { useReverseGeocode } = vi.hoisted(() => ({ useReverseGeocode: vi.fn() }));
+const { usePinAddress } = vi.hoisted(() => ({ usePinAddress: vi.fn() }));
 
 vi.mock('../model/use-current-location', () => ({ useCurrentLocation }));
-vi.mock('../model/use-reverse-geocode', () => ({ useReverseGeocode }));
+vi.mock('../model/use-pin-address', () => ({ usePinAddress }));
 
 // 지도 자체는 슬라이스 3에서 검증했다. 여기서는 렌더 여부와, 화면이 카메라를 어떻게
 // 명령하는지만 본다. moveTo 구현은 map-location-picker.test.tsx가 검증한다.
@@ -32,7 +32,7 @@ vi.mock('@/shared/ui/map-location-picker', () => ({
 }));
 
 const retry = vi.fn();
-const resolveAddress = vi.fn();
+const requestAddress = vi.fn();
 const startMoving = vi.fn();
 const retryAddress = vi.fn();
 
@@ -43,35 +43,38 @@ const SUCCESS: CurrentLocationResult = {
 
 const PIN = { latitude: 37.57, longitude: 126.98 };
 
-const ROAD_AND_JIBUN: Coord2AddressDocument = {
-  road_address: { address_name: '서울특별시 중구 세종대로 110' },
-  address: { address_name: '서울 중구 태평로1가 31', region_1depth_name: '서울' },
+const SEOUL_DETAILS: ReverseGeocodingResponse = {
+  roadAddress: '서울특별시 중구 세종대로 110',
+  jibunAddress: '서울 중구 태평로1가 31',
+  isSupportedRegion: true,
 };
 
 /** 지정하지 않은 필드는 "아직 아무것도 조회하지 않은" 기본값이다. */
-const mockGeocode = (state: Partial<ReverseGeocodeState> = {}) => {
-  useReverseGeocode.mockReturnValue({
+const mockGeocode = (state: Partial<PinAddressState> = {}) => {
+  usePinAddress.mockReturnValue({
     state: {
       lastResult: null,
       requestStatus: 'idle',
       canConfirmLocation: false,
       ...state,
     },
-    resolve: resolveAddress,
+    requestAddress,
     startMoving,
     retry: retryAddress,
   });
 };
 
-const RESOLVED_SEOUL = { document: ROAD_AND_JIBUN, coords: PIN };
+const RESOLVED_SEOUL = { details: SEOUL_DETAILS, coords: PIN };
 
 /** 지원 지역(서울·경기) 밖 주소. */
-const BUSAN: Coord2AddressDocument = {
-  road_address: { address_name: '부산광역시 해운대구 해운대해변로 264' },
-  address: { address_name: '부산 해운대구 우동 1413', region_1depth_name: '부산' },
+/** 지원 지역(서울·경기) 밖 주소. 판정은 서버가 한다. */
+const BUSAN_DETAILS: ReverseGeocodingResponse = {
+  roadAddress: '부산광역시 해운대구 해운대해변로 264',
+  jibunAddress: '부산 해운대구 우동 1413',
+  isSupportedRegion: false,
 };
 
-const RESOLVED_BUSAN = { document: BUSAN, coords: PIN };
+const RESOLVED_BUSAN = { details: BUSAN_DETAILS, coords: PIN };
 
 /** 정확도만 바꾼 성공 결과. */
 const successWithAccuracy = (accuracy: number | null): CurrentLocationResult => ({
@@ -102,6 +105,13 @@ describe('CurrentLocationPicker', () => {
     // true를 반환해야 아래 PlaceSearchView 핸들러로 내려가지 않는다 (spec-fixed.md §4-3).
     expect(runBackHandlers()).toBe(true);
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('inviteCode prop을 받으면 usePinAddress에 그대로 전달한다', () => {
+    render(<CurrentLocationPicker inviteCode="ABC123" onClose={vi.fn()} onConfirm={vi.fn()} />);
+
+    // 게스트는 Access Token이 없어 이 값이 빠지면 주소 조회가 401로 실패한다.
+    expect(usePinAddress).toHaveBeenCalledWith('ABC123');
   });
 
   it('화면 내 뒤로가기 버튼을 클릭하면 onClose가 1회 호출된다', async () => {
@@ -150,8 +160,8 @@ describe('CurrentLocationPicker', () => {
       render(<CurrentLocationPicker onClose={vi.fn()} onConfirm={vi.fn()} />);
 
       // 사용자가 지도를 움직이지 않아도 첫 주소를 조회한다.
-      expect(resolveAddress).toHaveBeenCalledTimes(1);
-      expect(resolveAddress).toHaveBeenCalledWith(SUCCESS.coords);
+      expect(requestAddress).toHaveBeenCalledTimes(1);
+      expect(requestAddress).toHaveBeenCalledWith(SUCCESS.coords);
     });
 
     it('최초 주소를 조회하는 동안에는 주소 스켈레톤과 비활성 CTA가 표시된다', () => {
@@ -183,7 +193,7 @@ describe('CurrentLocationPicker', () => {
       mockLocation(SUCCESS);
       mockGeocode({
         lastResult: {
-          document: { road_address: null, address: ROAD_AND_JIBUN.address },
+          details: { ...SEOUL_DETAILS, roadAddress: null },
           coords: PIN,
         },
         requestStatus: 'resolved',
@@ -310,7 +320,7 @@ describe('CurrentLocationPicker', () => {
       mockLocation(SUCCESS);
       mockGeocode({
         lastResult: {
-          document: { road_address: null, address: ROAD_AND_JIBUN.address },
+          details: { ...SEOUL_DETAILS, roadAddress: null },
           coords: PIN,
         },
         requestStatus: 'resolved',
@@ -352,7 +362,10 @@ describe('CurrentLocationPicker', () => {
       mockLocation(SUCCESS);
       // 확정 주소가 아니다 — toDepartureDraft가 null을 반환한다 (§6-2).
       mockGeocode({
-        lastResult: { document: { road_address: null, address: null }, coords: PIN },
+        lastResult: {
+          details: { ...SEOUL_DETAILS, roadAddress: null, jibunAddress: null },
+          coords: PIN,
+        },
         requestStatus: 'resolved',
         canConfirmLocation: true,
       });
@@ -384,7 +397,7 @@ describe('CurrentLocationPicker', () => {
     const getCta = () => screen.getByRole('button', { name: '이 위치로 주소 등록' });
 
     /** 확정 주소를 확보한 상태 — 여기서부터 지역·정확도 판정이 갈린다. */
-    const resolved = (lastResult: ReverseGeocodeState['lastResult']) => {
+    const resolved = (lastResult: PinAddressState['lastResult']) => {
       mockGeocode({ lastResult, requestStatus: 'resolved', canConfirmLocation: true });
     };
 
@@ -397,7 +410,7 @@ describe('CurrentLocationPicker', () => {
       };
     };
 
-    it('region_1depth_name이 부산이면 지도는 렌더되고 서울·경기 안내와 함께 CTA가 비활성이다', () => {
+    it('isSupportedRegion이 false면 지도는 렌더되고 서울·경기 안내와 함께 CTA가 비활성이다', () => {
       mockLocation(SUCCESS);
       resolved(RESOLVED_BUSAN);
 
@@ -413,7 +426,7 @@ describe('CurrentLocationPicker', () => {
       mockLocation(successWithAccuracy(150));
       // 진입 직후 — 첫 조회는 GPS 좌표 그대로 들어간다 (핀을 아직 옮기지 않았다).
       resolved({
-        document: ROAD_AND_JIBUN,
+        details: SEOUL_DETAILS,
         coords: { latitude: 37.5666805, longitude: 126.9784147 },
       });
 
@@ -471,11 +484,11 @@ describe('CurrentLocationPicker', () => {
       expect(screen.queryByText(LOW_ACCURACY_MESSAGE)).not.toBeInTheDocument();
     });
 
-    it('지번 주소가 없어 region_1depth_name을 알 수 없으면 CTA가 비활성이고 서울·경기 안내가 렌더된다', () => {
+    it('isSupportedRegion이 undefined면 CTA가 비활성이고 서울·경기 안내가 렌더된다', () => {
       mockLocation(SUCCESS);
-      // 도로명은 있어 주소는 확정되지만 지역을 판정할 수 없다.
+      // 주소는 확정되지만 서버가 지역을 판정하지 못한 경우다. `!== true` 로 막아야 한다.
       resolved({
-        document: { road_address: ROAD_AND_JIBUN.road_address, address: null },
+        details: { ...SEOUL_DETAILS, isSupportedRegion: undefined },
         coords: PIN,
       });
 
@@ -503,7 +516,7 @@ describe('CurrentLocationPicker', () => {
     it('accuracy가 150이어도 핀 좌표가 최초 GPS 좌표와 다르면 정확도 안내 대신 기본 확인 문구가 렌더된다', () => {
       mockLocation(successWithAccuracy(150));
       // 사용자가 지도를 옮겨 확정한 위치다 — 측정 정확도를 말할 자리가 아니다.
-      resolved({ document: ROAD_AND_JIBUN, coords: { latitude: 37.58, longitude: 126.99 } });
+      resolved({ details: SEOUL_DETAILS, coords: { latitude: 37.58, longitude: 126.99 } });
 
       renderPicker();
 
@@ -513,14 +526,14 @@ describe('CurrentLocationPicker', () => {
 
     it('지도를 옮겼다가 최초 GPS 좌표와 같은 지점으로 다시 확정되면 정확도 안내가 다시 렌더된다', () => {
       mockLocation(successWithAccuracy(150));
-      resolved({ document: ROAD_AND_JIBUN, coords: { latitude: 37.58, longitude: 126.99 } });
+      resolved({ details: SEOUL_DETAILS, coords: { latitude: 37.58, longitude: 126.99 } });
 
       const { rerender } = renderPicker();
       expect(screen.queryByText(LOW_ACCURACY_MESSAGE)).not.toBeInTheDocument();
 
       // 판정은 좌표 동일성뿐이다. dragstart 이력을 따로 기억하지 않는다.
       resolved({
-        document: ROAD_AND_JIBUN,
+        details: SEOUL_DETAILS,
         coords: { latitude: 37.5666805, longitude: 126.9784147 },
       });
       rerender();

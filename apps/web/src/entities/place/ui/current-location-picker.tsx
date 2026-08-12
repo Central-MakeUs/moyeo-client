@@ -14,10 +14,9 @@ import { Spinner } from '@/shared/ui/spinner';
 import { TopAppBar } from '@/shared/ui/top-app-bar';
 
 import type { DepartureDraft } from '../model/departure-draft';
-import { isSupportedRegion } from '../model/is-supported-region';
 import { toDepartureDraft } from '../model/to-departure-draft';
 import { useCurrentLocation } from '../model/use-current-location';
-import { useReverseGeocode, type ReverseGeocodeState } from '../model/use-reverse-geocode';
+import { usePinAddress, type PinAddressState } from '../model/use-pin-address';
 
 /** 위치 실패 상태 정의  */
 type FailureState = Exclude<CurrentLocationResult['state'], 'success'>;
@@ -40,6 +39,8 @@ const FAILURE: Record<FailureState, { message: string; canRetry: boolean }> = {
 const LOW_ACCURACY_THRESHOLD_M = 100;
 
 export interface CurrentLocationPickerProps {
+  /** Access Token이 없는 게스트의 주소 조회에 사용하는 모임 초대 코드. */
+  inviteCode?: string;
   /** 선택 없이 위치 확인 화면을 닫는다. */
   onClose: () => void;
   /** 현재 핀의 확정 가능한 주소를 출발지로 전달한다. */
@@ -47,16 +48,17 @@ export interface CurrentLocationPickerProps {
 }
 
 export function CurrentLocationPicker({
+  inviteCode,
   onClose,
   onConfirm,
 }: CurrentLocationPickerProps): React.JSX.Element {
-  const { result, retry } = useCurrentLocation(); // 현재 기기의 좌표 관련 훅
+  const { result: currentLocationResult, retry: retryCurrentLocation } = useCurrentLocation();
   const {
     state: geocode,
     startMoving,
-    resolve: resolveAddress,
+    requestAddress,
     retry: retryAddress,
-  } = useReverseGeocode(); // 좌표를 주소로 바꾸는 작업 관련 훅
+  } = usePinAddress(inviteCode); // 핀 좌표를 주소로 바꾸는 작업 관련 훅
 
   /** `MapLocationPicker`의 지도 중심 이동 명령을 호출하기 위한 ref. */
   const mapPickerRef = React.useRef<MapLocationPickerHandle>(null);
@@ -69,8 +71,14 @@ export function CurrentLocationPicker({
   });
 
   // GPS 결과를 렌더링용 값으로 변환
-  const failure = result !== null && result.state !== 'success' ? FAILURE[result.state] : null;
-  const coords = result !== null && result.state === 'success' ? result.coords : null;
+  const failure =
+    currentLocationResult !== null && currentLocationResult.state !== 'success'
+      ? FAILURE[currentLocationResult.state]
+      : null;
+  const initialLocationCoords =
+    currentLocationResult !== null && currentLocationResult.state === 'success'
+      ? currentLocationResult.coords
+      : null;
 
   /**
    * 좌표를 확보하면 지도를 움직이지 않아도 첫 주소를 자동으로 조회한다.
@@ -79,10 +87,10 @@ export function CurrentLocationPicker({
    * 않으므로 중복 호출이 생기지 않는다.
    */
   React.useEffect(() => {
-    if (coords === null) return;
+    if (initialLocationCoords === null) return;
 
-    resolveAddress(coords);
-  }, [coords, resolveAddress]);
+    requestAddress(initialLocationCoords);
+  }, [initialLocationCoords, requestAddress]);
 
   /**
    * 현재 핀의 주소로 확정할 수 있는 조회 결과.
@@ -101,9 +109,9 @@ export function CurrentLocationPicker({
   const lastGeocodeResult = geocode.lastResult;
 
   /** 지도는 그대로 두고 CTA만 막는다. 지도를 옮겨 지원 지역으로 갈 수 있어야 한다 (§7). */
+  // 생성 타입상 optional이라 false와 undefined가 모두 가능하다. 둘 다 차단한다.
   const isOutOfSupportedRegion =
-    lastGeocodeResult !== null &&
-    !isSupportedRegion(lastGeocodeResult.document.address?.region_1depth_name ?? null);
+    lastGeocodeResult !== null && lastGeocodeResult.details.isSupportedRegion !== true;
 
   /**
    * 핀이 아직 최초 GPS 좌표인가.
@@ -113,16 +121,16 @@ export function CurrentLocationPicker({
    */
   const isPinAtInitialCoords =
     lastGeocodeResult !== null &&
-    coords !== null &&
-    lastGeocodeResult.coords.latitude === coords.latitude &&
-    lastGeocodeResult.coords.longitude === coords.longitude;
+    initialLocationCoords !== null &&
+    lastGeocodeResult.coords.latitude === initialLocationCoords.latitude &&
+    lastGeocodeResult.coords.longitude === initialLocationCoords.longitude;
 
   /** 확정을 막지는 않고 조정을 유도한다 (§5-3 — 정확도 하한 없음). */
   const shouldShowLowAccuracyHint =
     isPinAtInitialCoords &&
-    coords !== null &&
-    coords.accuracy !== null &&
-    coords.accuracy > LOW_ACCURACY_THRESHOLD_M;
+    initialLocationCoords !== null &&
+    initialLocationCoords.accuracy !== null &&
+    initialLocationCoords.accuracy > LOW_ACCURACY_THRESHOLD_M;
 
   /**
    * 확정 가능한 출발지. 하나라도 어긋나면 `null` 이고 CTA는 비활성이다.
@@ -133,7 +141,7 @@ export function CurrentLocationPicker({
    */
   const confirmableDraft =
     currentGeocodeResult !== null && !isOutOfSupportedRegion
-      ? toDepartureDraft(currentGeocodeResult.document, currentGeocodeResult.coords)
+      ? toDepartureDraft(currentGeocodeResult.details, currentGeocodeResult.coords)
       : null;
 
   /** 지원 지역 밖이 정확도 안내보다 앞선다 — 차단 사유를 먼저 알려야 지도를 옮긴다. */
@@ -163,7 +171,7 @@ export function CurrentLocationPicker({
 
       <div className="flex min-h-0 flex-1 flex-col">
         {/* 좌표 요청 중 화면 */}
-        {result === null && (
+        {currentLocationResult === null && (
           <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 bg-neutral-20 px-5">
             <Spinner label="현재 위치를 찾고 있어요" />
           </div>
@@ -176,7 +184,7 @@ export function CurrentLocationPicker({
               <p className="text-medium-14 text-neutral-500">{failure.message}</p>
 
               {failure.canRetry && (
-                <Button type="button" variant="outline" onClick={retry}>
+                <Button type="button" variant="outline" onClick={retryCurrentLocation}>
                   다시 시도
                 </Button>
               )}
@@ -188,13 +196,13 @@ export function CurrentLocationPicker({
           </div>
         )}
 
-        {coords !== null && (
+        {initialLocationCoords !== null && (
           <div className="relative min-h-0 flex-1">
             <MapLocationPicker
               ref={mapPickerRef}
-              center={coords}
+              center={initialLocationCoords}
               onMoveStart={startMoving}
-              onIdle={resolveAddress}
+              onIdle={requestAddress}
             />
 
             {/* 좌표를 다시 요청하지 않고 지도 중심만 최초 위치로 되돌린다 (F06). */}
@@ -204,7 +212,7 @@ export function CurrentLocationPicker({
               shape="circle"
               variant="outline"
               className="absolute right-4 bottom-4 z-10"
-              onClick={() => mapPickerRef.current?.moveTo(coords)}
+              onClick={() => mapPickerRef.current?.moveTo(initialLocationCoords)}
             />
           </div>
         )}
@@ -243,7 +251,7 @@ export function CurrentLocationPicker({
 }
 
 interface AddressCardProps {
-  state: ReverseGeocodeState;
+  state: PinAddressState;
   onRetry: () => void;
 }
 
@@ -274,8 +282,8 @@ function AddressCard({ state, onRetry }: AddressCardProps): React.JSX.Element {
     );
   }
 
-  const roadAddress = lastResult?.document.road_address?.address_name ?? null;
-  const jibunAddress = lastResult?.document.address?.address_name ?? null;
+  const roadAddress = lastResult?.details.roadAddress ?? null;
+  const jibunAddress = lastResult?.details.jibunAddress ?? null;
 
   /**
    * 주소 영역은 항상 두 줄 높이를 유지한다.

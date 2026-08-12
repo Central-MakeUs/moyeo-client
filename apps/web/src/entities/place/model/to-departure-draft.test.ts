@@ -1,24 +1,26 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Coord2AddressDocument } from '@/shared/lib/kakao-map-sdk';
+import type { ReverseGeocodingResponse } from '@/shared/api';
 
 import { toDepartureDraft } from './to-departure-draft';
 
 /** 핀 좌표. 현재 좌표와 갈라진 뒤의 값을 쓴다. */
 const PIN = { latitude: 37.57, longitude: 126.98 };
 
-const documentOf = (overrides: Partial<Coord2AddressDocument>): Coord2AddressDocument => ({
-  road_address: null,
-  address: null,
+const detailsOf = (overrides: Partial<ReverseGeocodingResponse>): ReverseGeocodingResponse => ({
+  roadAddress: null,
+  jibunAddress: null,
+  isSupportedRegion: false,
   ...overrides,
 });
 
 describe('toDepartureDraft', () => {
-  it('road_address.address_name이 "서울특별시 중구 세종대로 110"이면 name과 address가 모두 그 값이고 좌표는 넘긴 핀 좌표다', () => {
+  it('roadAddress가 "서울특별시 중구 세종대로 110"이면 name과 address가 모두 그 값이고 좌표는 넘긴 핀 좌표다', () => {
     const result = toDepartureDraft(
-      documentOf({
-        road_address: { address_name: '서울특별시 중구 세종대로 110' },
-        address: { address_name: '서울 중구 태평로1가 31', region_1depth_name: '서울' },
+      detailsOf({
+        roadAddress: '서울특별시 중구 세종대로 110',
+        jibunAddress: '서울 중구 태평로1가 31',
+        isSupportedRegion: true,
       }),
       PIN
     );
@@ -31,11 +33,9 @@ describe('toDepartureDraft', () => {
     });
   });
 
-  it('road_address가 null이고 address.address_name이 "서울 중구 태평로1가 31"이면 name이 지번 주소가 된다', () => {
+  it('roadAddress가 null이고 jibunAddress가 "서울 중구 태평로1가 31"이면 name이 지번 주소가 된다', () => {
     const result = toDepartureDraft(
-      documentOf({
-        address: { address_name: '서울 중구 태평로1가 31', region_1depth_name: '서울' },
-      }),
+      detailsOf({ jibunAddress: '서울 중구 태평로1가 31', isSupportedRegion: true }),
       PIN
     );
 
@@ -43,8 +43,8 @@ describe('toDepartureDraft', () => {
     expect(result?.address).toBe('서울 중구 태평로1가 31');
   });
 
-  it('road_address와 address가 모두 null이면 null을 반환한다', () => {
+  it('roadAddress와 jibunAddress가 모두 없으면 null을 반환한다', () => {
     // 확정 주소가 아니므로 CTA 활성 조건을 만족하지 않는다 (§6-2).
-    expect(toDepartureDraft(documentOf({}), PIN)).toBeNull();
+    expect(toDepartureDraft(detailsOf({}), PIN)).toBeNull();
   });
 });
