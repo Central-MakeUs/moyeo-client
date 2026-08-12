@@ -185,6 +185,7 @@ describe('MapLocationPicker', () => {
       const ref = await renderWithHandle({ onMoveStart });
 
       act(() => ref.current?.moveTo(SEOUL_CITY_HALL));
+      act(() => mapListeners.get('center_changed')?.());
 
       // 프로그램적 이동도 사용자 드래그와 같은 경로를 타야 확정이 막힌다 (§6-4).
       expect(onMoveStart).toHaveBeenCalledTimes(1);
@@ -198,6 +199,17 @@ describe('MapLocationPicker', () => {
       act(() => ref.current?.moveTo(GANGNAM_STATION));
 
       expect(map.setCenter).not.toHaveBeenCalled();
+      expect(onMoveStart).not.toHaveBeenCalled();
+    });
+
+    it('setCenter 뒤 실제 중심 변경 이벤트가 없으면 이동 중 상태로 바꾸지 않는다', async () => {
+      const onMoveStart = vi.fn();
+      const ref = await renderWithHandle({ onMoveStart });
+
+      act(() => ref.current?.moveTo(SEOUL_CITY_HALL));
+      act(() => ref.current?.moveTo(SEOUL_CITY_HALL));
+
+      expect(map.setCenter).toHaveBeenCalledTimes(2);
       expect(onMoveStart).not.toHaveBeenCalled();
     });
 

@@ -56,6 +56,8 @@ export function MapLocationPicker({
   const [hasLoadFailed, setHasLoadFailed] = React.useState(false); // 카카오 SDK 로드 실패 여부
 
   const [isMoving, setIsMoving] = React.useState(false); // 지도 이동 중 여부
+  /** 연속된 지도 이동 이벤트에서 시작 알림을 한 번만 보내기 위한 동기 상태. */
+  const isMovingRef = React.useRef(false);
 
   // 카카오 지도 이벤트를 지도 생성 시 한 번만 등록.
   // 부모가 리렌더 되어 콜백이 새로 만들어져도 재등록하지 않도록 ref에 담는다.
@@ -71,8 +73,8 @@ export function MapLocationPicker({
   /**
    * 지도 중심을 명령형으로 옮긴다 (F06 현재 위치 재정렬).
    *
-   * 이미 그 좌표면 아무것도 하지 않는다. `setCenter` 로 지도 중심이 바뀌지 않으면 `idle` 이
-   * 오지 않는데, `onMoveStart` 만 쏘고 나면 이동 중 상태가 풀리지 않고 굳는다.
+   * 실제 이동 시작 여부는 카카오의 `center_changed` 이벤트로 판정한다. 같은 위치로
+   * `setCenter`를 호출해 이벤트가 발생하지 않아도 이동 중 상태가 남지 않는다.
    * 갱신은 별도 경로를 만들지 않고 기존 `idle` → `onIdle` 에 합류한다 (§6-4).
    */
   React.useImperativeHandle(ref, () => ({
@@ -88,8 +90,6 @@ export function MapLocationPicker({
 
       if (isAlreadyThere) return;
 
-      setIsMoving(true);
-      onMoveStartRef.current?.();
       map.setCenter(new maps.LatLng(coords.latitude, coords.longitude));
     },
   }));
@@ -123,15 +123,20 @@ export function MapLocationPicker({
 
         // 드래그와 줌을 모두 지도 이동으로 처리한다.
         const handleMoveStart = () => {
+          if (isMovingRef.current) return;
+
+          isMovingRef.current = true;
           setIsMoving(true); // 중앙 핀을 이동 중 상태로 바꾼다.
           onMoveStartRef.current?.(); // 부모에게 지도 이동 시작을 알린다.
         };
 
         maps.event.addListener(map, 'dragstart', handleMoveStart);
         maps.event.addListener(map, 'zoom_start', handleMoveStart);
+        maps.event.addListener(map, 'center_changed', handleMoveStart);
 
         // `idle` 은 프로그램적인 지도 중심 이동에서도 발생한다. 같은 경로를 탄다 (§6-4).
         function handleIdle() {
+          isMovingRef.current = false;
           setIsMoving(false);
 
           const mapCenter = map.getCenter();
