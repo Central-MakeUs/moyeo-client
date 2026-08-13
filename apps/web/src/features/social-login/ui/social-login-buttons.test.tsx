@@ -64,6 +64,53 @@ describe('SocialLoginButtons', () => {
       writable: true,
       value: originalLocation,
     });
+    delete (window as { ReactNativeWebView?: unknown }).ReactNativeWebView;
+    vi.unstubAllGlobals();
+  });
+
+  /** 네이티브 WebView 안에서 실행 중인 상황을 만든다. */
+  function stubNativeApp(platform: 'ios' | 'android') {
+    (window as { ReactNativeWebView?: unknown }).ReactNativeWebView = { postMessage: vi.fn() };
+    vi.stubGlobal('navigator', {
+      ...window.navigator,
+      userAgent:
+        platform === 'ios'
+          ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15'
+          : 'Mozilla/5.0 (Linux; Android 14; SM-S911N) AppleWebKit/537.36',
+    });
+  }
+
+  const appleButton = () => screen.queryByRole('button', { name: /Apple로 시작하기/ });
+  const kakaoButton = () => screen.queryByRole('button', { name: /카카오로 시작하기/ });
+
+  describe('애플 버튼 노출', () => {
+    it('Android 네이티브 앱에서는 애플 버튼이 없고 카카오 버튼만 남는다', async () => {
+      stubNativeApp('android');
+      renderButtons();
+
+      await waitFor(() => expect(appleButton()).not.toBeInTheDocument());
+      expect(kakaoButton()).toBeInTheDocument();
+    });
+
+    it('iOS 네이티브 앱에서는 애플 버튼이 그대로 있다', async () => {
+      stubNativeApp('ios');
+      renderButtons();
+
+      await waitFor(() => expect(appleButton()).toBeInTheDocument());
+      expect(kakaoButton()).toBeInTheDocument();
+    });
+
+    // 네이티브 앱에서만 숨긴다. iOS에서 애플로 가입한 사용자가 Android로 기변했을 때
+    // 모바일 브라우저가 유일한 로그인 경로로 남아야 한다.
+    it('Android 브라우저에서는 애플 버튼이 그대로 있다', async () => {
+      vi.stubGlobal('navigator', {
+        ...window.navigator,
+        userAgent: 'Mozilla/5.0 (Linux; Android 14; SM-S911N) AppleWebKit/537.36',
+      });
+      renderButtons();
+
+      await waitFor(() => expect(appleButton()).toBeInTheDocument());
+    });
   });
 
   it('should render both the Apple and Kakao buttons when rendered', () => {
