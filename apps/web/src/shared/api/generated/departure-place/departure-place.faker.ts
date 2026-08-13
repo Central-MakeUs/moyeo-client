@@ -7,7 +7,7 @@
  */
 import { faker } from '@faker-js/faker';
 
-import type { DeparturePlaceSearchResponse } from '../schemas';
+import type { DeparturePlaceSearchResponse, ReverseGeocodingResponse } from '../schemas';
 
 import { getResultMock } from '../schemas/index.faker';
 
@@ -20,5 +20,20 @@ export const getSearchResponseMock = (
     })),
     undefined,
   ]),
+  ...overrideResponse,
+});
+
+export const getReverseGeocodeResponseMock = (
+  overrideResponse: Partial<Extract<ReverseGeocodingResponse, object>> = {}
+): ReverseGeocodingResponse => ({
+  roadAddress: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  jibunAddress: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  isSupportedRegion: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
   ...overrideResponse,
 });

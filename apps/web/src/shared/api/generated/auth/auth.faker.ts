@@ -26,7 +26,37 @@ export const getLoginKakaoResponseMock = (
   ...overrideResponse,
 });
 
+export const getLoginKakaoNativeResponseMock = (
+  overrideResponse: Partial<Extract<AuthResponse, object>> = {}
+): AuthResponse => ({
+  accessToken: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  tokenType: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  user: faker.helpers.arrayElement([{ ...getAuthUserResponseMock() }, undefined]),
+  ...overrideResponse,
+});
+
 export const getLoginAppleResponseMock = (
+  overrideResponse: Partial<Extract<AuthResponse, object>> = {}
+): AuthResponse => ({
+  accessToken: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  tokenType: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    undefined,
+  ]),
+  user: faker.helpers.arrayElement([{ ...getAuthUserResponseMock() }, undefined]),
+  ...overrideResponse,
+});
+
+export const getLoginAppleNativeResponseMock = (
   overrideResponse: Partial<Extract<AuthResponse, object>> = {}
 ): AuthResponse => ({
   accessToken: faker.helpers.arrayElement([

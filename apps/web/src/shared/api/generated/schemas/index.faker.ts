@@ -9,6 +9,7 @@ import { faker } from '@faker-js/faker';
 
 import type {
   AppleLoginRequest,
+  AppleNativeLoginRequest,
   AuthResponse,
   AuthUserResponse,
   AvailabilityStatusResponse,
@@ -33,6 +34,7 @@ import type {
   GuestJoinRequest,
   Item,
   KakaoLoginRequest,
+  KakaoNativeLoginRequest,
   MeetingConfirmationResponse,
   MeetingCoverResponse,
   MeetingInvitationResponse,
@@ -53,6 +55,7 @@ import type {
   RecommendationResponse,
   RenameSavedPlaceRequest,
   Result,
+  ReverseGeocodingResponse,
   SavePlaceRequest,
   SavedPlaceListResponse,
   SavedPlaceResponse,
@@ -196,7 +199,7 @@ export const getCreateMeetingRequestMock = (
   ]),
   departure: faker.helpers.arrayElement([{ ...getDepartureRequestMock() }, undefined]),
   deadlineMinutes: faker.helpers.arrayElement([
-    faker.number.int({ min: 10, max: 10080 }),
+    faker.number.int({ min: 10, max: 11460 }),
     undefined,
   ]),
   noDeadline: faker.datatype.boolean(),
@@ -334,6 +337,13 @@ export const getSavePlaceRequestMock = (
   overrideResponse: Partial<SavePlaceRequest> = {}
 ): SavePlaceRequest => ({
   alias: faker.string.alpha({ length: { min: 0, max: 30 } }),
+  category: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([
+      faker.helpers.arrayElement(['HOME', 'WORK', 'OTHER'] as const),
+      null,
+    ]),
+    undefined,
+  ]),
   type: faker.helpers.arrayElement(['STATION', 'ADDRESS', 'PLACE'] as const),
   displayName: faker.string.alpha({ length: { min: 0, max: 255 } }),
   address: faker.string.alpha({ length: { min: 0, max: 255 } }),
@@ -360,6 +370,10 @@ export const getSavedPlaceResponseMock = (
   ]),
   type: faker.helpers.arrayElement([
     faker.helpers.arrayElement(['STATION', 'ADDRESS', 'PLACE'] as const),
+    undefined,
+  ]),
+  category: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['HOME', 'WORK', 'OTHER'] as const),
     undefined,
   ]),
   displayName: faker.helpers.arrayElement([
@@ -473,6 +487,13 @@ export const getAuthResponseMock = (
   ...overrideResponse,
 });
 
+export const getKakaoNativeLoginRequestMock = (
+  overrideResponse: Partial<KakaoNativeLoginRequest> = {}
+): KakaoNativeLoginRequest => ({
+  accessToken: faker.string.alpha({ length: { min: 0, max: 4096 } }),
+  ...overrideResponse,
+});
+
 export const getDevAuthTokensResponseMock = (
   overrideResponse: Partial<DevAuthTokensResponse> = {}
 ): DevAuthTokensResponse => ({
@@ -487,6 +508,15 @@ export const getAppleLoginRequestMock = (
   code: faker.string.alpha({ length: { min: 0, max: 4096 } }),
   nonce: faker.string.alpha({ length: { min: 0, max: 255 } }),
   redirectTarget: faker.helpers.arrayElement(['dev', 'prod'] as const),
+  ...overrideResponse,
+});
+
+export const getAppleNativeLoginRequestMock = (
+  overrideResponse: Partial<AppleNativeLoginRequest> = {}
+): AppleNativeLoginRequest => ({
+  identityToken: faker.string.alpha({ length: { min: 0, max: 8192 } }),
+  authorizationCode: faker.string.alpha({ length: { min: 0, max: 4096 } }),
+  nonce: faker.string.alpha({ length: { min: 0, max: 255 } }),
   ...overrideResponse,
 });
 
@@ -1232,5 +1262,20 @@ export const getFeedbackListResponseMock = (
     })),
     undefined,
   ]),
+  ...overrideResponse,
+});
+
+export const getReverseGeocodingResponseMock = (
+  overrideResponse: Partial<ReverseGeocodingResponse> = {}
+): ReverseGeocodingResponse => ({
+  roadAddress: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  jibunAddress: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  isSupportedRegion: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
   ...overrideResponse,
 });

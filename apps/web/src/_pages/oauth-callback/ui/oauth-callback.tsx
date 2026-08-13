@@ -4,24 +4,23 @@ import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
-
 import {
   clearOAuthTransaction,
   getAppleRedirectTarget,
   getKakaoRedirectTarget,
   readOAuthTransaction,
 } from '@/entities/auth';
-import { setSessionToken, toAccessToken, toSessionViewer } from '@/entities/session';
 import {
   buildLoginFailurePath,
+  establishSession,
   resolvePostLoginPath,
+  toExchangeErrorReason,
   toLoginErrorMessage,
   validateAppleCallback,
   validateKakaoCallback,
   type LoginErrorReason,
 } from '@/features/social-login';
-import { getMeQueryKey, useLoginApple, useLoginKakao, type AuthResponse } from '@/shared/api';
+import { useLoginApple, useLoginKakao, type AuthResponse } from '@/shared/api';
 import { AppSplash } from '@/shared/ui/app-splash';
 
 /** API timeout보다 긴 최종 안전망. mutation이 어떤 이유로도 settle되지 않으면 사용자를 내보낸다. */
@@ -35,10 +34,6 @@ type OAuthCallbackState =
   | { status: 'navigating'; destination: string }
   | { status: 'failed'; reason: LoginErrorReason; loginPath: string }
   | { status: 'navigation_failed'; destination: string };
-
-function isTimeoutError(error: unknown): boolean {
-  return isAxiosError(error) && (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT');
-}
 
 function OAuthCallbackContent() {
   const params = useParams<{ provider: string }>();
@@ -81,8 +76,7 @@ function OAuthCallbackContent() {
     (auth: AuthResponse) => {
       if (hasFinishedRef.current) return;
 
-      const accessToken = toAccessToken(auth);
-      if (!accessToken) {
+      if (!establishSession(auth, queryClient)) {
         // 200이지만 토큰이 없는 응답. 세션을 만들 수 없으므로 실패로 처리한다.
         failLogin('exchange_failed');
         return;
@@ -90,16 +84,6 @@ function OAuthCallbackContent() {
 
       hasFinishedRef.current = true;
       clearOAuthTransaction();
-
-      // 이전 계정 데이터가 화면에 남지 않도록 먼저 비우고 세션을 만든다. (dev 로그인과 같은 순서)
-      queryClient.clear();
-      setSessionToken(accessToken);
-
-      const viewer = toSessionViewer(auth.user);
-      if (viewer) {
-        // 로그인 응답에 사용자 정보가 있으면 me 조회 왕복을 없앤다.
-        queryClient.setQueryData(getMeQueryKey(), auth.user);
-      }
 
       const destination = resolvePostLoginPath(auth.user, nextRef.current);
       if (!navigator.onLine) {
@@ -114,7 +98,7 @@ function OAuthCallbackContent() {
   );
 
   const handleExchangeError = useCallback(
-    (error: unknown) => failLogin(isTimeoutError(error) ? 'timed_out' : 'exchange_failed'),
+    (error: unknown) => failLogin(toExchangeErrorReason(error)),
     [failLogin]
   );
 

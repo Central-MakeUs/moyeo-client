@@ -174,6 +174,10 @@ export function useFindAll<
  *
  * 동일한 위치, 주소, 표시명 또는 별칭의 중복 저장을 허용하며 현재 저장 개수 제한은 없습니다.
  * 저장된 위치 스냅샷은 변경하지 않고, 이후 수정 API에서는 별칭만 변경할 수 있습니다.
+ *
+ * **장소 용도**
+ * - `category`에는 `HOME`, `WORK`, `OTHER` 중 하나를 보낼 수 있습니다.
+ * - `category`를 생략하면 서버가 `OTHER`로 저장합니다.
  * @summary 내 장소 저장
  */
 export const save = (

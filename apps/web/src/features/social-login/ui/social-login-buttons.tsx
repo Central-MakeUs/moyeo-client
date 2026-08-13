@@ -7,8 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { NEXT_PARAM } from '@/entities/session';
 
 import { LOGIN_ERROR_PARAM, toLoginErrorMessage } from '../model/login-error';
-import { startAppleLogin } from '../model/start-apple-login';
-import { startKakaoLogin } from '../model/start-kakao-login';
+import { useSocialLogin } from '../model/use-social-login';
 
 import { AppleLoginButton } from './apple-login-button';
 import { KakaoLoginButton } from './kakao-login-button';
@@ -20,8 +19,6 @@ export interface SocialLoginButtonsProps {
    */
   next?: string | null;
 }
-
-type StartLogin = (next?: string | null) => void;
 
 /**
  * 로그인 시작 버튼 묶음.
@@ -36,23 +33,12 @@ export function SocialLoginButtons({
   next: nextProp,
 }: SocialLoginButtonsProps = {}): React.JSX.Element {
   const searchParams = useSearchParams();
-  const [loginStartErrorMessage, setLoginStartErrorMessage] = React.useState<string | null>(null);
 
   const next = nextProp ?? searchParams.get(NEXT_PARAM);
-  const message =
-    loginStartErrorMessage ?? toLoginErrorMessage(searchParams.get(LOGIN_ERROR_PARAM));
+  const { startLogin, errorMessage } = useSocialLogin(next);
 
-  // startKakaoLogin·startAppleLogin은 공급자 페이지로 넘기므로 정상 흐름에서는 반환되지 않는다.
-  // 여기서 throw가 올라오면 클릭이 무반응으로 끝나므로 화면에 사유를 남긴다.
-  const createLoginStartHandler = (startLogin: StartLogin) => () => {
-    setLoginStartErrorMessage(null);
-
-    try {
-      startLogin(next);
-    } catch {
-      setLoginStartErrorMessage(toLoginErrorMessage('start_failed'));
-    }
-  };
+  // 이번 시도의 실패가 직전 시도의 사유(URL `?error=`)보다 우선한다.
+  const message = errorMessage ?? toLoginErrorMessage(searchParams.get(LOGIN_ERROR_PARAM));
 
   return (
     <div className="flex w-full flex-col gap-3">
@@ -61,8 +47,8 @@ export function SocialLoginButtons({
           {message}
         </p>
       )}
-      <KakaoLoginButton onClick={createLoginStartHandler(startKakaoLogin)} />
-      <AppleLoginButton onClick={createLoginStartHandler(startAppleLogin)} />
+      <KakaoLoginButton onClick={() => startLogin('kakao')} />
+      <AppleLoginButton onClick={() => startLogin('apple')} />
     </div>
   );
 }

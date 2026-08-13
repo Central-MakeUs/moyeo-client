@@ -19,8 +19,11 @@ import type {
   BackResultState,
   NativeToWebMessage,
   PickImageResult,
+  SocialLoginResult,
   WebToNativeMessage,
 } from '@repo/types';
+
+import { requestSocialLogin, SUPPORTED_SOCIAL_LOGIN_FEATURES } from '../utils/social-login';
 
 const devHost = Constants.expoConfig?.hostUri?.split(':')[0];
 const WEB_URL =
@@ -284,6 +287,38 @@ export default function HomeScreen() {
           }
 
           postMessageToWeb({ type: 'PICK_IMAGE_RESULT', requestId, payload });
+          return;
+        }
+
+        // 웹이 "이 바이너리가 무엇을 할 수 있는지" 묻는다.
+        //
+        // 웹은 즉시 배포되지만 이 앱은 스토어 심사와 사용자 업데이트를 거쳐 늦게 도착하므로,
+        // 신버전 웹이 구버전 바이너리를 만나는 상황이 상시 존재한다. 이 메시지를 모르는
+        // 구버전은 아래 default로 떨어져 응답하지 않고, 웹은 그 타임아웃을 미지원으로 읽는다.
+        case 'CAPABILITIES': {
+          postMessageToWeb({
+            type: 'CAPABILITIES_RESULT',
+            requestId: message.requestId,
+            payload: { features: SUPPORTED_SOCIAL_LOGIN_FEATURES },
+          });
+          return;
+        }
+
+        case 'SOCIAL_LOGIN': {
+          // requestId는 요청에 실려 온 값을 그대로 돌려준다 (웹이 자기 요청의 결과만 받도록)
+          const { requestId } = message;
+
+          let payload: SocialLoginResult;
+          try {
+            payload = await requestSocialLogin(message.payload.provider, message.payload.nonce);
+          } catch (error) {
+            // requestSocialLogin이 자체적으로 실패를 흡수하지만, SDK가 동기적으로 던지는
+            // 경우까지 막아 웹이 타임아웃까지 대기하지 않게 한다.
+            console.warn('Social login failed', error);
+            payload = { state: 'error' };
+          }
+
+          postMessageToWeb({ type: 'SOCIAL_LOGIN_RESULT', requestId, payload });
           return;
         }
 

@@ -48,7 +48,26 @@ vi.mock('@/entities/session', () => ({
 }));
 
 vi.mock('@/features/social-login', () => ({
+  // 실제 구현과 같은 관찰 가능한 효과(캐시 비우기 → 토큰 저장 → me 주입)를 재현한다.
+  // 토큰이 없으면 세션을 만들지 않고 false를 돌려준다.
+  establishSession: (
+    auth: { accessToken?: string; user?: unknown } | undefined,
+    queryClient: { clear: () => void; setQueryData: (key: unknown, value: unknown) => void }
+  ) => {
+    const accessToken = auth?.accessToken?.trim() || null;
+    if (!accessToken) return false;
+
+    queryClient.clear();
+    mocks.setSessionToken(accessToken);
+    if (auth?.user) queryClient.setQueryData(['/api/auth/me'], auth.user);
+    return true;
+  },
   buildLoginFailurePath: (reason: string) => `/login?error=${reason}`,
+  // 실제 구현과 같은 기준으로 분류한다 — 응답이 오지 않아 끊긴 경우만 timed_out이다.
+  toExchangeErrorReason: (error: { isAxiosError?: boolean; code?: string } | undefined) =>
+    error?.isAxiosError && (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT')
+      ? 'timed_out'
+      : 'exchange_failed',
   toLoginErrorMessage: (reason: string) =>
     reason === 'timed_out' ? '로그인 처리 시간이 초과됐어요.' : '로그인에 실패했어요.',
   resolvePostLoginPath: (user: { onboardingCompleted?: boolean } | undefined) =>
