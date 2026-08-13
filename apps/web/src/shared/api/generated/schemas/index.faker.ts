@@ -33,6 +33,7 @@ import type {
   GuestJoinRequest,
   Item,
   KakaoLoginRequest,
+  KakaoNativeLoginRequest,
   MeetingConfirmationResponse,
   MeetingCoverResponse,
   MeetingInvitationResponse,
@@ -53,6 +54,7 @@ import type {
   RecommendationResponse,
   RenameSavedPlaceRequest,
   Result,
+  ReverseGeocodingResponse,
   SavePlaceRequest,
   SavedPlaceListResponse,
   SavedPlaceResponse,
@@ -196,7 +198,7 @@ export const getCreateMeetingRequestMock = (
   ]),
   departure: faker.helpers.arrayElement([{ ...getDepartureRequestMock() }, undefined]),
   deadlineMinutes: faker.helpers.arrayElement([
-    faker.number.int({ min: 10, max: 10080 }),
+    faker.number.int({ min: 10, max: 11460 }),
     undefined,
   ]),
   noDeadline: faker.datatype.boolean(),
@@ -334,6 +336,13 @@ export const getSavePlaceRequestMock = (
   overrideResponse: Partial<SavePlaceRequest> = {}
 ): SavePlaceRequest => ({
   alias: faker.string.alpha({ length: { min: 0, max: 30 } }),
+  category: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([
+      faker.helpers.arrayElement(['HOME', 'WORK', 'OTHER'] as const),
+      null,
+    ]),
+    undefined,
+  ]),
   type: faker.helpers.arrayElement(['STATION', 'ADDRESS', 'PLACE'] as const),
   displayName: faker.string.alpha({ length: { min: 0, max: 255 } }),
   address: faker.string.alpha({ length: { min: 0, max: 255 } }),
@@ -360,6 +369,10 @@ export const getSavedPlaceResponseMock = (
   ]),
   type: faker.helpers.arrayElement([
     faker.helpers.arrayElement(['STATION', 'ADDRESS', 'PLACE'] as const),
+    undefined,
+  ]),
+  category: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['HOME', 'WORK', 'OTHER'] as const),
     undefined,
   ]),
   displayName: faker.helpers.arrayElement([
@@ -470,6 +483,13 @@ export const getAuthResponseMock = (
     undefined,
   ]),
   user: faker.helpers.arrayElement([{ ...getAuthUserResponseMock() }, undefined]),
+  ...overrideResponse,
+});
+
+export const getKakaoNativeLoginRequestMock = (
+  overrideResponse: Partial<KakaoNativeLoginRequest> = {}
+): KakaoNativeLoginRequest => ({
+  accessToken: faker.string.alpha({ length: { min: 0, max: 4096 } }),
   ...overrideResponse,
 });
 
@@ -1230,6 +1250,20 @@ export const getFeedbackListResponseMock = (
     Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
       ...getFeedbackResponseMock(),
     })),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getReverseGeocodingResponseMock = (
+  overrideResponse: Partial<ReverseGeocodingResponse> = {}
+): ReverseGeocodingResponse => ({
+  roadAddress: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  jibunAddress: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
   ...overrideResponse,

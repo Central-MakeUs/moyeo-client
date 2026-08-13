@@ -1825,7 +1825,7 @@ export function useGetMeetingView<
 
 /**
  * 확정 전 모임 상세 화면의 일정 조율 현황을 조회합니다.<br>
- * 저장된 참여자 가능 시간 슬롯을 집계해 2명 이상 참여 가능한 후보를 가능 인원순으로 최대 5개 반환합니다.
+ * 저장된 참여자 가능 시간 슬롯을 집계해 1명 이상 참여 가능한 후보를 가능 인원순으로 최대 5개 반환합니다.
  * sort는 LONGEST_MEETING 또는 EARLIEST_DATE를 사용할 수 있으며, 생략하면 EARLIEST_DATE로 정렬합니다.
  * @summary 일정 조율 현황 조회
  */

@@ -5,6 +5,7 @@
  * CMC Moyeo MVP server API
  * OpenAPI spec version: v1
  */
+import type { SavePlaceRequestCategory } from './savePlaceRequestCategory';
 import type { SavePlaceRequestType } from './savePlaceRequestType';
 
 /**
@@ -24,6 +25,11 @@ export interface SavePlaceRequest {
    * @maxLength 30
    */
   alias: string;
+  /**
+   * 회원이 지정한 장소 용도입니다. 프론트엔드는 이 값으로 아이콘을 표시합니다. 생략하면 서버가 `OTHER`로 저장합니다.
+   * @nullable
+   */
+  category?: SavePlaceRequestCategory;
   /**
    * 출발지 검색 응답의 결과 유형을 그대로 전달합니다.
    * - `STATION`: 지하철역 검색 결과

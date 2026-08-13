@@ -15,7 +15,56 @@ export type NativeToWebMessage =
   | { type: 'DEVICE_INFO'; payload: { os: 'ios' | 'android' } }
   | { type: 'APP_STATE'; payload: { state: 'active' | 'background' } }
   // 네이티브 뒤로가기를 웹이 먼저 처리하도록 넘긴다. 웹은 BACK_RESULT로 답한다.
-  | { type: 'BACK_PRESSED'; requestId: string };
+  | { type: 'BACK_PRESSED'; requestId: string }
+  // CAPABILITIES 요청의 처리 결과다.
+  | { type: 'CAPABILITIES_RESULT'; requestId: string; payload: { features: NativeFeature[] } }
+  // SOCIAL_LOGIN 요청의 처리 결과다.
+  | { type: 'SOCIAL_LOGIN_RESULT'; requestId: string; payload: SocialLoginResult };
+
+/**
+ * 네이티브 앱이 지원하는 브리지 기능
+ *
+ * 웹은 배포 즉시 전원에게 반영되지만, 네이티브는 스토어 심사와 사용자 업데이트를 거쳐 항상
+ * 늦게 도착한다. 그래서 **구버전 바이너리 + 신버전 웹** 조합이 상시 존재하고, 자동 업데이트를
+ * 꺼둔 사용자는 영구적으로 그 상태다.
+ *
+ * 이때 웹이 `isNativeContext()`만 보고 새 메시지를 보내면, 그 `type`을 모르는 구버전
+ * 네이티브는 조용히 무시하고 웹은 타임아웃까지 대기한다. 로그인처럼 대기 시간이 긴 기능은
+ * 사실상 불능이 된다.
+ *
+ * 그래서 새 기능은 "네이티브 컨텍스트인가"가 아니라 **"네이티브가 이 기능을 지원하는가"**로
+ * 분기한다. 구버전은 CAPABILITIES에 응답하지 않으므로 자동으로 미지원 판정을 받고 웹 폴백
+ * 경로를 탄다.
+ *
+ * 소셜 로그인은 공급자 단위로 나눈다. 카카오와 애플이 서로 다른 릴리스에 실리므로,
+ * `socialLogin` 하나로 묶으면 카카오만 지원하는 바이너리가 애플까지 지원한다고 답하게 된다.
+ */
+export type NativeFeature = 'socialLogin.kakao' | 'socialLogin.apple';
+
+/** 네이티브 SDK로 로그인할 수 있는 공급자 */
+export type SocialLoginProvider = 'kakao' | 'apple';
+
+/**
+ * 네이티브 SDK 소셜 로그인 결과
+ *
+ * `PickImageResult`와 같은 이유로 실패를 한 가지로 뭉치지 않는다. 사용자가 로그인 시트를
+ * 스스로 닫은 `cancelled`는 조용히 지나가야 하고, `error`는 안내가 필요하다.
+ */
+export type SocialLoginResult =
+  | {
+      state: 'success';
+      /** 카카오는 OAuth access token, 애플은 identityToken(JWT). */
+      token: string;
+      /**
+       * 애플 전용. 탈퇴 시 연동 해제(revoke)에 쓸 refresh token을 서버가 확보하려면
+       * 이 코드를 함께 넘겨야 한다. 카카오는 사용하지 않는다.
+       */
+      authorizationCode?: string;
+    }
+  /** 사용자가 로그인 시트를 닫았다. */
+  | { state: 'cancelled' }
+  /** SDK 호출이 실패했다. */
+  | { state: 'error' };
 
 /**
  * 네이티브 뒤로가기에 대한 웹의 처리 결과
@@ -86,4 +135,26 @@ export type WebToNativeMessage =
   // PICK_IMAGE_RESULT와 연결할 수 있도록 requestId를 함께 전달한다.
   | { type: 'PICK_IMAGE'; requestId: string }
   // BACK_PRESSED와 연결할 수 있도록 요청에 실려 온 requestId를 그대로 돌려준다.
-  | { type: 'BACK_RESULT'; requestId: string; payload: { state: BackResultState } };
+  | { type: 'BACK_RESULT'; requestId: string; payload: { state: BackResultState } }
+  // 네이티브가 지원하는 기능 목록을 묻는다. 이 메시지를 모르는 구버전 바이너리는 응답하지
+  // 않으므로, 웹은 타임아웃을 미지원으로 해석한다. (NativeFeature 주석 참고)
+  // CAPABILITIES_RESULT와 연결할 수 있도록 requestId를 함께 전달한다.
+  | { type: 'CAPABILITIES'; requestId: string }
+  // 네이티브 SDK로 소셜 로그인을 진행하도록 위임한다.
+  //
+  // WebView 안에서 공급자 authorize 페이지를 직접 띄우면 카카오톡 앱 간 로그인이 되지 않고
+  // 매번 재인증을 요구하며, 서드파티 쿠키와 `intent://` 우회에 의존하게 된다.
+  // SOCIAL_LOGIN_RESULT와 연결할 수 있도록 requestId를 함께 전달한다.
+  | {
+      type: 'SOCIAL_LOGIN';
+      requestId: string;
+      payload: {
+        provider: SocialLoginProvider;
+        /**
+         * 애플 전용. 웹이 생성해 전달하면 SDK가 그대로 Apple에 넘기고, Apple은 변형 없이
+         * identityToken의 `nonce` 클레임에 담아 돌려준다. 덕분에 서버는 웹 경로와 동일한
+         * 규칙으로 검증할 수 있다. 카카오는 사용하지 않는다.
+         */
+        nonce?: string;
+      };
+    };

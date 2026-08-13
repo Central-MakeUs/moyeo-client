@@ -5,17 +5,27 @@
  * CMC Moyeo MVP server API
  * OpenAPI spec version: v1
  */
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
   QueryClient,
+  QueryFunction,
+  QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
   UseMutationResult,
+  UseQueryOptions,
+  UseQueryResult,
 } from '@tanstack/react-query';
 
 import type {
   DeparturePlaceSearchRequest,
   DeparturePlaceSearchResponse,
+  ReverseGeocodeParams,
+  ReverseGeocodingResponse,
   SearchParams,
 } from '../schemas';
 
@@ -23,6 +33,21 @@ import { customInstance } from '../../axios-instance';
 import type { ErrorType, BodyType } from '../../axios-instance';
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKey: K } => {
+  const result = { queryKey } as T & { queryKey: K };
+  for (const key of Object.keys(query)) {
+    // The explicit queryKey always wins, matching the previous
+    // `{ ...query, queryKey }` spread where it was set last.
+    if (key === 'queryKey') continue;
+    Object.defineProperty(result, key, {
+      enumerable: true,
+      configurable: true,
+      get: () => (query as Record<string, unknown>)[key],
+    });
+  }
+  return result;
+};
 
 /**
  * 인증:
@@ -123,3 +148,127 @@ export const useSearch = <TError = ErrorType<unknown>, TContext = unknown>(
 > => {
   return useMutation(getSearchMutationOptions(options), queryClient);
 };
+/**
+ * WGS84 위도와 경도를 카카오 Local로 변환해 도로명주소와 지번주소를 반환합니다.
+ *
+ * 인증은 출발지 통합 검색과 같습니다.
+ * - Access Token을 보낸 회원은 inviteCode 없이 요청할 수 있습니다.
+ * - Access Token이 없으면 유효한 모임 inviteCode가 필요합니다.
+ * - 도로명주소는 카카오 결과에 없을 수 있으며, 이때 null입니다.
+ * - 주소를 찾지 못하면 두 주소 필드가 모두 null인 200 응답을 반환합니다.
+ * @summary 좌표로 출발지 주소 조회
+ */
+export const reverseGeocode = (
+  params: ReverseGeocodeParams,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<ReverseGeocodingResponse>(
+    { url: `/api/departure-places/reverse-geocodes`, method: 'GET', params, signal },
+    options
+  );
+};
+
+export const getReverseGeocodeQueryKey = (params?: ReverseGeocodeParams) => {
+  return [`/api/departure-places/reverse-geocodes`, ...(params ? [params] : [])] as const;
+};
+
+export const getReverseGeocodeQueryOptions = <
+  TData = Awaited<ReturnType<typeof reverseGeocode>>,
+  TError = ErrorType<unknown>,
+>(
+  params: ReverseGeocodeParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof reverseGeocode>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getReverseGeocodeQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof reverseGeocode>>> = ({ signal }) =>
+    reverseGeocode(params, requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof reverseGeocode>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type ReverseGeocodeQueryResult = NonNullable<Awaited<ReturnType<typeof reverseGeocode>>>;
+export type ReverseGeocodeQueryError = ErrorType<unknown>;
+
+export function useReverseGeocode<
+  TData = Awaited<ReturnType<typeof reverseGeocode>>,
+  TError = ErrorType<unknown>,
+>(
+  params: ReverseGeocodeParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof reverseGeocode>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof reverseGeocode>>,
+          TError,
+          Awaited<ReturnType<typeof reverseGeocode>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useReverseGeocode<
+  TData = Awaited<ReturnType<typeof reverseGeocode>>,
+  TError = ErrorType<unknown>,
+>(
+  params: ReverseGeocodeParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof reverseGeocode>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof reverseGeocode>>,
+          TError,
+          Awaited<ReturnType<typeof reverseGeocode>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useReverseGeocode<
+  TData = Awaited<ReturnType<typeof reverseGeocode>>,
+  TError = ErrorType<unknown>,
+>(
+  params: ReverseGeocodeParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof reverseGeocode>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary 좌표로 출발지 주소 조회
+ */
+
+export function useReverseGeocode<
+  TData = Awaited<ReturnType<typeof reverseGeocode>>,
+  TError = ErrorType<unknown>,
+>(
+  params: ReverseGeocodeParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof reverseGeocode>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getReverseGeocodeQueryOptions(params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}

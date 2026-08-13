@@ -35,6 +35,10 @@ export const getSaveResponseMock = (
     faker.helpers.arrayElement(['STATION', 'ADDRESS', 'PLACE'] as const),
     undefined,
   ]),
+  category: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['HOME', 'WORK', 'OTHER'] as const),
+    undefined,
+  ]),
   displayName: faker.helpers.arrayElement([
     faker.string.alpha({ length: { min: 10, max: 20 } }),
     undefined,
@@ -66,6 +70,10 @@ export const getRenameResponseMock = (
   ]),
   type: faker.helpers.arrayElement([
     faker.helpers.arrayElement(['STATION', 'ADDRESS', 'PLACE'] as const),
+    undefined,
+  ]),
+  category: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(['HOME', 'WORK', 'OTHER'] as const),
     undefined,
   ]),
   displayName: faker.helpers.arrayElement([

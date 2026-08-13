@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
 import { readOAuthTransaction } from '@/entities/auth';
 import type { MeetingInvitation } from '@/entities/meeting';
 import type { SessionState } from '@/entities/session';
@@ -70,17 +72,28 @@ const INVITATION: MeetingInvitation = {
   hostNickname: '소미',
 };
 
+/**
+ * 이 화면은 로그인 Drawer를 품고 있고, 그 안의 소셜 로그인이 네이티브 토큰 교환 mutation을
+ * 쓰므로 QueryClient가 필요하다. 실제 앱에서는 루트 provider가 제공한다.
+ */
 const renderPage = (
   invitation: MeetingInvitation | null = INVITATION,
   participationStatus?: ParticipationStatusResponse | null
-) =>
-  render(
-    <InviteLandingPage
-      inviteCode="ABC123"
-      invitation={invitation}
-      participationStatus={participationStatus}
-    />
+) => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <InviteLandingPage
+        inviteCode="ABC123"
+        invitation={invitation}
+        participationStatus={participationStatus}
+      />
+    </QueryClientProvider>
   );
+};
 
 describe('InviteLandingPage', () => {
   it('name·description·hostNickname이 모두 있는 초대를 렌더하면 세 값이 화면에 있다', () => {

@@ -87,6 +87,12 @@
           "cameraPermission": false,
           "microphonePermission": false
         }
+      ],
+      [
+        "@react-native-seoul/kakao-login",
+        {
+          "kakaoAppKey": "fc34323fae719e4e73b7e5861fe38e62"
+        }
       ]
     ],
     "experiments": {

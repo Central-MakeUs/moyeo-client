@@ -1,3 +1,5 @@
+import { isAxiosError } from 'axios';
+
 import { buildLoginPath } from '@/entities/session';
 
 /**
@@ -37,6 +39,20 @@ export function toLoginErrorMessage(reason: string | null | undefined): string |
   if (!reason || !isLoginErrorReason(reason)) return null;
 
   return MESSAGES[reason];
+}
+
+/**
+ * 토큰 교환 실패를 사유로 분류한다.
+ *
+ * 응답이 오지 않아 끊긴 경우와 서버가 거절한 경우는 사용자가 할 일이 다르다 — 전자는 네트워크를
+ * 확인하고 재시도, 후자는 잠시 후 재시도다. 웹 콜백과 네이티브 SDK 경로가 같은 기준으로
+ * 판단하도록 여기 둔다.
+ */
+export function toExchangeErrorReason(error: unknown): LoginErrorReason {
+  const isTimeout =
+    isAxiosError(error) && (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT');
+
+  return isTimeout ? 'timed_out' : 'exchange_failed';
 }
 
 /**
