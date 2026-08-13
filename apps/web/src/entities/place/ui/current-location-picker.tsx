@@ -161,7 +161,7 @@ export function CurrentLocationPicker({
     <div
       role="dialog"
       aria-label="현재 위치 확인"
-      className="fixed inset-0 z-50 flex flex-col bg-neutral-0"
+      className="absolute inset-0 z-50 flex flex-col bg-neutral-0"
     >
       <TopAppBar
         className="shrink-0"

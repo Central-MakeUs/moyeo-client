@@ -3,6 +3,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { runBackHandlers } from '@/shared/model';
+import { OverlayProvider } from '@/shared/ui/overlay';
 
 import { PlaceSearchView } from './place-search-view';
 
@@ -74,7 +75,9 @@ const mockQuery = (overrides: Record<string, unknown> = {}) => {
 };
 
 const renderStep = (props?: Partial<React.ComponentProps<typeof PlaceSearchView>>) =>
-  render(<PlaceSearchView onSelect={vi.fn()} onBack={vi.fn()} {...props} />);
+  render(<PlaceSearchView onSelect={vi.fn()} onBack={vi.fn()} {...props} />, {
+    wrapper: OverlayProvider,
+  });
 
 /** 위치 확인 화면의 핀 좌표. 기기의 현재 좌표와 구분하려고 다른 값을 쓴다. */
 const PIN = { latitude: 37.57, longitude: 126.98 };
@@ -276,10 +279,19 @@ describe('PlaceSearchView', () => {
       /** props를 고정한 채 URL 변화만 반영하려면 같은 element로 rerender해야 한다. */
       const renderView = (props: Partial<React.ComponentProps<typeof PlaceSearchView>>) => {
         const merged = { onSelect: vi.fn(), onBack: vi.fn(), ...props };
-        const view = render(<PlaceSearchView {...merged} />);
+        const view = render(<PlaceSearchView {...merged} />, { wrapper: OverlayProvider });
 
         return { rerender: () => view.rerender(<PlaceSearchView {...merged} />) };
       };
+
+      it('위치 확인 화면을 앱 셸 너비의 overlay root 안에 렌더한다', () => {
+        openedByQuery();
+        renderStep();
+
+        const overlayRoot = document.querySelector('[data-slot="overlay-root"]');
+
+        expect(overlayRoot).toContainElement(getPicker());
+      });
 
       /** back/replace는 목이라 URL이 저절로 바뀌지 않는다. 닫힘 반영을 수동으로 만든다. */
       const closedByUrl = () => {

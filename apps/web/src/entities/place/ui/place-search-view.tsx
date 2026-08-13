@@ -6,6 +6,7 @@ import { type Result } from '@/shared/api';
 import { useBackHandler } from '@/shared/model';
 import { SearchField } from '@/shared/ui';
 import { Button } from '@/shared/ui/button';
+import { FullScreenModal } from '@/shared/ui/overlay';
 import { IconButton } from '@/shared/ui/icon-button';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { TopAppBar } from '@/shared/ui/top-app-bar';
@@ -130,11 +131,13 @@ export function PlaceSearchView({
 
       {/* 검색 본문을 언마운트하지 않고 위에 오버레이 */}
       {isPickerOpen && (
-        <CurrentLocationPicker
-          inviteCode={inviteCode}
-          onClose={closePicker}
-          onConfirm={confirmSelection}
-        />
+        <FullScreenModal>
+          <CurrentLocationPicker
+            inviteCode={inviteCode}
+            onClose={closePicker}
+            onConfirm={confirmSelection}
+          />
+        </FullScreenModal>
       )}
     </div>
   );
