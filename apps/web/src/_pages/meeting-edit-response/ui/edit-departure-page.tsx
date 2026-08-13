@@ -13,6 +13,7 @@ import {
 } from '@/features/meeting/edit-response';
 import { InputButton } from '@/shared/ui/input-button';
 
+import { isSameDeparture } from '../model/is-same-response';
 import { toDepartureSeed } from '../model/to-departure-seed';
 import { useCloseEditScreen } from '../model/use-close-edit-screen';
 import { useInviteCodeParam } from '../model/use-invite-code-param';
@@ -55,13 +56,18 @@ function EditDepartureContent(): React.JSX.Element {
   }
 
   const isComplete = departure !== null && transportationMode !== null;
+  // 서버 값을 초안과 같은 형태로 맞춰 비교한다. 되돌려 원래대로 오면 다시 잠긴다.
+  const isUnchanged = isSameDeparture(toDepartureSeed(data.departure), {
+    departure,
+    transportationMode,
+  });
 
   return (
     <EditResponseLayout
       onBack={close}
       title="출발지와 이동수단을 알려주세요"
       description="모두에게 공평한 위치를 찾아드릴게요"
-      isSaveDisabled={!isComplete}
+      isSaveDisabled={!isComplete || isUnchanged}
       isSaving={isSaving}
       onSave={() => {
         if (!isComplete) return;

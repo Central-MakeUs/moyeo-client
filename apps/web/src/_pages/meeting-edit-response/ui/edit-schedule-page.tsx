@@ -23,6 +23,7 @@ import {
 } from '@/shared/ui/calendar';
 import { AvailabilityTimeGrid, buildCellKeysBeforeDate } from '@/shared/ui/time-grid';
 
+import { isSameDates, isSameTimeRanges } from '../model/is-same-response';
 import { useCloseEditScreen } from '../model/use-close-edit-screen';
 import { useInviteCodeParam } from '../model/use-invite-code-param';
 import { EditResponseLayout } from './edit-response-layout';
@@ -85,13 +86,15 @@ function EditScheduleContent(): React.JSX.Element {
   }
 
   if (participation.data.scheduleInputType === 'DATE_AND_TIME') {
-    const value = edited?.availableTimeRanges ?? participation.data.availableTimeRanges;
+    const saved = participation.data.availableTimeRanges;
+    const value = edited?.availableTimeRanges ?? saved;
 
     return (
       <TimeGridEditor
         onBack={close}
         candidates={candidates}
         serverToday={serverToday}
+        saved={saved}
         value={value}
         onChange={(availableTimeRanges) => setEdited({ availableTimeRanges })}
         onSave={() => void saveSchedule({ availableTimeRanges: value })}
@@ -100,7 +103,8 @@ function EditScheduleContent(): React.JSX.Element {
     );
   }
 
-  const value = edited?.availableDates ?? participation.data.availableDates;
+  const saved = participation.data.availableDates;
+  const value = edited?.availableDates ?? saved;
 
   return (
     <CalendarEditor
@@ -109,6 +113,7 @@ function EditScheduleContent(): React.JSX.Element {
         candidate.candidateDate ? [candidate.candidateDate] : []
       )}
       serverToday={serverToday}
+      saved={saved}
       value={value}
       onChange={(availableDates) => setEdited({ availableDates })}
       onSave={() => void saveSchedule({ availableDates: value })}
@@ -129,12 +134,14 @@ function CalendarEditor({
   onBack,
   candidateDates,
   serverToday,
+  saved,
   value,
   onChange,
   onSave,
   isSaving,
 }: EditorProps & {
   candidateDates: string[];
+  saved: string[];
   value: string[];
   onChange: (value: string[]) => void;
 }): React.JSX.Element {
@@ -148,7 +155,7 @@ function CalendarEditor({
       onBack={onBack}
       title="가능한 날짜를 알려주세요"
       description="모임장이 지정한 범위 안에서만 선택할 수 있어요"
-      isSaveDisabled={value.length === 0}
+      isSaveDisabled={value.length === 0 || isSameDates(saved, value)}
       isSaving={isSaving}
       onSave={onSave}
     >
@@ -172,12 +179,14 @@ function TimeGridEditor({
   onBack,
   candidates,
   serverToday,
+  saved,
   value,
   onChange,
   onSave,
   isSaving,
 }: EditorProps & {
   candidates: ScheduleCandidateResponse[];
+  saved: ScheduleAvailabilityRequest[];
   value: ScheduleAvailabilityRequest[];
   onChange: (value: ScheduleAvailabilityRequest[]) => void;
 }): React.JSX.Element {
@@ -200,7 +209,7 @@ function TimeGridEditor({
       title="가능한 시간대를 알려주세요"
       description="모임장이 지정한 범위 안에서만 선택할 수 있어요"
       isScrollLocked
-      isSaveDisabled={selectedCellKeys.length === 0}
+      isSaveDisabled={selectedCellKeys.length === 0 || isSameTimeRanges(saved, value)}
       isSaving={isSaving}
       onSave={onSave}
     >
