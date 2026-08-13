@@ -3,7 +3,7 @@ import { defineConfig } from 'orval';
 export default defineConfig({
   api: {
     input: {
-      target: 'https://3-35-119-70.sslip.io/v3/api-docs',
+      target: 'https://api.moyeo.app/v3/api-docs',
     },
     output: {
       mode: 'tags-split', // API 태그별로 파일 분리
