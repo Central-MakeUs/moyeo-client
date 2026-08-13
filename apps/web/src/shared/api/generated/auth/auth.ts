@@ -23,6 +23,7 @@ import type {
 
 import type {
   AppleLoginRequest,
+  AppleNativeLoginRequest,
   AuthResponse,
   AuthUserResponse,
   KakaoLoginRequest,
@@ -308,6 +309,91 @@ export const useLoginApple = <TError = ErrorType<unknown>, TContext = unknown>(
   TContext
 > => {
   return useMutation(getLoginAppleMutationOptions(options), queryClient);
+};
+/**
+ * 네이티브 앱이 Apple SDK에서 받은 identityToken, authorizationCode, nonce를 전달합니다. 서버는 App ID audience와 nonce, 두 identity token의 동일한 sub를 검증한 뒤 Access Token을 발급합니다.
+ * @summary Apple 네이티브 SDK 로그인
+ */
+export const loginAppleNative = (
+  appleNativeLoginRequest: BodyType<AppleNativeLoginRequest>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<AuthResponse>(
+    {
+      url: `/api/auth/apple/native`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: appleNativeLoginRequest,
+      signal,
+    },
+    options
+  );
+};
+
+export const getLoginAppleNativeMutationOptions = <
+  TError = ErrorType<AuthResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof loginAppleNative>>,
+    TError,
+    { data: BodyType<AppleNativeLoginRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof loginAppleNative>>,
+  TError,
+  { data: BodyType<AppleNativeLoginRequest> },
+  TContext
+> => {
+  const mutationKey = ['loginAppleNative'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof loginAppleNative>>,
+    { data: BodyType<AppleNativeLoginRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return loginAppleNative(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type LoginAppleNativeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof loginAppleNative>>
+>;
+export type LoginAppleNativeMutationBody = BodyType<AppleNativeLoginRequest>;
+export type LoginAppleNativeMutationError = ErrorType<AuthResponse>;
+
+/**
+ * @summary Apple 네이티브 SDK 로그인
+ */
+export const useLoginAppleNative = <TError = ErrorType<AuthResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof loginAppleNative>>,
+      TError,
+      { data: BodyType<AppleNativeLoginRequest> },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof loginAppleNative>>,
+  TError,
+  { data: BodyType<AppleNativeLoginRequest> },
+  TContext
+> => {
+  return useMutation(getLoginAppleNativeMutationOptions(options), queryClient);
 };
 /**
  * `Authorization: Bearer {accessToken}` 헤더로 현재 로그인 사용자를 조회합니다.

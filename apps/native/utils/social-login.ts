@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { login as kakaoLogin } from '@react-native-seoul/kakao-login';
 
 import type { NativeFeature, SocialLoginProvider, SocialLoginResult } from '@repo/types';
@@ -6,9 +8,15 @@ import type { NativeFeature, SocialLoginProvider, SocialLoginResult } from '@rep
  * 이 바이너리가 지원하는 소셜 로그인 공급자
  *
  * 웹은 이 목록에 있는 공급자만 네이티브에 위임하고, 나머지는 기존 웹 OAuth 경로로 처리한다.
- * 애플은 서버의 네이티브 전용 엔드포인트가 필요해 별도 릴리스로 나가므로(#98) 아직 없다.
+ *
+ * 애플은 iOS 전용이다. `expo-apple-authentication`의 `isAvailableAsync()`가 iOS·tvOS에서만
+ * true를 돌려주므로, Android에서 지원한다고 답하면 웹이 네이티브에 위임했다가 실패한다.
+ * Android는 이 목록에서 빠져 기존 애플 웹 OAuth 경로를 그대로 탄다.
  */
-export const SUPPORTED_SOCIAL_LOGIN_FEATURES: NativeFeature[] = ['socialLogin.kakao'];
+export const SUPPORTED_SOCIAL_LOGIN_FEATURES: NativeFeature[] = [
+  'socialLogin.kakao',
+  ...(Platform.OS === 'ios' ? (['socialLogin.apple'] as const) : []),
+];
 
 /**
  * 카카오 SDK가 "사용자 취소"를 알리는 방식
@@ -34,24 +42,73 @@ async function requestKakaoToken(): Promise<SocialLoginResult> {
 }
 
 /**
+ * 애플이 "사용자 취소"를 알리는 방식
+ *
+ * `expo-apple-authentication`은 취소 시 `ERR_REQUEST_CANCELED` 코드를 주지만, 플랫폼 버전에
+ * 따라 코드 없이 "The user canceled the authorization attempt" 메시지만 오는 경우가 있어
+ * 둘 다 본다.
+ */
+function isAppleCancelled(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null) return false;
+
+  const code = (error as { code?: unknown }).code;
+  if (code === 'ERR_REQUEST_CANCELED') return true;
+
+  return error instanceof Error && /cancel/i.test(error.message);
+}
+
+async function requestAppleToken(nonce?: string): Promise<SocialLoginResult> {
+  try {
+    // `requestedScopes`를 넘기지 않는다. 서버는 identityToken의 `sub`만으로 회원을 식별하고
+    // 이름·이메일은 쓰지 않는다. 스코프를 요청하면 최초 가입 시 "이메일 공개/가리기" 선택
+    // 화면이 하나 더 뜨는데, 쓰지도 않을 값 때문에 마찰을 늘리는 셈이다.
+    //
+    // 기존 웹 경로(`buildAppleAuthorizeUrl`)도 scope 파라미터를 보내지 않는다. 두 경로가
+    // 사용자에게 같은 것을 묻도록 맞춘다.
+    const credential = await AppleAuthentication.signInAsync({
+      // Apple은 이 값을 변형 없이 identityToken의 `nonce` 클레임에 담아 돌려준다.
+      // 덕분에 서버가 웹 경로와 동일한 규칙으로 검증할 수 있다.
+      ...(nonce ? { nonce } : {}),
+    });
+
+    if (!credential.identityToken) {
+      console.warn('Apple native login returned no identityToken');
+      return { state: 'error' };
+    }
+
+    return {
+      state: 'success',
+      token: credential.identityToken,
+      // 탈퇴 시 애플 연동 해제(revoke)에 쓸 refresh token을 서버가 확보하려면 필요하다.
+      // 이게 없으면 네이티브로 가입한 회원은 탈퇴가 실패한다.
+      ...(credential.authorizationCode ? { authorizationCode: credential.authorizationCode } : {}),
+    };
+  } catch (error) {
+    if (isAppleCancelled(error)) return { state: 'cancelled' };
+
+    console.warn('Apple native login failed', error);
+    return { state: 'error' };
+  }
+}
+
+/**
  * 네이티브 SDK로 소셜 로그인을 수행하고 서버 교환에 쓸 토큰을 돌려준다.
  *
  * 웹이 capability를 먼저 확인하고 호출하므로 지원하지 않는 공급자는 도달하지 않지만,
  * 방어적으로 실패를 반환한다.
  *
  * @param provider 로그인할 공급자
- * @param _nonce 애플 전용. #98에서 `signInAsync`로 전달한다.
+ * @param nonce 애플 전용. 웹이 생성해 전달하고 서버가 같은 값으로 검증한다.
  */
 export async function requestSocialLogin(
   provider: SocialLoginProvider,
-  _nonce?: string
+  nonce?: string
 ): Promise<SocialLoginResult> {
   switch (provider) {
     case 'kakao':
       return requestKakaoToken();
 
     case 'apple':
-      console.warn('Apple native login is not implemented in this build');
-      return { state: 'error' };
+      return requestAppleToken(nonce);
   }
 }

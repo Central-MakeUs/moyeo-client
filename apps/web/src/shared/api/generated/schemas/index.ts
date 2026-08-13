@@ -8,6 +8,7 @@
 
 export * from './appleLoginRequest';
 export * from './appleLoginRequestRedirectTarget';
+export * from './appleNativeLoginRequest';
 export * from './authResponse';
 export * from './authUserResponse';
 export * from './availabilityStatusResponse';

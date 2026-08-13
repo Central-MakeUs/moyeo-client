@@ -7,8 +7,9 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import type { NativeFeature, SocialLoginProvider } from '@repo/types';
 
+import { generateNonce } from '@/entities/auth';
 import { toSafeNextPath } from '@/entities/session';
-import { useLoginKakaoNative } from '@/shared/api';
+import { useLoginAppleNative, useLoginKakaoNative, type AuthResponse } from '@/shared/api';
 import { requestSocialLogin, supportsNativeFeature } from '@/shared/model';
 
 import { establishSession } from './establish-session';
@@ -55,6 +56,7 @@ export function useSocialLogin(next?: string | null): UseSocialLoginResult {
   const isPendingRef = useRef(false);
 
   const { mutateAsync: exchangeKakaoNative } = useLoginKakaoNative();
+  const { mutateAsync: exchangeAppleNative } = useLoginAppleNative();
 
   const fail = useCallback((reason: LoginErrorReason) => {
     setErrorMessage(toLoginErrorMessage(reason));
@@ -62,7 +64,11 @@ export function useSocialLogin(next?: string | null): UseSocialLoginResult {
 
   const runNativeLogin = useCallback(
     async (provider: SocialLoginProvider) => {
-      const result = await requestSocialLogin(provider);
+      // 애플만 nonce를 쓴다. Apple이 이 값을 변형 없이 identityToken의 `nonce` 클레임에 담아
+      // 돌려주므로, 서버는 웹 리다이렉트 경로와 동일한 규칙으로 검증한다.
+      const nonce = provider === 'apple' ? generateNonce() : undefined;
+
+      const result = await requestSocialLogin(provider, nonce);
 
       // 사용자가 스스로 닫았다. 안내 없이 로그인 화면에 머문다.
       if (result.state === 'cancelled') return;
@@ -72,10 +78,26 @@ export function useSocialLogin(next?: string | null): UseSocialLoginResult {
         return;
       }
 
-      let auth;
+      let auth: AuthResponse;
       try {
-        // 애플은 서버 계약이 달라 #98에서 분기한다. 지금은 카카오만 네이티브 경로를 탄다.
-        auth = await exchangeKakaoNative({ data: { accessToken: result.token } });
+        if (provider === 'apple') {
+          // 탈퇴 시 애플 연동 해제에 refresh token이 필요하고, 서버는 authorizationCode로만
+          // 그걸 얻을 수 있다. 코드가 없으면 가입은 되지만 나중에 탈퇴가 실패하므로 여기서 끊는다.
+          if (!result.authorizationCode || !nonce) {
+            fail('start_failed');
+            return;
+          }
+
+          auth = await exchangeAppleNative({
+            data: {
+              identityToken: result.token,
+              authorizationCode: result.authorizationCode,
+              nonce,
+            },
+          });
+        } else {
+          auth = await exchangeKakaoNative({ data: { accessToken: result.token } });
+        }
       } catch (error) {
         fail(toExchangeErrorReason(error));
         return;
@@ -89,7 +111,7 @@ export function useSocialLogin(next?: string | null): UseSocialLoginResult {
 
       router.replace(resolvePostLoginPath(auth.user, toSafeNextPath(next)));
     },
-    [exchangeKakaoNative, fail, next, queryClient, router]
+    [exchangeAppleNative, exchangeKakaoNative, fail, next, queryClient, router]
   );
 
   const startLogin = useCallback(

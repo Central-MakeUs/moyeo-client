@@ -20,4 +20,6 @@ export interface ReverseGeocodingResponse {
    * @nullable
    */
   jibunAddress?: string | null;
+  /** 도로명주소 또는 지번주소 중 하나라도 서울특별시 또는 경기도이면 true입니다. 주소가 모두 없거나 지역을 판정할 수 없으면 false입니다. */
+  isSupportedRegion?: boolean;
 }
