@@ -79,8 +79,6 @@ function MeetingConfirmedContent(): React.JSX.Element {
         meetingName={data.name}
         scheduleLabel={scheduleLabel}
         placeName={data.confirmedPlaceName}
-        // 게스트에게는 돌아갈 홈이 없다.
-        canGoHome={session.status === 'authenticated'}
         onGoHome={() => router.replace(HOME_PATH)}
         onViewMeeting={() => setDetailOpen(true)}
       />

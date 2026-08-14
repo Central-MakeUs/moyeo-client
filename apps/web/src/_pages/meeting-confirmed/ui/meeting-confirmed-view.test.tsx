@@ -8,7 +8,6 @@ function renderView(props: Partial<React.ComponentProps<typeof MeetingConfirmedV
   return render(
     <MeetingConfirmedView
       meetingName="데모데이에 모여"
-      canGoHome
       onGoHome={vi.fn()}
       onViewMeeting={vi.fn()}
       {...props}
@@ -47,19 +46,20 @@ describe('MeetingConfirmedView', () => {
     expect(screen.queryByText('확정 장소')).not.toBeInTheDocument();
   });
 
-  it('게스트에게는 홈으로 돌아가기를 감춘다', () => {
-    renderView({ canGoHome: false });
+  // 게스트에게도 보여준다. 계정이 없으면 /home 가드가 로그인 화면으로 안내한다.
+  it('홈으로 가기를 항상 보여준다', () => {
+    renderView();
 
-    expect(screen.queryByRole('button', { name: '홈으로 돌아가기' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '홈으로 가기' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '확정된 모임 확인하기' })).toBeInTheDocument();
   });
 
-  it('홈으로 돌아가기를 누르면 알린다', async () => {
+  it('홈으로 가기를 누르면 알린다', async () => {
     const user = userEvent.setup();
     const onGoHome = vi.fn();
     renderView({ onGoHome });
 
-    await user.click(screen.getByRole('button', { name: '홈으로 돌아가기' }));
+    await user.click(screen.getByRole('button', { name: '홈으로 가기' }));
 
     expect(onGoHome).toHaveBeenCalled();
   });
