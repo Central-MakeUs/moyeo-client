@@ -27,6 +27,7 @@ export function useScheduleViewQuery(
     data: data
       ? {
           participantCount: data.participantCount ?? 0,
+          scheduleInputType: data.scheduleInputType,
           candidates: (data.candidates ?? []).map((candidate) => ({
             candidateDate: candidate.candidateDate ?? '',
             startTime: candidate.startTime ?? undefined,
