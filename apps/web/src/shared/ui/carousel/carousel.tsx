@@ -6,6 +6,7 @@ import useEmblaCarousel, { type UseEmblaCarouselType } from 'embla-carousel-reac
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/button';
 import { Icon } from '@/shared/ui/icon';
+import { PageIndicator, type PageIndicatorProps } from '@/shared/ui/page-indicator';
 
 type CarouselApi = UseEmblaCarouselType[1];
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>;
@@ -175,27 +176,25 @@ function CarouselItem({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-/** 캐러셀 하단 페이지 인디케이터. 슬라이드 개수와 현재 위치는 embla에서 직접 읽는다. */
-function CarouselPageControl({ className, ...props }: React.ComponentProps<'div'>) {
+/**
+ * 캐러셀 하단 페이지 인디케이터.
+ *
+ * 슬라이드 개수와 현재 위치를 embla에서 읽어 `PageIndicator`에 넘기는 어댑터다.
+ * 캐러셀 없이 단계를 넘기는 화면에서는 `PageIndicator`를 직접 쓴다.
+ */
+function CarouselPageControl({
+  className,
+  ...props
+}: Omit<PageIndicatorProps, 'count' | 'selectedIndex'>) {
   const { selectedIndex, slideCount } = useCarousel();
 
   return (
-    <div
-      data-slot="page-control"
-      className={cn('mt-1.5 flex h-[22px] items-center justify-center gap-2', className)}
+    <PageIndicator
+      count={slideCount}
+      selectedIndex={selectedIndex}
+      className={cn('mt-1.5', className)}
       {...props}
-    >
-      {Array.from({ length: slideCount }, (_, index) => (
-        <span
-          key={index}
-          data-slot="page-control-dot"
-          className={cn(
-            'h-1.5 rounded-full',
-            index === selectedIndex ? 'w-5 bg-accessible-400' : 'w-1.5 bg-neutral-300/30'
-          )}
-        />
-      ))}
-    </div>
+    />
   );
 }
 

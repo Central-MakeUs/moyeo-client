@@ -1,3 +1,1 @@
-export default function OnboardingPage() {
-  return <main>ONB-01 onboarding placeholder</main>;
-}
+export { OnboardingPage as default } from '@/_pages/onboarding';
