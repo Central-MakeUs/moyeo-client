@@ -14,7 +14,7 @@ export interface ConfirmedMeetingListItemProps {
   place?: string;
   /** 없으면 Thumbnail이 기본 플레이스홀더로 대체 */
   thumbnailUrl?: string;
-  /** 탭 시 확정된 모임 상세를 연다(HOME-01-F03). */
+  /** 탭 시 확정된 모임을 연다(HOME-01-F03). 어디로 갈지는 호출부가 정한다. */
   onClick?: () => void;
 }
 
