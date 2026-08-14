@@ -81,15 +81,8 @@ export function InviteLandingPage({
                   </Button>
                 </div>
               ) : (
-                <Button
-                  fullWidth
-                  variant="ghost"
-                  className="text-neutral-500 hover:text-neutral-400"
-                  asChild
-                >
-                  <Link href={HOME_PATH} className="text-bold-14 underline underline-offset-3">
-                    홈으로 가기
-                  </Link>
+                <Button variant="link" asChild>
+                  <Link href={HOME_PATH}>홈으로 가기</Link>
                 </Button>
               )
             }
