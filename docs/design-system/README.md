@@ -13,7 +13,7 @@
 | 폰트      | **SUIT** (`--font-suit`)                                                |
 | 메인 컬러 | **Primary `#f43630`**                                                   |
 | 컬러 체계 | atomic: `common` · `neutral(10~950)` · `accessible(50~950)` · `opacity` |
-| 타이포    | 8종 (extrabold-22 / bold-16·14 / semibold-16·14 / medium-16·14·12)      |
+| 타이포    | 9종 (extrabold-22·20 / bold-16·14 / semibold-16·14 / medium-16·14·12)   |
 | 기준 화면 | 360 × 800 (모바일), app-shell `max-width: 480px`                        |
 | 그리드    | Margin 20 · Gutter 16 · Columns 4                                       |
 | Radius    | 2~24px + full. 값이 곧 토큰명 (`rounded-8`=8px)                         |
