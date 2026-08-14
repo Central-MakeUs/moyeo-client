@@ -62,6 +62,14 @@ export function ScheduleCandidatesSection({
     onPartialConfirm: () => setConfirmTarget(null),
   });
 
+  /*
+   * 날짜만 정하는 모임은 후보에 시간이 없어 "길게 만나는 순"으로 줄 세울 값이 없다.
+   * 정렬 칩을 감추고 기본값인 빠른 일자 순 하나로 둔다 — 설명 문구는 그대로 남는다.
+   *
+   * 유형을 아직 모르는 동안(조회 전)에는 감추지 않는다. 있다가 사라지면 눌리던 것이 없어진다.
+   */
+  const canSortByDuration = data?.scheduleInputType !== 'DATE_ONLY';
+
   return (
     <section className="flex flex-col gap-4">
       <div className="flex flex-col gap-4 px-0.5">
@@ -71,14 +79,16 @@ export function ScheduleCandidatesSection({
         </h2>
 
         <div className="flex flex-col gap-2">
-          <RadioGroup
-            value={sort}
-            onValueChange={(value) => setSort(value as ScheduleSort)}
-            className="flex gap-2"
-          >
-            <RadioGroupChip value="EARLIEST_DATE">빠른 일자 순</RadioGroupChip>
-            <RadioGroupChip value="LONGEST_MEETING">길게 만나는 순</RadioGroupChip>
-          </RadioGroup>
+          {canSortByDuration && (
+            <RadioGroup
+              value={sort}
+              onValueChange={(value) => setSort(value as ScheduleSort)}
+              className="flex gap-2"
+            >
+              <RadioGroupChip value="EARLIEST_DATE">빠른 일자 순</RadioGroupChip>
+              <RadioGroupChip value="LONGEST_MEETING">길게 만나는 순</RadioGroupChip>
+            </RadioGroup>
+          )}
           <span className="text-bold-12 text-neutral-700">{SORT_DESCRIPTIONS[sort]}</span>
         </div>
       </div>

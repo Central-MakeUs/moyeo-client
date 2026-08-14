@@ -34,7 +34,8 @@ describe('PlaceRecommendationsSection', () => {
     useMeetingHostMock.mockReturnValue({ participantId: 1, isViewerHost: false });
   });
 
-  it('모임장 혼자면 후보가 눌리지 않는다 — 서버가 두 명 이상일 때만 확정을 받는다', () => {
+  // 서버는 혼자인 모임에도 추천을 내려주지만, 자기 출발지 하나로 뽑은 것이라 보여줄 값이 없다.
+  it('모임장 혼자면 추천이 내려와도 섹션이 통째로 감춰진다', () => {
     useMeetingHostMock.mockReturnValue({ participantId: 1, isViewerHost: true });
     usePlaceViewQueryMock.mockReturnValue({
       data: {
@@ -48,7 +49,25 @@ describe('PlaceRecommendationsSection', () => {
 
     render(<PlaceRecommendationsSection inviteCode="29NRVBGXGP" />);
 
-    expect(screen.queryByRole('button', { name: /합정동/ })).not.toBeInTheDocument();
+    expect(screen.queryByText('추천 위치 후보')).not.toBeInTheDocument();
+    expect(screen.queryByText('합정동')).not.toBeInTheDocument();
+  });
+
+  it('두 번째 참여자가 들어오면 섹션이 보인다', () => {
+    usePlaceViewQueryMock.mockReturnValue({
+      data: {
+        participantCount: 2,
+        recommendations: [{ rank: 1, areaCode: 'A01', areaName: '합정동' }],
+        participants: [],
+      },
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<PlaceRecommendationsSection inviteCode="29NRVBGXGP" />);
+
+    expect(screen.getByText('추천 위치 후보')).toBeInTheDocument();
+    expect(screen.getByText('합정동')).toBeInTheDocument();
   });
 
   it('이미 확정됐으면 모임장에게도 후보가 눌리지 않는다', () => {
@@ -98,8 +117,9 @@ describe('PlaceRecommendationsSection', () => {
   });
 
   it('recommendations가 빈 배열이면 "추천 위치 후보가 없어요" 안내가 표시된다', () => {
+    // 아직 추천이 나오지 않은 상태를 보려면 인원이 둘 이상이어야 한다. 혼자면 섹션이 감춰진다.
     usePlaceViewQueryMock.mockReturnValue({
-      data: { participantCount: 1, recommendations: [] },
+      data: { participantCount: 2, recommendations: [] },
       isLoading: false,
       isError: false,
     });

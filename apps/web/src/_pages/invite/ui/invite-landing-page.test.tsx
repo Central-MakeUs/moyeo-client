@@ -121,13 +121,10 @@ describe('InviteLandingPage', () => {
     expect(screen.queryByText('이번에만 게스트로 참여하기')).not.toBeInTheDocument();
   });
 
-  it('유효한 초대를 렌더하면 진행상황 확인하기 링크가 현황 화면을 가리킨다', () => {
+  it('유효한 초대를 렌더하면 홈으로 가기 링크가 홈을 가리킨다', () => {
     renderPage();
 
-    expect(screen.getByRole('link', { name: '진행상황 확인하기' })).toHaveAttribute(
-      'href',
-      '/meetings?code=ABC123'
-    );
+    expect(screen.getByRole('link', { name: '홈으로 가기' })).toHaveAttribute('href', '/home');
   });
 
   it('description이 null인 초대를 렌더하면 설명 문단이 없고 모임명과 모임장은 남는다', () => {

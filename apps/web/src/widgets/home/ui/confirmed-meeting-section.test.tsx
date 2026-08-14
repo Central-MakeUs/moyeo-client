@@ -1,13 +1,20 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import type { MeetingSummary } from '@/entities/meeting';
 
 import { ConfirmedMeetingSection } from './confirmed-meeting-section';
 
+const { push } = vi.hoisted(() => ({ push: vi.fn() }));
+
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push }),
 }));
+
+beforeEach(() => {
+  push.mockClear();
+});
 
 function buildMeeting(overrides: Partial<MeetingSummary> = {}): MeetingSummary {
   return {
@@ -37,5 +44,22 @@ describe('ConfirmedMeetingSection', () => {
 
     expect(document.body).toHaveTextContent('확정된 모임0');
     expect(screen.getByText('아직 모임이 없어요')).toBeInTheDocument();
+  });
+
+  it('확정된 모임을 탭하면 그 모임의 현황 화면으로 이동한다', async () => {
+    render(<ConfirmedMeetingSection confirmed={[buildMeeting()]} />);
+
+    await userEvent.click(screen.getByRole('button'));
+
+    expect(push).toHaveBeenCalledWith('/meetings?code=29NRVBGXGP');
+  });
+
+  // 상세를 모달로 겹쳐 띄우던 목록이다. 이동으로 바꿨으니 겹쳐 뜨는 것이 없어야 한다.
+  it('확정된 모임을 탭해도 모달이 열리지 않는다', async () => {
+    render(<ConfirmedMeetingSection confirmed={[buildMeeting()]} />);
+
+    await userEvent.click(screen.getByRole('button'));
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
