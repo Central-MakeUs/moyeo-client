@@ -228,4 +228,36 @@ describe('ScheduleCandidatesSection', () => {
 
     expect(useScheduleViewQueryMock).toHaveBeenCalledWith('29NRVBGXGP', 'LONGEST_MEETING');
   });
+
+  // 날짜만 정하는 모임은 후보에 시간이 없어 "길게 만나는 순"으로 줄 세울 값이 없다.
+  it('DATE_ONLY 모임이면 정렬 칩이 없고 빠른 일자 순 설명만 남는다', () => {
+    useScheduleViewQueryMock.mockReturnValue({
+      data: { participantCount: 2, scheduleInputType: 'DATE_ONLY', candidates: [CANDIDATE] },
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<ScheduleCandidatesSection inviteCode="29NRVBGXGP" />);
+
+    expect(screen.queryByText('길게 만나는 순')).not.toBeInTheDocument();
+    expect(screen.queryByText('빠른 일자 순')).not.toBeInTheDocument();
+    expect(
+      screen.getByText('가장 많은 인원이 가장 빨리 만날 수 있는 순서로 보여드려요')
+    ).toBeInTheDocument();
+    // 칩이 없어도 조회는 기본 정렬 그대로다.
+    expect(useScheduleViewQueryMock).toHaveBeenCalledWith('29NRVBGXGP', 'EARLIEST_DATE');
+  });
+
+  it('DATE_AND_TIME 모임이면 정렬 칩이 그대로 있다', () => {
+    useScheduleViewQueryMock.mockReturnValue({
+      data: { participantCount: 2, scheduleInputType: 'DATE_AND_TIME', candidates: [CANDIDATE] },
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<ScheduleCandidatesSection inviteCode="29NRVBGXGP" />);
+
+    expect(screen.getByText('빠른 일자 순')).toBeInTheDocument();
+    expect(screen.getByText('길게 만나는 순')).toBeInTheDocument();
+  });
 });

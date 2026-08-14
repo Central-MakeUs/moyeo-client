@@ -12,8 +12,6 @@ export interface MeetingConfirmedViewProps {
   scheduleLabel?: string;
   /** 확정된 장소명. 일정 전용 모임이거나 아직 모르면 생략. */
   placeName?: string;
-  /** 홈으로 돌아가기 노출 여부. 게스트에게는 돌아갈 홈이 없다. */
-  canGoHome: boolean;
   onGoHome: () => void;
   /** 확정된 모임 확인하기. 아직 연결 전이면 생략한다. */
   onViewMeeting?: () => void;
@@ -29,7 +27,6 @@ export function MeetingConfirmedView({
   meetingName,
   scheduleLabel,
   placeName,
-  canGoHome,
   onGoHome,
   onViewMeeting,
 }: MeetingConfirmedViewProps): React.JSX.Element {
@@ -67,11 +64,9 @@ export function MeetingConfirmedView({
         footer={
           <CTASection
             secondaryAction={
-              canGoHome ? (
-                <Button variant="link" onClick={onGoHome}>
-                  홈으로 돌아가기
-                </Button>
-              ) : undefined
+              <Button variant="link" onClick={onGoHome}>
+                홈으로 가기
+              </Button>
             }
             primaryAction={
               <Button fullWidth onClick={onViewMeeting} disabled={onViewMeeting === undefined}>

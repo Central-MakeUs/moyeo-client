@@ -12,8 +12,13 @@ import { useGetMeetingView } from '@/shared/api';
 
 import { useMeetingHost } from '../model/use-meeting-host';
 
-/** 서버가 확정을 받아주는 최소 인원(MEETING_CONFIRMATION_NOT_READY). */
-const MIN_PARTICIPANTS_TO_CONFIRM = 2;
+/**
+ * 추천이 의미를 갖는 최소 인원(방장 포함).
+ *
+ * 서버가 확정을 받아주는 하한(MEETING_CONFIRMATION_NOT_READY)이기도 하다. 모임장 혼자면
+ * 모을 출발지가 자기 것 하나뿐이라 추천도 확정도 성립하지 않는다.
+ */
+const MIN_PARTICIPANTS = 2;
 
 export interface PlaceRecommendationsSectionProps {
   inviteCode: string;
@@ -24,7 +29,7 @@ export interface PlaceRecommendationsSectionProps {
 export function PlaceRecommendationsSection({
   inviteCode,
   isConfirmed = false,
-}: PlaceRecommendationsSectionProps): React.JSX.Element {
+}: PlaceRecommendationsSectionProps): React.JSX.Element | null {
   const { data, isLoading, isError } = usePlaceViewQuery(inviteCode);
   const { isViewerHost } = useMeetingHost(inviteCode);
 
@@ -42,15 +47,16 @@ export function PlaceRecommendationsSection({
     onPartialConfirm: () => setConfirmTarget(null),
   });
 
-  /*
-   * 확정은 활성 참여자가 둘 이상이어야 한다. 모임장 혼자인 모임에서도 추천은 나오므로,
-   * 막지 않으면 눌러 놓고 서버에서 409(MEETING_CONFIRMATION_NOT_READY)를 받는다.
-   *
-   * 일정 쪽은 같은 제약이 있어도 드러나지 않는다. 후보 자체가 둘 이상 가능할 때만 생겨
-   * 혼자인 모임에는 누를 대상이 없다.
-   */
-  const hasEnoughParticipants = (data?.participantCount ?? 0) >= MIN_PARTICIPANTS_TO_CONFIRM;
+  const hasEnoughParticipants = (data?.participantCount ?? 0) >= MIN_PARTICIPANTS;
   const canConfirm = isViewerHost && !isConfirmed && hasEnoughParticipants;
+
+  /*
+   * 모임장 혼자인 동안에는 섹션째 감춘다. 서버는 이때도 추천을 내려주지만 자기 출발지
+   * 하나로 뽑은 것이라 보여줄 값이 없고, 눌러도 서버가 409로 거절한다.
+   *
+   * 조회 중에는 아직 인원을 모르므로 감추지 않는다 — 아래 로딩·에러 안내를 그대로 살린다.
+   */
+  if (data && !hasEnoughParticipants) return null;
 
   return (
     <section className="flex flex-col gap-4 px-0.5">

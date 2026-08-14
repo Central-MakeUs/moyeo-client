@@ -1,5 +1,6 @@
 export type {
   ScheduleSort,
+  ScheduleInputType,
   ScheduleCandidate,
   ScheduleCandidateParticipant,
   ScheduleView,

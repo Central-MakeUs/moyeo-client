@@ -46,13 +46,8 @@ export function InviteFinishPage({ inviteCode }: InviteFinishPageProps) {
           <CTASection
             secondaryAction={
               session.status === 'authenticated' ? (
-                <Button
-                  fullWidth
-                  variant="link"
-                  className="text-neutral-500 hover:text-neutral-400"
-                  asChild
-                >
-                  <Link href={'/home'}>홈으로 돌아가기</Link>
+                <Button variant="link" asChild>
+                  <Link href={HOME_PATH}>홈으로 돌아가기</Link>
                 </Button>
               ) : undefined
             }

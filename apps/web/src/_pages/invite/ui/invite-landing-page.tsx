@@ -22,6 +22,9 @@ export interface InviteLandingPageProps {
 const DEFAULT_TITLE = '모임 초대장이 왔어요!';
 const DEFAULT_DESCRIPTION = '모임에 참여해서 일정과 장소를 정해보세요';
 
+/** 참여하지 않고 빠져나가는 곳. 다른 완료 화면의 "홈으로 돌아가기"와 같은 목적지다. */
+const HOME_PATH = '/home';
+
 export function InviteLandingPage({
   inviteCode,
   invitation,
@@ -78,19 +81,8 @@ export function InviteLandingPage({
                   </Button>
                 </div>
               ) : (
-                <Button
-                  fullWidth
-                  variant="ghost"
-                  className="text-neutral-500 hover:text-neutral-400"
-                  asChild
-                  disabled
-                >
-                  <Link
-                    href={`/meetings?code=${inviteCode}`}
-                    className="text-bold-14 underline underline-offset-3"
-                  >
-                    진행상황 확인하기
-                  </Link>
+                <Button variant="link" asChild>
+                  <Link href={HOME_PATH}>홈으로 가기</Link>
                 </Button>
               )
             }
