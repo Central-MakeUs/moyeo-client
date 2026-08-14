@@ -59,7 +59,7 @@ const buttonVariants = cva(
           'disabled:data-[loading=true]:bg-neutral-20 disabled:data-[loading=true]:text-neutral-600',
         ],
         link: [
-          'rounded-none border-transparent bg-white text-neutral-500 underline underline-offset-4',
+          'rounded-none border-transparent bg-transparent text-neutral-500 underline underline-offset-4',
           'hover:text-neutral-700',
           'focus-visible:ring-accessible-300',
           'active:text-neutral-900',

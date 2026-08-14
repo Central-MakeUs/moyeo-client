@@ -16,7 +16,7 @@ export function CTASection({ primaryAction, secondaryAction, className }: CTASec
     <ToastOffsetBoundary>
       <section
         className={cn(
-          'flex w-full flex-col items-center gap-1 rounded-t-12 bg-transparent px-5 pt-5 pb-11',
+          'flex w-full flex-col items-center gap-4.5 rounded-t-12 bg-transparent px-5 pt-5 pb-11',
           className
         )}
       >
