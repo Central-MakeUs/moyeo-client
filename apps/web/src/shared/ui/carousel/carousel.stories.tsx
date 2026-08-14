@@ -39,7 +39,7 @@ const ACTIVE_STYLE = ['w-5', 'bg-accessible-400'];
 const INACTIVE_STYLE = ['w-1.5', 'bg-neutral-300/30'];
 
 function getDots(canvasElement: HTMLElement) {
-  return Array.from(canvasElement.querySelectorAll('[data-slot="page-control-dot"]'));
+  return Array.from(canvasElement.querySelectorAll('[data-slot="page-indicator-dot"]'));
 }
 
 /** 슬라이드 3개짜리 기본 상태입니다. 첫 슬라이드가 선택된 채로 시작합니다. */

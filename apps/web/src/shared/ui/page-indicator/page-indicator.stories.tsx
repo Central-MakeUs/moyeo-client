@@ -10,19 +10,15 @@ const meta = {
   },
   tags: ['autodocs'],
   argTypes: {
+    // 점 개수에 상한을 두지 않는다. 슬라이드가 많을 때의 표시 방식이 아직 미정이라
+    // (issue-134 "미해결") 개수를 올려가며 실제 모습을 확인할 수 있어야 한다.
     count: {
-      control: { type: 'number', min: 0, max: 8, step: 1 },
+      control: { type: 'number', min: 0, step: 1 },
       description: '전체 페이지 수. 0이면 렌더링하지 않습니다.',
     },
     selectedIndex: {
-      control: { type: 'number', min: 0, max: 7, step: 1 },
+      control: { type: 'number', min: 0, step: 1 },
       description: '현재 활성 페이지 인덱스 (0-based)',
-    },
-    variant: {
-      control: 'inline-radio',
-      options: ['default', 'primary'],
-      description: 'default는 캐러셀 위, primary는 흰 배경 위 단독 사용을 전제합니다.',
-      table: { defaultValue: { summary: 'default' } },
     },
   },
   args: {
@@ -35,16 +31,8 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-/** 캐러셀에 얹는 기본형입니다. `CarouselPageControl`이 이 형태를 씁니다. */
+/** 기본 상태입니다. 캐러셀(`CarouselPageControl`)과 온보딩이 같은 모양을 씁니다. */
 export const Default: Story = {};
-
-/** 온보딩처럼 흰 배경 위에 단독으로 놓을 때 쓰는 형태입니다. */
-export const Primary: Story = {
-  args: {
-    variant: 'primary',
-    selectedIndex: 1,
-  },
-};
 
 /** 페이지를 넘길 때 활성 점이 어떻게 이동하는지 보여줍니다. */
 export const StateOverview: Story = {
@@ -55,7 +43,11 @@ export const StateOverview: Story = {
       ))}
     </div>
   ),
+};
+
+/** 점이 하나뿐이면 활성 알약 하나만 렌더링합니다. */
+export const SinglePage: Story = {
   args: {
-    variant: 'primary',
+    count: 1,
   },
 };

@@ -33,7 +33,7 @@ describe('InProgressMeetingSection', () => {
     expect(document.body).toHaveTextContent('진행 중 모임3');
     expect(screen.getAllByRole('button')).toHaveLength(3);
     await waitFor(() => {
-      expect(document.querySelectorAll('[data-slot="page-control-dot"]')).toHaveLength(3);
+      expect(document.querySelectorAll('[data-slot="page-indicator-dot"]')).toHaveLength(3);
     });
   });
 
@@ -43,7 +43,7 @@ describe('InProgressMeetingSection', () => {
     expect(document.body).toHaveTextContent('진행 중 모임1');
     expect(screen.getAllByRole('button')).toHaveLength(1);
     await waitFor(() => {
-      const dots = document.querySelectorAll('[data-slot="page-control-dot"]');
+      const dots = document.querySelectorAll('[data-slot="page-indicator-dot"]');
       expect(dots).toHaveLength(1);
       expect(dots[0]).toHaveClass('w-5');
     });
@@ -55,6 +55,6 @@ describe('InProgressMeetingSection', () => {
     expect(document.body).toHaveTextContent('진행 중 모임0');
     expect(screen.getByText('아직 모임이 없어요')).toBeInTheDocument();
     expect(screen.queryAllByRole('button')).toHaveLength(0);
-    expect(document.querySelectorAll('[data-slot="page-control-dot"]')).toHaveLength(0);
+    expect(document.querySelectorAll('[data-slot="page-indicator-dot"]')).toHaveLength(0);
   });
 });
