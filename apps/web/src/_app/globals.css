@@ -81,6 +81,10 @@
   --text-extrabold-22--line-height: 1.4; /* 140% */
   --text-extrabold-22--font-weight: 800;
 
+  --text-extrabold-20: 1.25rem; /* 20px */
+  --text-extrabold-20--line-height: 1.4; /* 140% */
+  --text-extrabold-20--font-weight: 800;
+
   --text-extrabold-18: 1.125rem; /* 18px */
   --text-extrabold-18--line-height: 1.5; /* 150% */
   --text-extrabold-18--font-weight: 800;

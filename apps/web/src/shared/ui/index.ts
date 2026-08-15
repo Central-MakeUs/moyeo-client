@@ -10,6 +10,7 @@ export * from './input-button';
 export * from './number-picker';
 export * from './not-found-section';
 export * from './overlay';
+export * from './page-indicator';
 export * from './progress';
 export * from './radio-group';
 export * from './search-field';
