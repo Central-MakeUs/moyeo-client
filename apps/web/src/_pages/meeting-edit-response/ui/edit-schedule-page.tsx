@@ -150,6 +150,10 @@ function CalendarEditor({
   const initialMonth =
     firstCandidateDate === undefined ? undefined : toLocalDate(firstCandidateDate);
 
+  // 표시 월은 제어 prop이라 이동을 여기서 받아야 한다. null이면 아직 안 옮긴 것 —
+  // 후보 첫 달을 보여준다. onMonthChange를 빼면 < > 를 눌러도 월이 그대로 멈춘다.
+  const [month, setMonth] = React.useState<Date | null>(null);
+
   return (
     <EditResponseLayout
       onBack={onBack}
@@ -169,7 +173,8 @@ function CalendarEditor({
 
           return !candidateDates.includes(isoDate) || isoDate < serverToday;
         }}
-        month={initialMonth}
+        month={month ?? initialMonth}
+        onMonthChange={setMonth}
       />
     </EditResponseLayout>
   );
