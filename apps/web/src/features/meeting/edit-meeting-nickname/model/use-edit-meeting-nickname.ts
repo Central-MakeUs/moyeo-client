@@ -8,6 +8,7 @@ import {
   getGetMeetingViewQueryKey,
   getGetMyParticipationQueryKey,
   getGetPlaceViewQueryKey,
+  getGetScheduleViewQueryKey,
   updateMeetingParticipantNickname,
 } from '@/shared/api';
 import { toast } from '@/shared/ui';
@@ -34,7 +35,9 @@ export interface UseEditMeetingNicknameReturn {
 /**
  * 모임 내 본인 닉네임을 수정한다(VIEW-01-F04).
  *
- * 성공하면 현황과 내 참여 정보를 다시 읽어 참여자 목록의 이름이 즉시 바뀌게 한다. 실패하면
+ * 성공하면 닉네임이 실린 조회(현황·내 참여·장소·일정)를 모두 다시 읽어 참여자 목록의 이름이
+ * 즉시 바뀌게 한다. 네이티브 WebView는 문서를 다시 로드하지 않으므로, 여기서 빠뜨린 조회는
+ * 새로고침으로 회복되지 않고 옛 닉네임이 그대로 남는다. 실패하면
  * 토스트로만 알리고 Drawer와 입력을 그대로 둔다 — 방금 친 닉네임을 다시 치게 하지 않는다.
  */
 export function useEditMeetingNickname({
@@ -60,6 +63,8 @@ export function useEditMeetingNickname({
         queryClient.invalidateQueries({ queryKey: getGetMeetingViewQueryKey(inviteCode) }),
         queryClient.invalidateQueries({ queryKey: getGetMyParticipationQueryKey(inviteCode) }),
         queryClient.invalidateQueries({ queryKey: getGetPlaceViewQueryKey(inviteCode) }),
+        // params 없는 키로 정렬별 일정 캐시를 함께 무효화한다.
+        queryClient.invalidateQueries({ queryKey: getGetScheduleViewQueryKey(inviteCode) }),
       ]);
 
       toast.add({ description: SUCCESS_MESSAGE });

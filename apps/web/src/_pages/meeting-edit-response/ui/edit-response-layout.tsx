@@ -61,19 +61,14 @@ export function EditResponseLayout({
         leading={<IconButton icon="chevron-left" aria-label="뒤로가기" onClick={onBack} />}
       />
 
+      {/* 좌우 여백은 본문이 통째로 갖는다 — 헤더와 내용이 같은 선에 맞는다(WizardStepLayout과 동일). */}
       <main
         className={cn(
-          'flex flex-1 flex-col gap-12',
-          isScrollLocked && 'min-h-0 overflow-hidden px-5 pb-10'
+          'flex flex-1 flex-col gap-12 px-5',
+          isScrollLocked && 'min-h-0 overflow-hidden pb-10'
         )}
       >
-        {title && (
-          <PageHeader
-            className={cn(!isScrollLocked && 'px-5', 'pt-10')}
-            title={title}
-            description={description}
-          />
-        )}
+        {title && <PageHeader className="pt-10" title={title} description={description} />}
 
         {isLoading && (
           <div className="flex justify-center pt-8">
