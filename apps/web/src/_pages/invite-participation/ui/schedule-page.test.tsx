@@ -1,8 +1,9 @@
 ﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { useParticipationDraft } from '@/features/meeting/invite-participation';
+import { renderWithQuery } from '@/shared/lib/render-with-query';
 
 import { SchedulePage } from './schedule-page';
 
@@ -41,7 +42,7 @@ const CANDIDATE_DATES = ['2026-08-15', '2026-08-20'];
 const SERVER_TODAY = '2026-08-01';
 
 const renderPage = (candidateDates: string[] = CANDIDATE_DATES, serverToday = SERVER_TODAY) =>
-  render(
+  renderWithQuery(
     <SchedulePage
       inviteToken="ABC123"
       planningType="SCHEDULE_ONLY"
@@ -87,6 +88,17 @@ describe('SchedulePage', () => {
 
     expect(dateCell('2026-08-15')).toBeDisabled();
     expect(dateCell('2026-08-20')).toBeEnabled();
+  });
+
+  // 표시 월을 제어 prop으로 넘기면서 onMonthChange를 빼면 < > 를 눌러도 월이 멈춘다.
+  it('후보 첫 날짜의 달로 열리고 다음 달 버튼으로 월을 넘길 수 있다', async () => {
+    renderPage();
+
+    expect(screen.getByText('2026년 8월')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: /next/i }));
+
+    expect(screen.getByText('2026년 9월')).toBeInTheDocument();
   });
 
   it('아무 날짜도 고르지 않으면 참여 버튼이 disabled다', () => {

@@ -81,7 +81,7 @@ function EditDepartureContent(): React.JSX.Element {
         });
       }}
     >
-      <div className="flex w-full flex-col gap-4 px-5">
+      <div className="flex w-full flex-col gap-4">
         <InputButton
           label="출발지"
           value={departure?.name}
