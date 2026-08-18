@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  AppState,
   BackHandler,
   Platform,
   Pressable,
@@ -97,6 +98,7 @@ interface ConnectionIcons {
 const BUNDLED_ICONS: ConnectionIcons = { error: ERROR_ICON, undo: UNDO_ICON };
 
 type WebViewLoadState = 'loading' | 'loaded' | 'checking' | 'error';
+type WebViewRecoveryStrategy = 'reload' | 'remount';
 
 const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -202,14 +204,25 @@ export default function HomeScreen() {
   const webViewUrl = useMemo(() => toWebViewUrl(appLinkPath), [appLinkPath]);
   const [isOffline, setIsOffline] = useState(false);
   const [webViewLoadState, setWebViewLoadState] = useState<WebViewLoadState>('loading');
+  const [webViewInstanceKey, setWebViewInstanceKey] = useState(0);
+  /** 프로세스 종료 복구로 다시 열 주소. `null`이면 진입 주소를 쓴다. */
+  const [recoveredUrl, setRecoveredUrl] = useState<string | null>(null);
   const [connectionIcons, setConnectionIcons] = useState<ConnectionIcons>(BUNDLED_ICONS);
 
   /** 최초 판정과 실제 오프라인 복구를 구분하기 위한 직전 연결 상태다. */
   const wasOfflineRef = useRef(false);
   /** 로드 시도를 구분하는 증가 값. 늦게 끝난 오류 판정이 최신 상태를 덮지 않게 한다. */
   const loadAttemptRef = useRef(0);
+  /** 백그라운드에서 생긴 복구 요청. 앱이 다시 활성화될 때 실행한다. */
+  const pendingRecoveryRef = useRef<WebViewRecoveryStrategy | null>(null);
+  /** 자동 복구 중 온라인 판정이 로딩 상태를 일반 오류로 바꾸지 않게 구분한다. */
+  const isProcessRecoveryRef = useRef(false);
+  /** 이벤트 콜백에서 최신 앱 활성 상태를 동기적으로 읽기 위한 값이다. */
+  const appStateRef = useRef(AppState.currentState);
   /** WebView에 돌아갈 방문 기록이 있는지. 웹이 뒤로가기를 넘겼을 때의 폴백 판단에 쓴다. */
   const canGoBackRef = useRef(false);
+  /** WebView가 마지막으로 연 주소. 프로세스가 죽었을 때 돌아갈 곳으로 쓴다. */
+  const currentUrlRef = useRef<string | null>(null);
   /** 뒤로가기 요청을 구분하는 증가 값. 늦게 도착한 이전 응답을 무시하는 데 쓴다. */
   const backSequenceRef = useRef(0);
   /** 응답을 기다리는 중인 뒤로가기 요청. 응답이 없으면 타임아웃이 대신 끝낸다. */
@@ -228,7 +241,11 @@ export default function HomeScreen() {
     // 자동 reload 대신 복구 버튼을 제공한다. 최초 온라인 판정(false -> false)은 제외한다.
     // 확인 중이면 확인이 끝나면서 상태가 정해지므로 여기서 앞질러 오류로 바꾸지 않는다.
     if (wasOfflineRef.current && !nextIsOffline) {
-      setWebViewLoadState((current) => (current === 'checking' ? current : 'error'));
+      setWebViewLoadState((current) =>
+        current === 'checking' || (isProcessRecoveryRef.current && current === 'loading')
+          ? current
+          : 'error'
+      );
     }
 
     wasOfflineRef.current = nextIsOffline;
@@ -269,6 +286,10 @@ export default function HomeScreen() {
 
   useEffect(() => {
     return NetInfo.addEventListener((state) => {
+      // 백그라운드에서는 OS가 실제 연결과 무관하게 네트워크를 일시 정지할 수 있다.
+      // 이 값을 화면에 반영하지 않고, active 복귀 때 refresh한 결과를 기다린다.
+      if (appStateRef.current === 'background' || appStateRef.current === 'inactive') return;
+
       // null은 아직 판정 중인 상태다. 오프라인으로 취급하면 앱 시작 때 안내가 깜빡인다.
       const isConfirmedOffline = state.isConnected === false || state.isInternetReachable === false;
       const isConfirmedOnline = state.isConnected === true && state.isInternetReachable === true;
@@ -283,6 +304,8 @@ export default function HomeScreen() {
 
     // 이 재시도가 최신이다. 앞선 오류의 판정이 뒤늦게 끝나 이 로딩을 덮으면 안 된다.
     loadAttemptRef.current += 1;
+    pendingRecoveryRef.current = null;
+    isProcessRecoveryRef.current = false;
     setWebViewLoadState('loading');
     webViewRef.current?.reload();
   }, [isOffline]);
@@ -290,8 +313,97 @@ export default function HomeScreen() {
   /** 로드 성공. 기다리는 중이던 이전 오류 판정은 이 시점부터 무효다. */
   const handleWebViewLoad = useCallback(() => {
     loadAttemptRef.current += 1;
+    pendingRecoveryRef.current = null;
+    isProcessRecoveryRef.current = false;
     setWebViewLoadState('loaded');
   }, []);
+
+  /** 앱이 활성 상태일 때 WebView 프로세스를 실제로 복구한다. */
+  const recoverWebViewProcess = useCallback((strategy: WebViewRecoveryStrategy) => {
+    pendingRecoveryRef.current = null;
+    isProcessRecoveryRef.current = true;
+    loadAttemptRef.current += 1;
+    setWebViewLoadState('loading');
+
+    if (strategy === 'reload') {
+      webViewRef.current?.reload();
+      return;
+    }
+
+    // 새 인스턴스에는 방문 기록이 없다. 첫 방문 기록 콜백 전의 뒤로가기도 이에 맞춘다.
+    canGoBackRef.current = false;
+    setRecoveredUrl(currentUrlRef.current);
+    setWebViewInstanceKey((current) => current + 1);
+  }, []);
+
+  /** 백그라운드라면 복구를 미루고, 활성 상태라면 즉시 실행한다. */
+  const requestWebViewRecovery = useCallback(
+    (strategy: WebViewRecoveryStrategy) => {
+      const isInactive = appStateRef.current === 'background' || appStateRef.current === 'inactive';
+
+      if (isInactive) {
+        loadAttemptRef.current += 1;
+        pendingRecoveryRef.current = strategy;
+        isProcessRecoveryRef.current = true;
+        setWebViewLoadState('loading');
+        return;
+      }
+
+      recoverWebViewProcess(strategy);
+    },
+    [recoverWebViewProcess]
+  );
+
+  /**
+   * iOS: 콘텐츠 프로세스가 회수됐을 때의 복구.
+   *
+   * WKWebView 자체는 살아 있고 방문 기록도 그대로 남아 있어서 다시 불러오기만 하면 된다.
+   * 인스턴스를 새로 만들면 그 기록까지 버리게 되므로 여기서는 재생성하지 않는다.
+   */
+  const handleContentProcessDidTerminate = useCallback(() => {
+    requestWebViewRecovery('reload');
+  }, [requestWebViewRecovery]);
+
+  /**
+   * Android: 렌더러 프로세스가 죽었을 때의 복구.
+   *
+   * 죽은 렌더러를 가진 WebView는 다시 쓸 수 없어 `reload()`로는 살아나지 않는다. 그래서
+   * 인스턴스를 새로 만들되, 진입 주소가 아니라 죽기 직전에 보고 있던 주소로 되돌린다 —
+   * 상세나 작성 중이던 화면에 있었다면 홈으로 튕기는 셈이 되기 때문이다.
+   *
+   * 주소는 종료 이벤트가 아니라 방문 기록 콜백에서 모아 둔 값을 쓴다. 이벤트의 타입에는
+   * `didCrash`만 있어서 주소를 읽으려면 타입을 우회해야 한다.
+   *
+   * 반복해서 죽는 기기에서는 이 재생성도 반복된다. 횟수 제한은 초기화 기준까지 함께 정해야
+   * 해서 이번 범위에 넣지 않았다.
+   */
+  const handleRenderProcessGone = useCallback(() => {
+    requestWebViewRecovery('remount');
+  }, [requestWebViewRecovery]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      appStateRef.current = nextState;
+      if (nextState !== 'active') return;
+
+      // 백그라운드에서 무시한 연결 상태를 활성화 시점에 다시 판정한다.
+      void NetInfo.refresh().catch(() => {});
+
+      const pendingRecovery = pendingRecoveryRef.current;
+      if (!pendingRecovery) return;
+
+      recoverWebViewProcess(pendingRecovery);
+    });
+
+    return () => subscription.remove();
+  }, [recoverWebViewProcess]);
+
+  // 새 App Link로 진입하면 직전의 복구 주소는 무효다. 그대로 두면 초대 링크가 열리지 않는다.
+  useEffect(() => {
+    setRecoveredUrl(null);
+    currentUrlRef.current = null;
+    canGoBackRef.current = false;
+  }, [webViewUrl]);
 
   /**
    * WebView가 문서를 불러오지 못했을 때의 처리.
@@ -304,7 +416,19 @@ export default function HomeScreen() {
    * 확정하면 오버레이는 그 즉시 오프라인 안내로 넘어간다.
    */
   const handleWebViewError = useCallback(async () => {
+    const isInactive = appStateRef.current === 'background' || appStateRef.current === 'inactive';
+    if (isInactive) {
+      // 백그라운드에서는 네트워크와 WebView가 모두 정지할 수 있다. 오류로 확정하지 않고
+      // 활성화된 뒤 다시 불러온다. 이후 렌더러 종료 이벤트가 오면 remount로 덮어쓴다.
+      if (!pendingRecoveryRef.current) pendingRecoveryRef.current = 'reload';
+      isProcessRecoveryRef.current = true;
+      loadAttemptRef.current += 1;
+      setWebViewLoadState('loading');
+      return;
+    }
+
     const attemptId = ++loadAttemptRef.current;
+    isProcessRecoveryRef.current = false;
 
     // Android는 실패 시 finish 이벤트를 error보다 먼저 보낼 수 있다. 실패한 WebView는 곧바로 가린다.
     setWebViewLoadState('checking');
@@ -594,6 +718,7 @@ export default function HomeScreen() {
   const handleNavigationStateChange = useCallback(
     (navState: WebViewNavigation) => {
       canGoBackRef.current = navState.canGoBack;
+      currentUrlRef.current = navState.url;
       clearExitConfirm();
     },
     [clearExitConfirm]
@@ -638,15 +763,20 @@ export default function HomeScreen() {
       ]}
     >
       <WebView
+        key={webViewInstanceKey}
         ref={webViewRef}
         style={styles.container}
-        source={{ uri: webViewUrl }}
+        source={{ uri: recoveredUrl ?? webViewUrl }}
+        bounces={false}
+        overScrollMode="never"
         accessibilityElementsHidden={isOffline || webViewLoadState !== 'loaded'}
         importantForAccessibility={
           isOffline || webViewLoadState !== 'loaded' ? 'no-hide-descendants' : 'auto'
         }
         onLoad={handleWebViewLoad}
         onError={() => void handleWebViewError()}
+        onContentProcessDidTerminate={handleContentProcessDidTerminate}
+        onRenderProcessGone={handleRenderProcessGone}
         onMessage={handleMessage}
         onShouldStartLoadWithRequest={handleShouldStartLoad}
         onNavigationStateChange={handleNavigationStateChange}
