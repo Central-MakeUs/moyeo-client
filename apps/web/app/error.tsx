@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from 'react';
 
+import { Button } from '@/shared/ui';
+import { Icon } from '@/shared/ui/icon';
+
 // chunkLoadError 인지 판별
 export function isChunkLoadError(error: Error): boolean {
   return (
@@ -56,20 +59,25 @@ export default function AppError({
   };
 
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-neutral-0 px-6">
-      <p role="alert" className="text-center text-medium-14 text-neutral-500">
-        {isOnline ? '화면을 불러오는 중 문제가 발생했어요.' : '네트워크 연결이 끊겼어요.'}
-        <br />
-        {isOnline ? '잠시 후 다시 시도해 주세요.' : '연결을 복구한 뒤 다시 시도해 주세요.'}
-      </p>
-      <button
-        type="button"
-        onClick={retry}
-        disabled={!isOnline}
-        className="rounded-8 bg-primary px-4 py-2 text-semibold-14 text-neutral-0"
-      >
-        {isOnline ? '다시 시도' : '연결을 기다리는 중'}
-      </button>
+    <main className="flex min-h-dvh items-center justify-center bg-white">
+      <section className="flex -translate-y-[1px] flex-col items-center gap-5 py-10">
+        <Icon name="error" size={50} />
+        <p role="alert" className="text-center text-semibold-16 text-neutral-700">
+          {isOnline ? '결과를 불러오지 못했어요' : '네트워크 연결이 끊겼어요'}
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={retry}
+          disabled={!isOnline}
+          className="gap-0.5 px-7 text-semibold-14 text-neutral-500"
+        >
+          <span className="flex size-6 items-center justify-center">
+            <Icon name="undo" size={12} className={isOnline ? undefined : '[&_path]:fill-white'} />
+          </span>
+          {isOnline ? '다시 시도하기' : '연결을 기다리는 중'}
+        </Button>
+      </section>
     </main>
   );
 }

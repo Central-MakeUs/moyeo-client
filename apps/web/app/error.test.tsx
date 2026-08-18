@@ -13,8 +13,8 @@ describe('AppError', () => {
 
     render(<AppError error={new Error('render failed')} reset={reset} />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('화면을 불러오는 중 문제가 발생했어요');
-    await userEvent.click(screen.getByRole('button', { name: '다시 시도' }));
+    expect(screen.getByRole('alert')).toHaveTextContent('결과를 불러오지 못했어요');
+    await userEvent.click(screen.getByRole('button', { name: '다시 시도하기' }));
     expect(reset).toHaveBeenCalledOnce();
   });
 
@@ -34,7 +34,7 @@ describe('AppError', () => {
 
     render(<AppError error={new Error('offline')} reset={vi.fn()} />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('네트워크 연결이 끊겼어요.');
+    expect(screen.getByRole('alert')).toHaveTextContent('네트워크 연결이 끊겼어요');
     expect(screen.getByRole('button', { name: '연결을 기다리는 중' })).toBeDisabled();
   });
 });
