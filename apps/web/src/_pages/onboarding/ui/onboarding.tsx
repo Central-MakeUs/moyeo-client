@@ -1,13 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Image, { type StaticImageData } from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import { markOnboardingSeen } from '@/entities/onboarding';
-import { cn } from '@/shared/lib/cn';
 import { useBackHandler } from '@/shared/model';
-import { Button, CTASection, PageIndicator } from '@/shared/ui';
+import { Button, CTASection } from '@/shared/ui';
+import {
+  Carousel,
+  type CarouselApi,
+  CarouselContent,
+  CarouselItem,
+  CarouselPageControl,
+} from '@/shared/ui/carousel';
 
 import ConfirmedIllustration from '../assets/onboarding-confirmed.png';
 import LocationIllustration from '../assets/onboarding-location.png';
@@ -42,33 +48,43 @@ const SLIDES: OnboardingSlide[] = [
 /**
  * 앱 최초 진입 시 서비스를 소개하는 3장짜리 화면.
  *
- * 캐러셀을 쓰지 않는다 — 스와이프 없이 하단 버튼으로만 넘어가고, 위치는 로컬 상태로 든다.
+ * 스와이프로 앞뒤 장을 오갈 수 있고, 하단 버튼으로도 다음 장으로 넘어간다.
  * 마지막 장에서 열람 기록을 남기므로, 중간에 이탈하면 다음 실행에 처음부터 다시 본다.
  */
 export function OnboardingPage() {
   const router = useRouter();
+  const [api, setApi] = useState<CarouselApi>();
   const [step, setStep] = useState(0);
 
-  const slide = SLIDES[step];
   const isLastStep = step === SLIDES.length - 1;
+
+  useEffect(() => {
+    if (!api) return;
+
+    const handleSelect = () => setStep(api.selectedScrollSnap());
+    handleSelect();
+    api.on('select', handleSelect);
+
+    return () => {
+      api.off('select', handleSelect);
+    };
+  }, [api]);
 
   // 앱 뒤로가기로 이전 장에 돌아간다. 첫 장에서는 넘겨서 기존 종료 확인 흐름을 그대로 둔다.
   useBackHandler(() => {
-    setStep((current) => current - 1);
+    api?.scrollPrev();
     return true;
   }, step > 0);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (!isLastStep) {
-      setStep((current) => current + 1);
+      api?.scrollNext();
       return;
     }
 
     markOnboardingSeen();
     router.replace(LOGIN_PATH);
-  };
-
-  if (!slide) return null;
+  }, [api, isLastStep, router]);
 
   return (
     <div className="flex h-dvh flex-col bg-white">
@@ -83,33 +99,39 @@ export function OnboardingPage() {
       <main className="flex min-h-0 flex-1 flex-col items-center overflow-y-auto">
         <div aria-hidden="true" className="grow" />
 
-        <div className="flex w-full shrink-0 flex-col items-center gap-17">
-          <div className="flex w-full flex-col items-center justify-center gap-12">
-            {/*
-              보이지 않는 장도 DOM에 두고 숨긴다. 눌러서 넘어간 뒤에야 이미지를 받아오면
-              그 사이 빈 자리가 보이기 때문에, 처음 렌더에 세 장을 모두 받아둔다.
-            */}
-            <div className="w-full">
-              {SLIDES.map((item, index) => (
+        {/* loop: false — 마지막 장에서 더 넘기면 "시작하기" 버튼으로만 완료하도록 순환을 막는다. */}
+        <Carousel
+          setApi={setApi}
+          opts={{ loop: false }}
+          className="flex w-full shrink-0 flex-col items-center gap-17"
+        >
+          <CarouselContent>
+            {SLIDES.map((item) => (
+              <CarouselItem
+                key={item.title}
+                className="flex flex-col items-center justify-center gap-12"
+              >
                 <Image
-                  key={item.title}
                   src={item.illustration}
                   alt=""
                   priority
                   draggable={false}
-                  className={cn('w-full', index !== step && 'hidden')}
+                  className="w-full"
                 />
-              ))}
-            </div>
 
-            <div className="flex flex-col items-center gap-1 px-5 text-center" aria-live="polite">
-              <h1 className="text-extrabold-20 text-neutral-800">{slide.title}</h1>
-              <p className="text-medium-16 text-neutral-800">{slide.description}</p>
-            </div>
-          </div>
+                <div
+                  className="flex flex-col items-center gap-1 px-5 text-center"
+                  aria-live="polite"
+                >
+                  <h1 className="text-extrabold-20 text-neutral-800">{item.title}</h1>
+                  <p className="text-medium-16 text-neutral-800">{item.description}</p>
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
 
-          <PageIndicator count={SLIDES.length} selectedIndex={step} />
-        </div>
+          <CarouselPageControl className="mt-0" />
+        </Carousel>
 
         <div aria-hidden="true" className="grow" />
       </main>
