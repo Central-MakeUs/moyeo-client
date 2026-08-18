@@ -1,5 +1,14 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { BackHandler, Platform, StyleSheet, ToastAndroid, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  BackHandler,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  ToastAndroid,
+  View,
+} from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import type {
@@ -7,6 +16,9 @@ import type {
   WebViewNavigation,
 } from 'react-native-webview/lib/WebViewTypes';
 import Constants from 'expo-constants';
+import { Asset } from 'expo-asset';
+import { Image, type ImageSource } from 'expo-image';
+import NetInfo from '@react-native-community/netinfo';
 import * as Haptics from 'expo-haptics';
 import * as Linking from 'expo-linking';
 import * as SecureStore from 'expo-secure-store';
@@ -60,6 +72,33 @@ const BACK_RESULT_TIMEOUT_MS = 500;
 const EXIT_CONFIRM_WINDOW_MS = 2000;
 
 const EXIT_CONFIRM_MESSAGE = '한 번 더 누르면 종료됩니다';
+
+/**
+ * WebView 로드가 실패한 뒤 네트워크 판정을 기다리는 상한.
+ *
+ * NetInfo의 인터넷 도달 여부는 실제 요청을 한 번 보내 정해지므로, 오류 직후에 읽으면 끊기기
+ * 전의 값이 그대로 남아 있다. 그 값으로 안내 문구를 고르면 오프라인인데도 일반 오류 문구가
+ * 먼저 보였다가 뒤늦게 오프라인 안내로 바뀐다.
+ *
+ * 그래서 이 시간 동안은 문구 없이 진행 표시만 둔다. 그사이 오프라인이 확정되면 구독이 즉시
+ * 반영하고, 확정되지 않은 채 시간이 지나면 일반 로드 실패로 본다.
+ */
+const NETWORK_VERDICT_TIMEOUT_MS = 1500;
+
+const ERROR_ICON: number = require('../assets/images/error.png');
+const UNDO_ICON: number = require('../assets/images/undo.png');
+
+interface ConnectionIcons {
+  error: ImageSource | number;
+  undo: ImageSource | number;
+}
+
+/** 앱에 포함된 원본 에셋. 개발 빌드에서는 미리 받아 둔 로컬 파일로 바뀐다. */
+const BUNDLED_ICONS: ConnectionIcons = { error: ERROR_ICON, undo: UNDO_ICON };
+
+type WebViewLoadState = 'loading' | 'loaded' | 'checking' | 'error';
+
+const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /**
  * 웹에 넘길 커버 사진의 긴 변 상한(px)과 JPEG 품질.
@@ -161,7 +200,14 @@ export default function HomeScreen() {
   // App Link의 origin을 제외한 `/i/{inviteToken}` 경로다.
   const { appLinkPath } = useLocalSearchParams<{ appLinkPath?: string | string[] }>();
   const webViewUrl = useMemo(() => toWebViewUrl(appLinkPath), [appLinkPath]);
+  const [isOffline, setIsOffline] = useState(false);
+  const [webViewLoadState, setWebViewLoadState] = useState<WebViewLoadState>('loading');
+  const [connectionIcons, setConnectionIcons] = useState<ConnectionIcons>(BUNDLED_ICONS);
 
+  /** 최초 판정과 실제 오프라인 복구를 구분하기 위한 직전 연결 상태다. */
+  const wasOfflineRef = useRef(false);
+  /** 로드 시도를 구분하는 증가 값. 늦게 끝난 오류 판정이 최신 상태를 덮지 않게 한다. */
+  const loadAttemptRef = useRef(0);
   /** WebView에 돌아갈 방문 기록이 있는지. 웹이 뒤로가기를 넘겼을 때의 폴백 판단에 쓴다. */
   const canGoBackRef = useRef(false);
   /** 뒤로가기 요청을 구분하는 증가 값. 늦게 도착한 이전 응답을 무시하는 데 쓴다. */
@@ -176,6 +222,105 @@ export default function HomeScreen() {
 
   const postMessageToWeb = useCallback((message: NativeToWebMessage) => {
     webViewRef.current?.postMessage(JSON.stringify(message));
+  }, []);
+
+  const updateOfflineState = useCallback((nextIsOffline: boolean) => {
+    // 자동 reload 대신 복구 버튼을 제공한다. 최초 온라인 판정(false -> false)은 제외한다.
+    // 확인 중이면 확인이 끝나면서 상태가 정해지므로 여기서 앞질러 오류로 바꾸지 않는다.
+    if (wasOfflineRef.current && !nextIsOffline) {
+      setWebViewLoadState((current) => (current === 'checking' ? current : 'error'));
+    }
+
+    wasOfflineRef.current = nextIsOffline;
+    setIsOffline(nextIsOffline);
+  }, []);
+
+  /**
+   * 개발 빌드에서 쓸 아이콘을 로컬 파일로 미리 받아 둔다.
+   *
+   * 개발 빌드에서 `require`한 이미지는 앱 안에 들어 있지 않고 Metro 개발 서버에서 그때그때
+   * 내려받는다. 그래서 정작 이 안내가 필요한 순간 — 연결이 끊겼거나 개발 PC에 닿지 못하는
+   * 순간 — 에 이미지 요청도 같이 실패해 아이콘 자리가 빈 칸이 된다. 미리 받아 둔 파일을
+   * 가리키면 그때도 네트워크 없이 그릴 수 있다.
+   *
+   * 프로덕션 번들은 이미지가 앱에 포함돼 있어 이 준비가 필요 없다. 그래서 개발 빌드에서만 한다.
+   */
+  useEffect(() => {
+    if (!__DEV__) return;
+
+    let isActive = true;
+
+    Asset.loadAsync([ERROR_ICON, UNDO_ICON])
+      .then(([errorAsset, undoAsset]) => {
+        const error = errorAsset?.localUri;
+        const undo = undoAsset?.localUri;
+        if (!isActive || !error || !undo) return;
+
+        setConnectionIcons({ error: { uri: error }, undo: { uri: undo } });
+      })
+      .catch(() => {
+        // 미리 받기에 실패하면 앱에 포함된 원본 에셋을 그대로 쓴다.
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    return NetInfo.addEventListener((state) => {
+      // null은 아직 판정 중인 상태다. 오프라인으로 취급하면 앱 시작 때 안내가 깜빡인다.
+      const isConfirmedOffline = state.isConnected === false || state.isInternetReachable === false;
+      const isConfirmedOnline = state.isConnected === true && state.isInternetReachable === true;
+
+      if (isConfirmedOffline) updateOfflineState(true);
+      if (isConfirmedOnline) updateOfflineState(false);
+    });
+  }, [updateOfflineState]);
+
+  const retryWebViewLoad = useCallback(() => {
+    if (isOffline) return;
+
+    // 이 재시도가 최신이다. 앞선 오류의 판정이 뒤늦게 끝나 이 로딩을 덮으면 안 된다.
+    loadAttemptRef.current += 1;
+    setWebViewLoadState('loading');
+    webViewRef.current?.reload();
+  }, [isOffline]);
+
+  /** 로드 성공. 기다리는 중이던 이전 오류 판정은 이 시점부터 무효다. */
+  const handleWebViewLoad = useCallback(() => {
+    loadAttemptRef.current += 1;
+    setWebViewLoadState('loaded');
+  }, []);
+
+  /**
+   * WebView가 문서를 불러오지 못했을 때의 처리.
+   *
+   * 원인 판정은 NetInfo에만 맡긴다. WebView가 주는 오류 코드는 플랫폼마다 다르고, 연결이
+   * 끊긴 경우와 서버까지 못 간 경우가 같은 코드로 오기도 해서 그것만으로는 문구를 고를 수 없다.
+   *
+   * 판정이 서기 전에는 문구 없이 진행 표시만 둔다. 일반 오류 문구를 먼저 띄웠다가 오프라인
+   * 안내로 바꾸면 사용자는 서로 다른 원인을 두 번 읽게 된다. 기다리는 동안 NetInfo가 오프라인을
+   * 확정하면 오버레이는 그 즉시 오프라인 안내로 넘어간다.
+   */
+  const handleWebViewError = useCallback(async () => {
+    const attemptId = ++loadAttemptRef.current;
+
+    // Android는 실패 시 finish 이벤트를 error보다 먼저 보낼 수 있다. 실패한 WebView는 곧바로 가린다.
+    setWebViewLoadState('checking');
+
+    // 도달 여부를 다시 확인시키기만 하고 기다리지는 않는다. 기다리면 전체 대기가 상한을 넘는다.
+    // 갱신된 판정은 NetInfo 구독이 `isOffline`에 반영한다.
+    void NetInfo.refresh().catch(() => {
+      // 조회에 실패하면 구독이 마지막으로 확인한 연결 상태를 그대로 쓴다.
+    });
+
+    await delay(NETWORK_VERDICT_TIMEOUT_MS);
+
+    // 기다리는 동안 로드가 성공했거나 사용자가 재시도했으면 이 판정은 이미 지난 것이다.
+    if (attemptId !== loadAttemptRef.current) return;
+
+    setWebViewLoadState('error');
   }, []);
 
   /**
@@ -496,6 +641,12 @@ export default function HomeScreen() {
         ref={webViewRef}
         style={styles.container}
         source={{ uri: webViewUrl }}
+        accessibilityElementsHidden={isOffline || webViewLoadState !== 'loaded'}
+        importantForAccessibility={
+          isOffline || webViewLoadState !== 'loaded' ? 'no-hide-descendants' : 'auto'
+        }
+        onLoad={handleWebViewLoad}
+        onError={() => void handleWebViewError()}
         onMessage={handleMessage}
         onShouldStartLoadWithRequest={handleShouldStartLoad}
         onNavigationStateChange={handleNavigationStateChange}
@@ -509,6 +660,55 @@ export default function HomeScreen() {
         thirdPartyCookiesEnabled
         sharedCookiesEnabled
       />
+
+      {(isOffline || webViewLoadState !== 'loaded') && (
+        <View style={styles.connectionOverlay}>
+          {(webViewLoadState === 'loading' || webViewLoadState === 'checking') && !isOffline ? (
+            <View style={styles.loadingContent}>
+              <ActivityIndicator size="large" color="#8a8a8a" />
+            </View>
+          ) : (
+            <View style={styles.errorContent}>
+              <Image
+                source={connectionIcons.error}
+                style={styles.errorIcon}
+                contentFit="contain"
+                accessible={false}
+              />
+              <Text selectable accessibilityRole="alert" style={styles.connectionTitle}>
+                {isOffline ? '네트워크 연결이 끊겼어요' : '결과를 불러오지 못했어요'}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ disabled: isOffline }}
+                disabled={isOffline}
+                onPress={retryWebViewLoad}
+                style={({ pressed }) => [
+                  styles.retryButton,
+                  isOffline && styles.retryButtonDisabled,
+                  pressed && !isOffline && styles.retryButtonPressed,
+                ]}
+              >
+                <View style={styles.retryIconSlot}>
+                  <Image
+                    source={connectionIcons.undo}
+                    style={styles.retryIcon}
+                    contentFit="contain"
+                    // expo-image는 style이 아니라 prop으로 색을 덧입힌다.
+                    tintColor={isOffline ? '#ffffff' : undefined}
+                    accessible={false}
+                  />
+                </View>
+                <Text
+                  style={[styles.retryButtonLabel, isOffline && styles.retryButtonLabelDisabled]}
+                >
+                  {isOffline ? '연결을 기다리는 중' : '다시 시도하기'}
+                </Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
+      )}
     </View>
   );
 }
@@ -520,5 +720,70 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+  },
+  connectionOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffffff',
+  },
+  loadingContent: {
+    alignItems: 'center',
+    gap: 20,
+  },
+  errorContent: {
+    alignItems: 'center',
+    gap: 20,
+    paddingVertical: 40,
+    transform: [{ translateY: -1 }],
+  },
+  connectionTitle: {
+    color: '#474747',
+    fontSize: 16,
+    fontWeight: '600',
+    lineHeight: 24,
+    textAlign: 'center',
+  },
+  errorIcon: {
+    width: 50,
+    height: 50,
+  },
+  retryButton: {
+    height: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    paddingHorizontal: 28,
+    borderWidth: 1,
+    borderColor: '#e7e7e7',
+    borderRadius: 8,
+    backgroundColor: '#ffffff',
+  },
+  retryButtonDisabled: {
+    backgroundColor: '#e7e7e7',
+  },
+  retryButtonPressed: {
+    transform: [{ translateY: 1 }],
+  },
+  retryButtonLabel: {
+    color: '#737373',
+    fontSize: 14,
+    fontWeight: '600',
+    lineHeight: 21,
+  },
+  retryButtonLabelDisabled: {
+    color: '#ffffff',
+  },
+  retryIconSlot: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  retryIcon: {
+    width: 12,
+    height: 12,
   },
 });
