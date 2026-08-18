@@ -7,14 +7,19 @@ import { renderWithQuery } from '@/shared/lib/render-with-query';
 
 import { DepartureSearchPage } from './departure-search-page';
 
-const { push, replace, search } = vi.hoisted(() => ({
+const { push, replace, search, searchParams } = vi.hoisted(() => ({
   push: vi.fn(),
   replace: vi.fn(),
   search: vi.fn(),
+  searchParams: new URLSearchParams(),
 }));
 
+// PlaceSearchView가 usePickerRoute로 `?picker=current`를 읽는다.
+// pathname·searchParams가 목에 없으면 화면 렌더 자체가 깨진다.
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push, replace }),
+  usePathname: () => '/i/ABC123/respond/departure/search',
+  useSearchParams: () => searchParams,
 }));
 
 vi.mock('@/shared/api', async (importOriginal) => ({

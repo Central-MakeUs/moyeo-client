@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Feature Planner'
+  short_description: '기능 아이디어를 확정 명세와 개발 이슈로 변환한다'
+  default_prompt: 'Use $feature-planner to turn this feature idea into confirmed specifications, a PRD, and vertical issues.'

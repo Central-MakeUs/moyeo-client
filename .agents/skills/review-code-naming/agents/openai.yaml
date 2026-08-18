@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Code Naming Reviewer'
+  short_description: 'TypeScript와 React 식별자의 의미와 일관성을 검토한다'
+  default_prompt: 'Use $review-code-naming to review these TypeScript and React names and recommend precise alternatives.'

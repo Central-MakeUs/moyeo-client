@@ -6,15 +6,19 @@ import { type Result } from '@/shared/api';
 import { useBackHandler } from '@/shared/model';
 import { SearchField } from '@/shared/ui';
 import { Button } from '@/shared/ui/button';
+import { FullScreenModal } from '@/shared/ui/overlay';
 import { IconButton } from '@/shared/ui/icon-button';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { TopAppBar } from '@/shared/ui/top-app-bar';
 
 import type { DepartureDraft } from '../model/departure-draft';
 import { toPlaceLabel } from '../model/to-place-label';
+import { useDeferredPickerSelection } from '../model/use-deferred-picker-selection';
+import { usePickerRoute } from '../model/use-picker-route';
 import { usePlaceSearch } from '../model/use-place-search';
+import { CurrentLocationPicker } from './current-location-picker';
+import { DepartureQuickSelect } from './departure-quick-select';
 
-const SEARCH_IDLE = '서울·경기 내 출발지를 검색해주세요';
 const SEARCH_EMPTY = '에 대한 검색 결과가 없어요';
 const SEARCH_ERROR = '검색 결과를 불러오지 못했어요';
 
@@ -34,13 +38,15 @@ export function PlaceSearchView({
 }: PlaceSearchViewProps): React.JSX.Element {
   const [inputValue, setInputValue] = React.useState('');
   const search = usePlaceSearch(inputValue, inviteCode);
+  const { isPickerOpen, openPicker, closePicker } = usePickerRoute();
+  const { confirmSelection } = useDeferredPickerSelection({ isPickerOpen, closePicker, onSelect });
 
-  // 네이티브 뒤로가기도 아래 Escape·상단 버튼과 같은 곳으로 보낸다. 검색은 진입점마다
-  // 닫는 방법이 다르므로(모달은 되감기, 독립 페이지는 목적지 지정) 호출부의 `onBack`을 그대로 쓴다.
+  // picker가 열려 있을 때는 검색 화면의 핸들러를 빼고,
+  // 가장 위에 있는 화면만 뒤로가기를 처리하게 한다.
   useBackHandler(() => {
     onBack();
     return true;
-  });
+  }, !isPickerOpen);
 
   const isShowingPreviousResults = search.isDebouncing || search.query.isPlaceholderData;
 
@@ -92,7 +98,7 @@ export function PlaceSearchView({
         </form>
 
         <div className="w-full flex-1 overflow-y-auto" aria-busy={search.query.isFetching}>
-          {search.isIdle && <SearchMessage>{SEARCH_IDLE}</SearchMessage>}
+          {search.isIdle && <DepartureQuickSelect onSelectCurrentLocation={openPicker} />}
 
           {!search.isIdle && search.query.isLoading && <SearchResultSkeleton />}
 
@@ -122,6 +128,17 @@ export function PlaceSearchView({
           </p>
         </div>
       </div>
+
+      {/* 검색 본문을 언마운트하지 않고 위에 오버레이 */}
+      {isPickerOpen && (
+        <FullScreenModal>
+          <CurrentLocationPicker
+            inviteCode={inviteCode}
+            onClose={closePicker}
+            onConfirm={confirmSelection}
+          />
+        </FullScreenModal>
+      )}
     </div>
   );
 }
