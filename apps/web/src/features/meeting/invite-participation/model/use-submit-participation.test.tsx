@@ -191,6 +191,27 @@ describe('useSubmitParticipation', () => {
     expect(queryClient.getQueryState(myMeetingsKey)?.isInvalidated).toBe(false);
   });
 
+  it('성공한 뒤 완료 화면 전환 전에 다시 제출해도 join 요청을 한 번만 보낸다', async () => {
+    useParticipationDraft.setState({ scheduleResponse: COMPLETE_SCHEDULE });
+    const { result } = renderSubmit('SCHEDULE_ONLY');
+
+    await act(() => result.current.submit());
+    expect(replace).toHaveBeenCalledWith('/i/ABC123/complete');
+
+    await act(() => result.current.submit());
+
+    expect(joinGuest).toHaveBeenCalledTimes(1);
+  });
+
+  it('성공한 뒤 완료 화면 전환 전까지 isSubmitting이 true로 남는다', async () => {
+    useParticipationDraft.setState({ scheduleResponse: COMPLETE_SCHEDULE });
+    const { result } = renderSubmit('SCHEDULE_ONLY');
+
+    await act(() => result.current.submit());
+
+    expect(result.current.isSubmitting).toBe(true);
+  });
+
   it('제출에 실패하면 완료 화면으로 보내지 않는다', async () => {
     joinGuest.mockRejectedValueOnce(new Error('network'));
     useParticipationDraft.setState({ scheduleResponse: COMPLETE_SCHEDULE });
@@ -212,5 +233,18 @@ describe('useSubmitParticipation', () => {
     await act(() => result.current.submit());
 
     expect(queryClient.getQueryState(meetingViewKey)?.isInvalidated).toBe(false);
+  });
+
+  it('실패하면 isSubmitting이 false로 돌아가 다시 제출할 수 있다', async () => {
+    joinGuest.mockRejectedValueOnce(new Error('network'));
+    useParticipationDraft.setState({ scheduleResponse: COMPLETE_SCHEDULE });
+    const { result } = renderSubmit('SCHEDULE_ONLY');
+
+    await act(() => result.current.submit());
+    expect(result.current.isSubmitting).toBe(false);
+
+    await act(() => result.current.submit());
+
+    expect(joinGuest).toHaveBeenCalledTimes(2);
   });
 });

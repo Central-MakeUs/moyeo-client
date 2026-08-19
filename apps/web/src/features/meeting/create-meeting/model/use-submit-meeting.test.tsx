@@ -126,7 +126,10 @@ describe('useSubmitMeeting', () => {
   });
 
   it('연타해도 요청을 한 번만 보낸다', async () => {
-    const { result } = renderSubmit();
+    let received: unknown = null;
+    const { result } = renderSubmit((response) => {
+      received = response;
+    });
 
     // 같은 프레임에 두 번 — 리렌더를 기다리지 않는다.
     act(() => {
@@ -134,9 +137,35 @@ describe('useSubmitMeeting', () => {
       result.current.submit();
     });
 
-    await waitFor(() => expect(result.current.isPending).toBe(false));
+    await waitFor(() => expect(received).not.toBeNull());
     // 서버에 Idempotency-Key가 없어 중복 생성을 막을 수단이 in-flight 가드뿐이다.
     expect(requestCount).toBe(1);
+  });
+
+  it('성공한 뒤 화면 전환 전에 다시 제출해도 요청을 한 번만 보낸다', async () => {
+    let received: unknown = null;
+    const { result } = renderSubmit((response) => {
+      received = response;
+    });
+
+    act(() => result.current.submit());
+    await waitFor(() => expect(received).not.toBeNull());
+
+    act(() => result.current.submit());
+
+    expect(requestCount).toBe(1);
+  });
+
+  it('성공한 뒤 화면 전환 전까지 isSubmitting이 true로 남는다', async () => {
+    let received: unknown = null;
+    const { result } = renderSubmit((response) => {
+      received = response;
+    });
+
+    act(() => result.current.submit());
+    await waitFor(() => expect(received).not.toBeNull());
+
+    expect(result.current.isSubmitting).toBe(true);
   });
 
   it('실패하면 draft를 보존해 다시 시도할 수 있게 둔다', async () => {
@@ -173,5 +202,17 @@ describe('useSubmitMeeting', () => {
     act(() => result.current.submit());
 
     await waitFor(() => expect(requestCount).toBe(2));
+  });
+
+  it('실패하면 isSubmitting이 false로 돌아간다', async () => {
+    server.use(
+      http.post('*/api/meetings', () => HttpResponse.json({ message: 'boom' }, { status: 500 }))
+    );
+    const { result } = renderSubmit();
+
+    act(() => result.current.submit());
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(result.current.isSubmitting).toBe(false);
   });
 });

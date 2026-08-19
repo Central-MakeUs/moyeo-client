@@ -36,7 +36,7 @@ export function useStepAdvance(step: StepKey) {
   // 201인데 meetingId가 없는 경우. 이동도 실패도 아니라 따로 들고 있어야 한다.
   const [hasUnusableResponse, setHasUnusableResponse] = React.useState(false);
 
-  const { submit, isPending, isError } = useSubmitMeeting({
+  const { submit, isSubmitting, isError } = useSubmitMeeting({
     onSuccess: (response) => {
       // 응답 필드가 전부 optional이다(spec-fixed §7).
       if (response.meetingId === undefined) {
@@ -61,8 +61,8 @@ export function useStepAdvance(step: StepKey) {
 
       submit();
     },
-    /** 제출 중. CTA를 잠가 연타를 한 번 더 막는다. */
-    isSubmitting: isPending,
+    /** 요청 중이거나 성공 후 초대 화면으로 이동 중이면 `true`. */
+    isSubmitting,
     /** 제출이 실패했거나, 성공했지만 초대 화면을 열 수 없는 응답을 받았다. */
     isSubmitError: isError || hasUnusableResponse,
   };

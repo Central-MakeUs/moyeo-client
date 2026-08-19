@@ -38,7 +38,7 @@ export interface UseSubmitParticipationParams {
 export interface UseSubmitParticipationReturn {
   /** 초안을 참여 요청으로 보낸다. 게스트·회원 구분은 신원의 `kind`가 정한다. */
   submit: () => Promise<void>;
-  /** 진행 중이면 true. 버튼 `disabled`와 중복 요청 차단에 쓴다. */
+  /** 현재 화면에서 다시 제출할 수 없으면 `true`. 성공 후 화면 전환 중인 상태를 포함한다. */
   isSubmitting: boolean;
 }
 
@@ -50,6 +50,8 @@ export interface UseSubmitParticipationReturn {
  *
  * 성공하면 완료 화면으로 `replace` 한다. `push`를 쓰면 뒤로가기로 입력 화면에 돌아와
  * 재제출할 수 있다. 실패하면 토스트로 알리고 화면·입력을 그대로 둔다(prd.md ADR-6).
+ * `replace` 직후에도 입력 화면이 잠시 남을 수 있으므로 성공 시에는 제출 잠금을 유지하고,
+ * 사용자가 다시 시도해야 하는 실패 시에만 해제한다.
  */
 export function useSubmitParticipation({
   inviteCode,
@@ -110,7 +112,7 @@ export function useSubmitParticipation({
         id: identity.kind === 'guest' ? 'guest-join-failed' : 'member-join-failed',
         description: SUBMIT_ERROR_MESSAGE,
       });
-    } finally {
+
       isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
