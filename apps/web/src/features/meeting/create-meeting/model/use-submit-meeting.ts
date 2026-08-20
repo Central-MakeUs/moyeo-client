@@ -51,6 +51,7 @@ export interface UseSubmitMeetingOptions {
 export function useSubmitMeeting({ onSuccess }: UseSubmitMeetingOptions) {
   const queryClient = useQueryClient();
   const isSubmissionLockedRef = React.useRef(false);
+  const hasCreatedMeetingRef = React.useRef(false);
 
   const { lock, unlock } = useSubmissionLock.getState();
 
@@ -66,6 +67,9 @@ export function useSubmitMeeting({ onSuccess }: UseSubmitMeetingOptions) {
       return createMeeting(toCreateMeetingRequest(draft), draft.coverImage);
     },
     onSuccess: (response) => {
+      // 서버 생성이 끝난 뒤의 화면 처리에서 예외가 나도 동일 모임을 다시 제출하면 안 된다.
+      hasCreatedMeetingRef.current = true;
+
       // 방금 만든 모임이 홈 목록에 나타나야 한다. 목록에는 기본 staleTime(60초) 동안 이전
       // 응답이 남아 있어, 비우지 않으면 만든 직후 홈에 갔을 때 새 모임이 빠진 목록을 본다.
       void queryClient.invalidateQueries({ queryKey: getGetMyMeetingsQueryKey() });
@@ -73,6 +77,8 @@ export function useSubmitMeeting({ onSuccess }: UseSubmitMeetingOptions) {
       onSuccess(response);
     },
     onError: () => {
+      if (hasCreatedMeetingRef.current) return;
+
       // 화면에 머물러 재시도할 수 있는 실패에서만 잠금을 해제한다.
       isSubmissionLockedRef.current = false;
       unlock();
@@ -89,7 +95,7 @@ export function useSubmitMeeting({ onSuccess }: UseSubmitMeetingOptions) {
       mutate();
     },
     /** 현재 화면에서 다시 제출할 수 없으면 `true`. 성공 후 화면 전환 중인 상태를 포함한다. */
-    isSubmitting: mutation.isPending || mutation.isSuccess,
+    isSubmitting: mutation.isPending || mutation.isSuccess || hasCreatedMeetingRef.current,
     isError: mutation.isError,
     error: mutation.error,
   };

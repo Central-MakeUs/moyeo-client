@@ -250,4 +250,20 @@ describe('useSubmitMeeting', () => {
 
     expect(useSubmissionLock.getState().isSubmitting).toBe(false);
   });
+
+  it('서버 성공 후 화면 처리에서 예외가 나도 재제출 잠금을 유지한다', async () => {
+    const { result } = renderSubmit(() => {
+      throw new Error('navigation failed');
+    });
+
+    act(() => result.current.submit());
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    expect(result.current.isSubmitting).toBe(true);
+    expect(useSubmissionLock.getState().isSubmitting).toBe(true);
+
+    act(() => result.current.submit());
+
+    expect(requestCount).toBe(1);
+  });
 });
