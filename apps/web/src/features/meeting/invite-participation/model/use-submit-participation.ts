@@ -28,6 +28,7 @@ import { toGuestJoinRequest } from './to-guest-join-request';
 import { toMemberJoinRequest } from './to-member-join-request';
 
 const SUBMIT_ERROR_MESSAGE = '참여하지 못했어요. 잠시 후 다시 시도해주세요';
+const POST_JOIN_ERROR_MESSAGE = '참여는 완료됐지만 화면을 이동하지 못했어요. 새로고침해주세요';
 
 export interface UseSubmitParticipationParams {
   /** 경로의 초대 코드. */
@@ -86,16 +87,19 @@ export function useSubmitParticipation({
     isSubmissionLockedRef.current = true;
     setIsSubmitting(true);
     lock();
+    let hasJoined = false;
 
     try {
       if (identity.kind === 'guest') {
         await joinGuest(inviteCode, toGuestJoinRequest({ identity, ...draft }));
+        hasJoined = true;
 
         // 참여가 확정된 시점이다. 초안은 비워지므로, 현황 화면이 신원을 알아볼 수 있도록
         // 모임 닉네임만 게스트 세션에 남긴다.
         writeGuestSession(inviteCode, identity.nickname);
       } else {
         await joinMember(inviteCode, toMemberJoinRequest({ identity, ...draft }));
+        hasJoined = true;
       }
 
       const staleKeys: readonly (readonly unknown[])[] = [
@@ -117,6 +121,12 @@ export function useSubmitParticipation({
 
       router.replace(participationCompletePath(inviteCode));
     } catch {
+      if (hasJoined) {
+        // 서버 참여는 완료됐으므로 잠금을 유지해 같은 참여를 다시 보내지 않는다.
+        toast.add({ id: 'post-join-failed', description: POST_JOIN_ERROR_MESSAGE });
+        return;
+      }
+
       toast.add({
         id: identity.kind === 'guest' ? 'guest-join-failed' : 'member-join-failed',
         description: SUBMIT_ERROR_MESSAGE,
