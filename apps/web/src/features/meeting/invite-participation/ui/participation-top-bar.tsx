@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 
 import type { MeetingInvitationResponsePlanningType } from '@/shared/api';
+import { useBackHandler, useSubmissionLock } from '@/shared/model';
 import { Progress, TopAppBar } from '@/shared/ui';
 import { IconButton } from '@/shared/ui/icon-button';
 
@@ -37,17 +38,13 @@ export function ParticipationTopBar({ inviteToken, planningType }: Participation
   const pathname = usePathname();
   const router = useRouter();
   const participantKind = useParticipationDraft((state) => state.identity?.kind);
+  const isSubmitting = useSubmissionLock((state) => state.isSubmitting);
 
   const step = participationStepFromPath(pathname);
 
-  // 참여 흐름의 화면이 아니다. 완료·검색 화면은 자기 상단바를 쓰므로 여기서 그리면 겹친다.
-  if (step === null) return null;
-
-  // 신원 화면이거나, 현재 planningType에 없는 스텝(직접 URL 진입)이면 진행바를 감춘다.
-  // 후자의 이동은 진입 가드가 맡는다.
-  const progress = participationProgressPercent(step, { planningType });
-
   const handleBack = () => {
+    if (step === null) return;
+
     const previous = previousParticipationStep(step, { planningType });
 
     // 첫 스텝에서의 뒤로가기 = 참여 이탈. 초대장으로 돌아간다.
@@ -66,10 +63,37 @@ export function ParticipationTopBar({ inviteToken, planningType }: Participation
     router.replace(participationStepToPath(inviteToken, previous));
   };
 
+  // 하드웨어 뒤로가기도 상단바 버튼과 같은 규칙을 따라야 한다. 훅이라 이른 반환보다 위에 둔다.
+  //
+  // 스텝이 아닌 경로에서는 넘긴다 — 완료·검색 화면은 자기 상단바를 쓰는데, 여기서 처리하면
+  // 그 화면의 뒤로가기가 동작하지 않는다. 제출 중에는 처리한 것으로 보고 이동하지 않는다.
+  // false를 반환하면 다음 핸들러나 기본 처리로 넘어가 화면을 벗어날 수 있다.
+  useBackHandler(() => {
+    if (step === null) return false;
+    if (isSubmitting) return true;
+
+    handleBack();
+    return true;
+  });
+
+  // 참여 흐름의 화면이 아니다. 완료·검색 화면은 자기 상단바를 쓰므로 여기서 그리면 겹친다.
+  if (step === null) return null;
+
+  // 신원 화면이거나, 현재 planningType에 없는 스텝(직접 URL 진입)이면 진행바를 감춘다.
+  // 후자의 이동은 진입 가드가 맡는다.
+  const progress = participationProgressPercent(step, { planningType });
+
   return (
     <>
       <TopAppBar
-        leading={<IconButton icon="chevron-left" aria-label="뒤로가기" onClick={handleBack} />}
+        leading={
+          <IconButton
+            icon="chevron-left"
+            aria-label="뒤로가기"
+            disabled={isSubmitting}
+            onClick={handleBack}
+          />
+        }
       />
       {progress !== null && <Progress value={progress} />}
     </>

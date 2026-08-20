@@ -1,8 +1,9 @@
 ﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { useParticipationDraft } from '@/features/meeting/invite-participation';
+import { renderWithQuery } from '@/shared/lib/render-with-query';
 
 import { GuestScheduleTimesPage } from './guest-schedule-times-page';
 
@@ -158,5 +159,32 @@ describe('GuestScheduleTimesPage', () => {
     renderPage();
 
     expect(replace).toHaveBeenCalledWith('/i/ABC123/guest');
+  });
+
+  it('제출 중에는 시간 칸을 다시 고를 수 없다', async () => {
+    let resolveJoin: (value: unknown) => void = () => {};
+    joinGuest.mockReturnValue(
+      new Promise((resolve) => {
+        resolveJoin = resolve;
+      })
+    );
+    const { container } = renderWithQuery(
+      <GuestScheduleTimesPage
+        inviteToken="ABC123"
+        planningType="SCHEDULE_ONLY"
+        candidates={CANDIDATES}
+        serverToday={SERVER_TODAY}
+      />
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: '8월 15일 10시' }));
+    await userEvent.click(screen.getByRole('button', { name: '참여하기' }));
+    await userEvent.click(screen.getByRole('button', { name: '8월 15일 11시' }));
+
+    expect(container.querySelectorAll('[data-cell-key][aria-pressed="true"]')).toHaveLength(1);
+    await act(async () => {
+      resolveJoin({});
+      await Promise.resolve();
+    });
   });
 });

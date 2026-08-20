@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
@@ -18,6 +18,7 @@ import {
   joinMember,
   type MeetingInvitationResponsePlanningType,
 } from '@/shared/api';
+import { useSubmissionLock } from '@/shared/model';
 import { toast } from '@/shared/ui';
 
 import { isParticipationDraftComplete } from './is-participation-draft-complete';
@@ -60,7 +61,14 @@ export function useSubmitParticipation({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const isSubmittingRef = useRef(false);
+  const isSubmissionLockedRef = useRef(false);
+
+  // 상위 레이아웃의 뒤로가기까지 잠그기 위해 shared store와 동기화한다.
+  const { lock, unlock } = useSubmissionLock.getState();
+
+  useEffect(() => {
+    return () => unlock();
+  }, [unlock]);
 
   const submit = async () => {
     const { identity, scheduleResponse, departure, transportationMode } =
@@ -70,13 +78,14 @@ export function useSubmitParticipation({
     if (
       identity === null ||
       !isParticipationDraftComplete(draft, planningType) ||
-      isSubmittingRef.current
+      isSubmissionLockedRef.current
     ) {
       return;
     }
 
-    isSubmittingRef.current = true;
+    isSubmissionLockedRef.current = true;
     setIsSubmitting(true);
+    lock();
 
     try {
       if (identity.kind === 'guest') {
@@ -113,8 +122,9 @@ export function useSubmitParticipation({
         description: SUBMIT_ERROR_MESSAGE,
       });
 
-      isSubmittingRef.current = false;
+      isSubmissionLockedRef.current = false;
       setIsSubmitting(false);
+      unlock();
     }
   };
 

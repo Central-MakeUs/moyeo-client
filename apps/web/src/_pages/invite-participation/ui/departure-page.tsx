@@ -28,6 +28,7 @@ export function DeparturePage({ inviteToken, planningType }: DeparturePageProps)
 
   return (
     <WizardStepLayout
+      isSubmitting={isSubmitting}
       header={
         <PageHeader
           title="출발지와 이동수단을 알려주세요"
@@ -49,6 +50,7 @@ export function DeparturePage({ inviteToken, planningType }: DeparturePageProps)
           label="출발지"
           value={departure?.name}
           placeholder="출발지를 입력해주세요"
+          disabled={isSubmitting}
           onClick={() => router.push(`/i/${inviteToken}/respond/departure/search`)}
         />
 
@@ -59,6 +61,7 @@ export function DeparturePage({ inviteToken, planningType }: DeparturePageProps)
           <DepartureRadioGroup
             aria-labelledby="transportation-mode-label"
             value={transportationMode ?? ''}
+            disabled={isSubmitting}
             onChangeValue={setTransportationMode}
           />
         </div>

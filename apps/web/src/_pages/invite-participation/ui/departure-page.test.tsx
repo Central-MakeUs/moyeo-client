@@ -1,8 +1,9 @@
 ﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { useParticipationDraft } from '@/features/meeting/invite-participation';
+import { renderWithQuery } from '@/shared/lib/render-with-query';
 
 import { DeparturePage } from './departure-page';
 
@@ -135,5 +136,25 @@ describe('DeparturePage', () => {
     renderPage();
 
     expect(replace).toHaveBeenCalledWith('/i/ABC123/guest');
+  });
+
+  it('제출 중에는 출발지와 이동수단을 바꿀 수 없다', async () => {
+    let resolveJoin: (value: unknown) => void = () => {};
+    joinGuest.mockReturnValue(
+      new Promise((resolve) => {
+        resolveJoin = resolve;
+      })
+    );
+    useParticipationDraft.setState({ departure: GANGNAM, transportationMode: 'PUBLIC_TRANSIT' });
+    renderWithQuery(<DeparturePage inviteToken="ABC123" planningType="PLACE_ONLY" />);
+
+    await userEvent.click(screen.getByRole('button', { name: '참여하기' }));
+
+    expect(screen.getByRole('button', { name: /출발지/ })).toBeDisabled();
+    expect(screen.getByRole('radio', { name: '자동차' })).toBeDisabled();
+    await act(async () => {
+      resolveJoin({});
+      await Promise.resolve();
+    });
   });
 });
