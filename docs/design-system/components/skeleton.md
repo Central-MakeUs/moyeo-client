@@ -96,16 +96,17 @@ iOS·Android는 hhea), **SUIT는 셋이 모두 같은 값이라 편차가 없다
 
 `prefers-reduced-motion: reduce`에서는 `motion-reduce:animate-none`으로 깜빡임이 멈춘다.
 
-## 알려진 제약
+## radius 덮어쓰기
 
-**`text`·`circular`의 radius를 `className`으로 덮을 수 없다.**
+variant가 정한 radius는 `className`으로 덮을 수 있다.
 
-`cn()`의 tailwind-merge에 커스텀 radius 스케일(`rounded-8` 등)이 등록돼 있지 않아 두 클래스가 모두
-살아남고, CSS 생성 순서가 승패를 정한다. `rounded-full`이 `rounded-2`~`rounded-24`보다 뒤에
-생성되므로 `<Skeleton variant="circular" className="rounded-12" />`는 pill로 남는다.
-(`block`의 `rounded-8`은 우연히 덮인다 — 숫자 토큰끼리는 선언 순서가 커지는 방향이라서다.)
+```tsx
+<Skeleton variant="circular" className="size-5 rounded-12" /> {/* pill 대신 12px */}
+```
 
-다른 radius가 필요하면 `variant="block"`에 `className`으로 준다.
+`cn()`이 커스텀 radius 토큰을 tailwind-merge에 등록해두어 나중에 온 값이 이긴다.
+등록이 풀리면 두 클래스가 모두 살아남아 CSS 생성 순서가 승패를 정하게 되므로
+(`rounded-full`이 숫자 토큰보다 뒤에 생성돼 `className`이 진다), `cn.test.ts`가 이를 지킨다.
 
 ## 관련 문서
 
