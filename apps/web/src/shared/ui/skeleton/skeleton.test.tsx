@@ -60,37 +60,40 @@ describe('Skeleton', () => {
   });
 
   /*
-   * 자리표시자는 내용이 없어 높이가 0이다. 실제 텍스트와 같은 세로 공간을 차지하는지가
-   * text variant의 존재 이유라, 토큰별 높이 계산식이 맞는지를 클래스로 확인한다.
-   * (계산 결과 px는 CSS가 필요해 jsdom에서 잴 수 없다 — Storybook에서 눈으로 본다.)
+   * text의 높이는 실제 타이포 클래스를 입힌 줄 상자가 정한다 — 그래서 확인할 것은
+   * 토큰에 대응하는 text-* 클래스가 붙었는지, 줄 상자를 만드는 문자가 들어갔는지다.
+   *
+   * 행간이 auto인 토큰 3개(extrabold-16·14·8)도 같은 경로를 탄다. 곱셈이 아니라 브라우저가
+   * 계산하므로 line-height: normal이어도 특수 처리가 필요 없다.
+   *
+   * 실제 px는 CSS가 있어야 재므로 jsdom에서 확인할 수 없다 — Storybook의
+   * 「타이포 토큰별 높이 대조표」에서 실제 문구와 나란히 놓고 눈으로 본다.
    */
   it.each([
-    ['bold-18', 'h-[calc(var(--text-bold-18)*var(--text-bold-18--line-height))]'],
-    ['semibold-14', 'h-[calc(var(--text-semibold-14)*var(--text-semibold-14--line-height))]'],
-    ['medium-12', 'h-[calc(var(--text-medium-12)*var(--text-medium-12--line-height))]'],
-  ] as const)('text/%s는 토큰의 font-size x line-height를 높이로 쓴다', (textStyle, expected) => {
+    'extrabold-22',
+    'bold-18',
+    'semibold-14',
+    'medium-12',
+    'extrabold-16',
+    'extrabold-14',
+    'extrabold-8',
+  ] as const)('text/%s는 같은 이름의 타이포 클래스로 줄 상자를 만든다', (textStyle) => {
     const skeleton = renderSkeleton(
       <Skeleton variant="text" textStyle={textStyle} data-testid="skeleton" />
     );
 
-    expect(skeleton).toHaveClass('rounded-full', expected);
+    expect(skeleton).toHaveClass('rounded-full', 'inline-block', `text-${textStyle}`);
+    expect(skeleton).toHaveAttribute('data-text-style', textStyle);
+    // 줄 상자를 만드는 zero-width space. 비면 높이가 0이 된다.
+    expect(skeleton.textContent).toBe(String.fromCharCode(0x200b));
   });
 
-  /*
-   * 행간이 auto인 토큰은 곱할 값이 없다. `--text-*--line-height`가 `normal`이라
-   * `calc(1rem * normal)`이 무효가 되고 height 선언이 통째로 버려진다(높이 0).
-   * SUIT 실측 배수 1.248을 쓰는지 확인한다 — 이게 깨지면 자리표시자가 보이지 않는다.
-   */
-  it.each(['extrabold-16', 'extrabold-14', 'extrabold-8'] as const)(
-    'text/%s는 행간이 auto라 SUIT 실측 배수로 높이를 계산한다',
-    (textStyle) => {
-      const skeleton = renderSkeleton(
-        <Skeleton variant="text" textStyle={textStyle} data-testid="skeleton" />
-      );
-
-      expect(skeleton).toHaveClass(`h-[calc(var(--text-${textStyle})*1.248)]`);
-    }
-  );
+  it('variant를 data 속성으로 남긴다', () => {
+    expect(renderSkeleton(<Skeleton data-testid="skeleton" />)).toHaveAttribute(
+      'data-variant',
+      'block'
+    );
+  });
 });
 
 /*

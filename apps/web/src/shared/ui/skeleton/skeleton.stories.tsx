@@ -118,11 +118,20 @@ const meta = {
   },
   /*
    * 컨트롤을 만지는 사람이 빈 화면을 보지 않도록, 비어 있는 값을 모양에 맞는 기본값으로 채운다.
-   * text는 textStyle만으로 높이를 확인할 수 있게 크기 클래스를 아예 넘기지 않는다.
+   *
+   * text는 높이만 확인하면 되므로 크기 컨트롤을 숨기는데, inline-block이라 너비를 주지 않으면
+   * 내용(zero-width space) 크기로 줄어들어 보이지 않는다. 그래서 폭은 여기서 채운다.
    */
   render: ({ variant = 'block', textStyle, className, ...args }) => {
     if (variant === 'text') {
-      return <Skeleton {...args} variant="text" textStyle={textStyle ?? DEFAULT_TEXT_STYLE} />;
+      return (
+        <Skeleton
+          {...args}
+          variant="text"
+          textStyle={textStyle ?? DEFAULT_TEXT_STYLE}
+          className="w-full"
+        />
+      );
     }
 
     const skeleton = (
