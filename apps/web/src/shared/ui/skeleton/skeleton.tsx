@@ -47,7 +47,19 @@ const VARIANT_CLASS = {
   circular: 'rounded-full',
 } as const;
 
-type SkeletonBaseProps = Omit<React.ComponentProps<'div'>, 'children'>;
+const TONE_CLASS = {
+  /** 흰 면·회색 면 위. */
+  neutral: 'bg-neutral-50',
+  /** 분홍 면 위 — 초대 카드, 모임 카드, `bg-celebration` 등. */
+  accessible: 'bg-accessible-100',
+} as const;
+
+export type SkeletonTone = keyof typeof TONE_CLASS;
+
+type SkeletonBaseProps = Omit<React.ComponentProps<'div'>, 'children'> & {
+  /** 올라갈 면의 색 계열. 배경과 색이 가까우면 자리표시자가 보이지 않는다. */
+  tone?: SkeletonTone;
+};
 
 /**
  * 로딩 자리표시자의 props.
@@ -65,6 +77,7 @@ export type SkeletonProps =
  */
 export function Skeleton({
   variant = 'block',
+  tone = 'neutral',
   textStyle,
   className,
   ...props
@@ -74,7 +87,8 @@ export function Skeleton({
       aria-hidden
       data-slot="skeleton"
       className={cn(
-        'animate-pulse bg-neutral-10 motion-reduce:animate-none',
+        'animate-pulse motion-reduce:animate-none',
+        TONE_CLASS[tone],
         VARIANT_CLASS[variant],
         textStyle && TEXT_STYLE_CLASS[textStyle],
         className

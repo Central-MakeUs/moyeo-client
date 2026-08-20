@@ -13,7 +13,7 @@ describe('Skeleton', () => {
   it('기본값은 블록 자리표시자다', () => {
     const skeleton = renderSkeleton(<Skeleton data-testid="skeleton" />);
 
-    expect(skeleton).toHaveClass('rounded-8', 'animate-pulse', 'bg-neutral-10');
+    expect(skeleton).toHaveClass('rounded-8', 'animate-pulse', 'bg-neutral-50');
   });
 
   it('표현 전용이라 스크린 리더에서 숨긴다', () => {
@@ -37,18 +37,26 @@ describe('Skeleton', () => {
     expect(skeleton).toHaveClass('rounded-full', 'size-5');
   });
 
+  it('분홍 면 위에서는 tone이 색을 바꾼다', () => {
+    const skeleton = renderSkeleton(<Skeleton tone="accessible" data-testid="skeleton" />);
+
+    expect(skeleton).toHaveClass('bg-accessible-100');
+    expect(skeleton).not.toHaveClass('bg-neutral-50');
+  });
+
   it('크기는 className이 정한다', () => {
     const skeleton = renderSkeleton(<Skeleton className="h-16 w-full" data-testid="skeleton" />);
 
     expect(skeleton).toHaveClass('h-16', 'w-full');
   });
 
-  it('textStyle은 DOM 속성으로 새지 않는다', () => {
+  it('textStyle·tone은 DOM 속성으로 새지 않는다', () => {
     const skeleton = renderSkeleton(
-      <Skeleton variant="text" textStyle="bold-18" data-testid="skeleton" />
+      <Skeleton variant="text" tone="accessible" textStyle="bold-18" data-testid="skeleton" />
     );
 
     expect(skeleton).not.toHaveAttribute('textstyle');
+    expect(skeleton).not.toHaveAttribute('tone');
   });
 
   /*

@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 
-import { Skeleton, type SkeletonTextStyle } from './skeleton';
+import { Skeleton, type SkeletonTextStyle, type SkeletonTone } from './skeleton';
 
 /**
  * 토큰별 실제 텍스트 클래스. Tailwind는 클래스명을 정적으로 추출하므로
@@ -62,6 +62,7 @@ const DEFAULT_CLASS_NAME = {
 type SkeletonStoryProps = Omit<React.ComponentProps<'div'>, 'children'> & {
   variant?: 'block' | 'text' | 'circular';
   textStyle?: SkeletonTextStyle;
+  tone?: SkeletonTone;
 };
 
 const meta = {
@@ -91,6 +92,16 @@ const meta = {
       if: { arg: 'variant', eq: 'text' },
       table: { type: { summary: '타이포 토큰 17개' } },
     },
+    tone: {
+      control: 'inline-radio',
+      options: ['neutral', 'accessible'],
+      description:
+        '올라갈 면의 색 계열입니다. neutral=흰 면·회색 면, accessible=분홍 면(초대 카드·모임 카드 등). 배경과 색이 가까우면 자리표시자가 보이지 않습니다.',
+      table: {
+        type: { summary: 'neutral | accessible' },
+        defaultValue: { summary: 'neutral' },
+      },
+    },
     className: {
       control: 'text',
       description:
@@ -102,6 +113,7 @@ const meta = {
   },
   args: {
     variant: 'block',
+    tone: 'neutral',
     textStyle: DEFAULT_TEXT_STYLE,
   },
   /*
