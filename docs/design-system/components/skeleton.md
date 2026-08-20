@@ -96,6 +96,26 @@ iOS·Android는 hhea), **SUIT는 셋이 모두 같은 값이라 편차가 없다
 
 `prefers-reduced-motion: reduce`에서는 `motion-reduce:animate-none`으로 깜빡임이 멈춘다.
 
+## Tone — 올라갈 면에 맞춘다
+
+| tone             | 색                              | 쓰는 면                                          |
+| ---------------- | ------------------------------- | ------------------------------------------------ |
+| `neutral` (기본) | `bg-neutral-50` (`#E7E7E7`)     | 흰 면·회색 면                                    |
+| `accessible`     | `bg-accessible-100` (`#FFE2E1`) | 분홍 면 — 초대 카드, 모임 카드, `bg-celebration` |
+
+```tsx
+<Skeleton variant="text" tone="accessible" textStyle="bold-18" className="w-40" />
+```
+
+`accessible` 하나로 레포의 분홍 면 전부(`accessible-10` `#FFFCFC` ~ `accessible-50` `#FEF2F2`)를
+커버한다 — 어느 면에서도 16~29/255 떨어져 있다.
+
+> ⚠️ 배경과 너무 가까운 값은 보이지 않는다. 예전 기본값 `bg-neutral-10`(`#F9F9F9`)은 흰 면과
+> 6/255, 초대 카드(`#FFF9F9`)와는 R 채널만 6/255 차이라 사실상 안 보였다. `animate-pulse`는
+> 투명도를 1↔0.5로 흔드는 것이라 안 보이는 색을 더 흐리게 만들 뿐이다.
+
+Figma에 스켈레톤 시안이 없어 이 값들은 코드에서 정한 것이다. 시안이 생기면 그쪽을 따른다.
+
 ## radius 덮어쓰기
 
 variant가 정한 radius는 `className`으로 덮을 수 있다.
