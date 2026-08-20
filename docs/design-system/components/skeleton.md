@@ -16,11 +16,11 @@
 
 ## Variant
 
-| variant        | 모양        | 크기 지정                                   |
-| -------------- | ----------- | ------------------------------------------- |
-| `block` (기본) | `rounded-8` | 높이·너비 전부 `className`                  |
-| `text`         | pill        | 높이는 `textStyle`, 너비만 `className`      |
-| `circular`     | 원형        | `className`에 `size-5`처럼 실물과 같은 토큰 |
+| variant        | 모양        | 엘리먼트 | 크기 지정                                       |
+| -------------- | ----------- | -------- | ----------------------------------------------- |
+| `block` (기본) | `rounded-8` | `div`    | 높이·너비 전부 `className`                      |
+| `text`         | pill        | `span`   | 높이는 `textStyle`, **너비는 `className` 필수** |
+| `circular`     | 원형        | `div`    | `className`에 `size-5`처럼 실물과 같은 토큰     |
 
 `textStyle`은 `text`에서만 받는다. 타입이 discriminated union이라 다른 variant에 넘기면 컴파일되지 않고,
 `text`에서 빠뜨려도 컴파일되지 않는다.
@@ -31,56 +31,40 @@
 <Skeleton variant="text" textStyle="bold-18" className="w-40" />  {/* 제목 한 줄 */}
 ```
 
-## text 높이는 왜 계산하나
+## text 높이는 어떻게 정해지나
 
-자리표시자는 내용이 없어 그대로 두면 높이가 0이다. 실제 텍스트와 같은 세로 공간을 차지하려면
-`font-size × line-height`를 직접 구해야 한다.
+자리표시자는 내용이 없어 그대로 두면 높이가 0이다. 실제 텍스트와 같은 세로 공간을 차지해야
+로딩이 끝날 때 화면이 튀지 않는다. 눈대중 px(`h-[20px]`)를 박으면 목적 자체가 깨진다 —
+토큰이 바뀌어도 따라가지 않고, 실제 줄 높이와 어긋난 만큼 그대로 밀린다.
 
-눈대중 px(`h-[20px]`)를 박으면 목적 자체가 깨진다 — 토큰이 바뀌어도 따라가지 않고, 실제 줄 높이와
-어긋난 만큼 로딩이 끝날 때 화면이 튄다.
+**높이를 직접 계산하지 않는다.** 실제 타이포 클래스(`text-bold-18`)를 입힌 `inline-block`에
+zero-width space(`​`)를 하나 넣어 **브라우저가 줄 상자 높이를 계산하게** 한다.
 
-```css
-/* semibold-14 → 14px × 1.5 = 21px */
-height: calc(var(--text-semibold-14) * var(--text-semibold-14--line-height));
+```tsx
+<span className="inline-block text-bold-18 ...">{'​'}</span>
 ```
+
+### 왜 계산이 아니라 줄 상자인가
+
+`calc(font-size × line-height)`로 구하려 하면 **행간이 `auto`인 토큰 3개에서 막힌다.**
+Figma에서 행간을 `auto`로 둔 `extrabold-16` · `extrabold-14` · `extrabold-8`은 `globals.css`에
+`line-height: normal`로 들어가 있는데, `calc(1rem * normal)`은 계산값 시점에 무효라
+height 선언이 통째로 버려지고 높이가 0이 된다.
+
+줄 상자 방식은 이 3개도 특수 처리 없이 그대로 동작한다. 브라우저가 폰트 메트릭을 보고
+계산하므로 **폰트를 교체해도 따라가고**, 웹폰트 로딩 중 대체 폰트가 쓰이는 구간에서도 어긋나지 않는다.
+
+> `1lh` 단위를 쓰면 한 줄로 끝나지만, iOS 15.1~16.3 WKWebView가 지원하지 않아 쓸 수 없다.
+> Expo SDK 54의 기본 타깃이 iOS 15.1이다.
 
 ### 왜 17개 리터럴 맵인가
 
-Tailwind는 클래스명을 **정적으로 추출**한다. `h-[calc(var(--text-${token})*...)]` 같은 조립은
-빌드 시점에 존재하지 않는 문자열이라 CSS가 생성되지 않는다. 그래서 토큰 17개를 모두 리터럴로 적는다.
+Tailwind는 클래스명을 **정적으로 추출**한다. `` `text-${textStyle}` `` 같은 조립은 빌드 시점에
+존재하지 않는 문자열이라 CSS가 생성되지 않는다. 그래서 토큰 17개를 모두 리터럴로 적는다.
 
-`globals.css`가 `@theme static`이라 타이포 변수가 `:root`에 전부 방출되므로 `var()` 참조가 가능하다.
-
-### 행간이 `auto`인 토큰 3개
-
-Figma에서 행간을 `auto`로 둔 토큰(`extrabold-16` · `extrabold-14` · `extrabold-8`)은
-`globals.css`에도 `line-height: normal`로 들어가 있다. **이 3개는 곱할 수가 없다.**
-
-```css
-/* ❌ calc(1rem * normal) 은 계산값 시점에 무효 → height 선언이 통째로 버려지고 높이가 0이 된다 */
-height: calc(var(--text-extrabold-16) * var(--text-extrabold-16--line-height));
-
-/* ✅ SUIT 실측 배수 */
-height: calc(var(--text-extrabold-16) * 1.248);
-```
-
-`1.248`은 **SUIT Variable의 `line-height: normal` 실측값**이다.
-
-| 메트릭       | 값                              | 배수  |
-| ------------ | ------------------------------- | ----- |
-| `unitsPerEm` | 1000                            | —     |
-| `hhea`       | asc 988 / desc −260 / lineGap 0 | 1.248 |
-| `OS/2 sTypo` | asc 988 / desc −260 / lineGap 0 | 1.248 |
-| `OS/2 usWin` | asc 988 / desc 260              | 1.248 |
-
-`normal`이 보통 위험한 이유는 플랫폼마다 참조하는 메트릭이 달라서인데(Windows Chrome은 usWin,
-iOS·Android는 hhea), **SUIT는 셋이 모두 같은 값이라 편차가 없다.** 참고로 1.248 ≈ 125%로,
-디자이너가 `bold-16`에 지정한 행간과 사실상 같다.
-
-> ⚠️ **폰트를 교체하면 이 값을 다시 재야 한다.**
-> `apps/web/src/_app/fonts/`의 woff2를 brotli 해제한 뒤 `head`의 `unitsPerEm`과
-> `hhea`의 `ascender`/`descender`/`lineGap`을 읽어 `(asc − desc + lineGap) / unitsPerEm`을 구한다.
-> 세 메트릭이 갈리는 폰트라면 그때는 `normal`을 쓰는 대신 디자이너에게 행간 확정을 요청한다.
+> ⚠️ **`text` variant는 너비를 반드시 준다.** `inline-block`이라 내용(zero-width space) 크기에
+> 맞춰 줄어들어, 너비를 주지 않으면 보이지 않는다. flex 컨테이너 안에서는 flex item이
+> blockify되어 폭을 채우지만, 그 밖에서는 그렇지 않다.
 
 ## 접근성
 
