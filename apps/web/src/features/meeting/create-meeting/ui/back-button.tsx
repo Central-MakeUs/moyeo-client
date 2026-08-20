@@ -3,7 +3,7 @@
 import { useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
-import { useBackHandler } from '@/shared/model';
+import { useBackHandler, useSubmissionLock } from '@/shared/model';
 import { IconButton } from '@/shared/ui/icon-button';
 
 import { useCreateMeetingDraft } from '../model/create-meeting-draft';
@@ -25,6 +25,7 @@ export function BackButton() {
   const pathname = usePathname();
   const flow = useStepFlow();
   const reset = useCreateMeetingDraft((s) => s.reset);
+  const isSubmitting = useSubmissionLock((state) => state.isSubmitting);
 
   const step = stepFromPath(pathname);
 
@@ -48,12 +49,23 @@ export function BackButton() {
   // 병렬 슬롯으로 열리는 하위 라우트에서도 살아 있어 이 상단바가 가려진 채 남는데,
   // 그때 가져가 버리면 스텝을 찾지 못해 `previous === null`(= 위저드 종료) 경로로 빠져
   // 검색만 닫으려던 뒤로가기가 draft를 비우고 HOME으로 나가버린다.
+  //
+  // 제출 중에는 뒤로가기를 처리한 것으로 보고 이동하지 않는다. false를 반환하면 다음
+  // 핸들러나 기본 처리로 넘어가 모임이 만들어지는 중에 위저드를 벗어날 수 있다.
   useBackHandler(() => {
     if (step === null) return false;
+    if (isSubmitting) return true;
 
     handleBack();
     return true;
   });
 
-  return <IconButton icon="chevron-left" aria-label="뒤로가기" onClick={handleBack} />;
+  return (
+    <IconButton
+      icon="chevron-left"
+      aria-label="뒤로가기"
+      disabled={isSubmitting}
+      onClick={handleBack}
+    />
+  );
 }

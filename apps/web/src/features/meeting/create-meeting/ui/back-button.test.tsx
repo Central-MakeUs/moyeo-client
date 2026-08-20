@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { runBackHandlers, useSubmissionLock } from '@/shared/model';
+
 import { useCreateMeetingDraft } from '../model/create-meeting-draft';
 import { BackButton } from './back-button';
 
@@ -35,6 +37,7 @@ describe('위저드 뒤로가기 버튼', () => {
     push.mockClear();
     replace.mockClear();
     setPathname('/meetings/new/basic');
+    useSubmissionLock.getState().unlock();
     useCreateMeetingDraft.getState().reset();
   });
 
@@ -92,5 +95,21 @@ describe('위저드 뒤로가기 버튼', () => {
 
     expect(source).not.toContain("'next/router'");
     expect(source).toContain("'next/navigation'");
+  });
+
+  it('제출 중에는 뒤로가기 버튼이 잠긴다', () => {
+    useSubmissionLock.getState().lock();
+    render(<BackButton />);
+
+    expect(screen.getByRole('button', { name: '뒤로가기' })).toBeDisabled();
+  });
+
+  it('제출 중에는 하드웨어 뒤로가기가 위저드를 벗어나지 않는다', () => {
+    useSubmissionLock.getState().lock();
+    render(<BackButton />);
+
+    expect(runBackHandlers()).toBe(true);
+    expect(replace).not.toHaveBeenCalled();
+    expect(push).not.toHaveBeenCalled();
   });
 });

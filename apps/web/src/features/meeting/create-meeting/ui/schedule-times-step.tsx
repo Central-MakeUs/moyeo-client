@@ -63,6 +63,7 @@ export function ScheduleTimesStep({
 
   return (
     <WizardStepLayout
+      isSubmitting={isSubmitting}
       className="min-h-0 overflow-hidden"
       header={
         <PageHeader
@@ -97,6 +98,7 @@ export function ScheduleTimesStep({
 
       {status === 'success' && serverToday !== null && (
         <AvailabilityTimeGrid
+          disabled={isSubmitting}
           columns={columns}
           rows={rows}
           value={selected}

@@ -5,6 +5,7 @@ import * as React from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { createMeeting, getGetMyMeetingsQueryKey, type CreateMeetingResponse } from '@/shared/api';
+import { useSubmissionLock } from '@/shared/model';
 
 import { useCreateMeetingDraft } from './create-meeting-draft';
 import { toCreateMeetingRequest } from './to-create-meeting-request';
@@ -49,7 +50,13 @@ export interface UseSubmitMeetingOptions {
  */
 export function useSubmitMeeting({ onSuccess }: UseSubmitMeetingOptions) {
   const queryClient = useQueryClient();
-  const inFlightRef = React.useRef(false); // 제출 요청이 진행 중인지를 담고 있는 플래그
+  const isSubmissionLockedRef = React.useRef(false);
+
+  const { lock, unlock } = useSubmissionLock.getState();
+
+  React.useEffect(() => {
+    return () => unlock();
+  }, [unlock]);
 
   const mutation = useMutation({
     mutationFn: () => {
@@ -67,7 +74,8 @@ export function useSubmitMeeting({ onSuccess }: UseSubmitMeetingOptions) {
     },
     onError: () => {
       // 화면에 머물러 재시도할 수 있는 실패에서만 잠금을 해제한다.
-      inFlightRef.current = false;
+      isSubmissionLockedRef.current = false;
+      unlock();
     },
   });
 
@@ -75,8 +83,9 @@ export function useSubmitMeeting({ onSuccess }: UseSubmitMeetingOptions) {
 
   return {
     submit: () => {
-      if (inFlightRef.current) return;
-      inFlightRef.current = true;
+      if (isSubmissionLockedRef.current) return;
+      isSubmissionLockedRef.current = true;
+      lock();
       mutate();
     },
     /** 현재 화면에서 다시 제출할 수 없으면 `true`. 성공 후 화면 전환 중인 상태를 포함한다. */
