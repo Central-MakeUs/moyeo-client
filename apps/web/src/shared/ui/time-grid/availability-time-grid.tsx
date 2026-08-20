@@ -51,6 +51,13 @@ export interface AvailabilityTimeGridProps {
   /** 비활성 셀 키. 탭·드래그 어느 경로로도 선택되지 않는다. */
   disabledKeys?: ReadonlySet<string>;
   /**
+   * 그리드 전체를 선택 불가로 만든다. 제출 중처럼 화면을 얼려야 할 때 쓴다.
+   *
+   * `disabledKeys`로 모든 셀을 덮는 것으로는 부족하다 — 드래그 판정이 셀이 아니라
+   * 컨테이너에 있어 그 경로가 남는다. **스크롤은 그대로 둔다.**
+   */
+  disabled?: boolean;
+  /**
    * 터치 롱프레스로 선택 모드에 들어간 순간 호출된다.
    *
    * 이 그리드는 플랫폼을 모르므로 햅틱 같은 피드백은 호출부가 붙인다.
@@ -73,13 +80,14 @@ export function AvailabilityTimeGrid({
   value,
   onChange,
   disabledKeys,
+  disabled = false,
   onSelectionStart,
   className,
 }: AvailabilityTimeGridProps): React.JSX.Element {
-  const disabled = disabledKeys ?? EMPTY_KEYS;
+  const disabledKeySet = disabledKeys ?? EMPTY_KEYS;
 
   const [gridElement, setGridElement] = React.useState<HTMLDivElement | null>(null);
-  const drag = useCellDragSelect({ value, disabledKeys: disabled, onChange });
+  const drag = useCellDragSelect({ value, disabledKeys: disabledKeySet, onChange });
   const autoScroll = useEdgeAutoScroll(gridElement);
 
   // 드래그 시작 위치
@@ -150,6 +158,8 @@ export function AvailabilityTimeGrid({
 
   // 셀 진입 공통 처리 — 마우스(pointerenter)와 터치 좌표 매핑(pointermove)이 공유한다.
   const enterCell = (key: string) => {
+    if (disabled) return;
+
     const anchor = anchorRef.current;
     if (!anchor) return;
 
@@ -163,6 +173,8 @@ export function AvailabilityTimeGrid({
   };
 
   const handlePointerDown = (e: React.PointerEvent, key: string) => {
+    if (disabled) return;
+
     // 아직 드래그를 시작하지 않는다 — anchor만 기록한다(탭이면 pointer 경로 미개입).
     anchorRef.current = key;
     isDragStartedRef.current = false;
@@ -245,10 +257,10 @@ export function AvailabilityTimeGrid({
 
   // 탭은 누른 셀 하나를 앵커로 보는 드래그와 같다 — 모드 판정을 드래그와 공유한다.
   const handleCellClick = (key: string) => {
-    if (suppressClickRef.current) return;
+    if (disabled || suppressClickRef.current) return;
 
     const mode = getPaintMode(key, selectedKeys);
-    onChange(applyCellSelection({ value, targets: [key], mode, disabledKeys: disabled }));
+    onChange(applyCellSelection({ value, targets: [key], mode, disabledKeys: disabledKeySet }));
   };
 
   return (
@@ -309,7 +321,7 @@ export function AvailabilityTimeGrid({
 
               {columns.map((date) => {
                 const key = toCellKey(date, time);
-                const state = getCellState(key, selectedKeys, disabled);
+                const state = getCellState(key, selectedKeys, disabledKeySet);
 
                 return (
                   <button

@@ -426,3 +426,52 @@ describe('DraggableCalendar — 모바일 터치 (Issue 5)', () => {
     expect(dayNums(onChange.mock.calls[0]![0])).toEqual([9, 10, 11, 12, 13]);
   });
 });
+
+describe('DraggableCalendar — 제출 중 잠금', () => {
+  const cell = (n: number) =>
+    document.querySelector<HTMLElement>(`[data-date="2026-07-${String(n).padStart(2, '0')}"]`)!;
+
+  it('should not call onChange when tapping a day while disabled', async () => {
+    const onChange = vi.fn();
+    render(<MonthHarness value={[]} onChange={onChange} disabled />);
+
+    await userEvent.click(screen.getByText('15'));
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('should not call onChange when dragging while disabled', () => {
+    const onChange = vi.fn();
+    render(<MonthHarness value={[]} onChange={onChange} disabled />);
+
+    fireEvent.pointerDown(cell(9));
+    fireEvent.pointerEnter(cell(13));
+    fireEvent.pointerUp(cell(13));
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('should not call onMonthChange when navigating months while disabled', () => {
+    // 월을 넘겨두면 제출이 끝나 화면이 바뀔 때 사용자가 보던 달과 어긋난다.
+    const onMonthChange = vi.fn();
+    render(
+      <DraggableCalendar
+        value={[]}
+        onChange={vi.fn()}
+        month={JULY_2026}
+        onMonthChange={onMonthChange}
+        disabled
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /next/i }));
+
+    expect(onMonthChange).not.toHaveBeenCalled();
+  });
+
+  it('should keep already selected days visible while disabled', () => {
+    const { container } = render(<MonthHarness value={[d(15)]} onChange={vi.fn()} disabled />);
+
+    expect(selectedDays(container)).toHaveLength(1);
+  });
+});

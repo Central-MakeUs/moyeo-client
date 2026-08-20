@@ -29,6 +29,13 @@ export interface DraggableCalendarProps {
   /** 개수 초과(드래그 clamp / 탭 거부) 시 제스처당 1회 호출. */
   onLimitExceeded?: () => void;
   showOutsideDays?: boolean;
+  /**
+   * 캘린더 전체를 조작 불가로 만든다. 제출 중처럼 화면을 얼려야 할 때 쓴다.
+   *
+   * `isDateDisabled`가 "고를 수 없는 날짜"라면 이것은 "지금은 아무것도 못 한다"이고,
+   * 날짜 선택뿐 아니라 **월 이동까지** 막는다.
+   */
+  disabled?: boolean;
 }
 
 export function DraggableCalendar({
@@ -41,6 +48,7 @@ export function DraggableCalendar({
   maxSelectedDays,
   onLimitExceeded,
   showOutsideDays = true,
+  disabled = false,
 }: DraggableCalendarProps): React.JSX.Element {
   const drag = useDragSelect({ value, isDateDisabled, maxSelectedDays, onLimitExceeded });
   const anchorRef = React.useRef<Date | null>(null);
@@ -90,6 +98,8 @@ export function DraggableCalendar({
 
   // 셀 진입 공통 처리 — 마우스(pointerenter)와 터치 좌표 매핑(pointermove)이 공유한다.
   const enterDay = (day: Date) => {
+    if (disabled) return;
+
     const anchor = anchorRef.current;
     if (!anchor) return;
     if (!isDragStartedRef.current) {
@@ -102,6 +112,8 @@ export function DraggableCalendar({
   };
 
   const handlePointerDownDay = (e: React.PointerEvent, day: Date) => {
+    if (disabled) return;
+
     // 아직 드래그를 시작하지 않는다 — anchor만 기록. (탭이면 pointer 경로 미개입)
     anchorRef.current = day;
     isDragStartedRef.current = false;
@@ -189,7 +201,10 @@ export function DraggableCalendar({
           }
           onChange(nextValue);
         }}
-        disabled={isDateDisabled}
+        // 잠금은 날짜 하나가 아니라 전체를 덮는다 — 개별 판정보다 우선한다.
+        disabled={disabled ? true : isDateDisabled}
+        // 월 이동 버튼은 그대로 보여주되, 제출 중에는 동작하지 않게 한다.
+        disableNavigation={disabled}
         month={month}
         onMonthChange={onMonthChange}
         components={components}
