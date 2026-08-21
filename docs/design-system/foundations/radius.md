@@ -50,6 +50,7 @@
 ### 지침
 
 - radius는 위 토큰 클래스만 쓴다. 임의값(`rounded-[13px]`)이 필요하면 스케일에 없는 값이라는 뜻이니 디자이너에게 확인한다.
+- 컴포넌트가 가진 radius는 `className`으로 덮을 수 있다. tailwind-merge는 기본적으로 radius를 t-shirt 사이즈로만 인정해서 숫자 토큰을 못 알아보는데, `cn()`이 이를 등록해뒀다 (`shared/lib/cn.ts`). 등록이 풀리면 두 클래스가 모두 살아남아 **CSS 생성 순서**가 승패를 정하고 `className`이 지는 경우가 생긴다 — `cn.test.ts`가 이를 막는다.
 - `p-4`(16px)와 `rounded-16`(16px)은 숫자가 다르다. Tailwind의 "1 unit = 4px"은 **spacing 계열 전용**이고 radius에는 적용되지 않는다.
 
 ---

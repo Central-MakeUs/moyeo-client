@@ -162,6 +162,18 @@
   --radius-16: 16px;
   --radius-20: 20px;
   --radius-24: 24px;
+
+  /* skeleton */
+  --animate-skeleton-wave: skeleton-wave 1.6s ease-in-out infinite;
+
+  @keyframes skeleton-wave {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
 }
 
 @layer base {

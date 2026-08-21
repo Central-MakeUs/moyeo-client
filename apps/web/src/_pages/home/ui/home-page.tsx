@@ -5,7 +5,13 @@ import * as React from 'react';
 import { useMeetingsQuery } from '@/entities/meeting';
 import { PlanningTypeDrawer } from '@/features/meeting/create-meeting';
 import { IconButton } from '@/shared/ui/icon-button';
-import { ConfirmedMeetingSection, HomeTopBar, InProgressMeetingSection } from '@/widgets/home';
+import {
+  ConfirmedMeetingSection,
+  ConfirmedMeetingSectionSkeleton,
+  HomeTopBar,
+  InProgressMeetingSection,
+  InProgressMeetingSectionSkeleton,
+} from '@/widgets/home';
 
 export function HomePage(): React.JSX.Element {
   const { data, isLoading, isError } = useMeetingsQuery();
@@ -15,9 +21,14 @@ export function HomePage(): React.JSX.Element {
       <HomeTopBar />
       <main className="flex min-h-0 w-full flex-1 flex-col overflow-y-auto">
         {isLoading && (
-          <p className="flex flex-1 items-center justify-center text-medium-14 text-neutral-400">
-            불러오는 중...
-          </p>
+          <div
+            role="status"
+            aria-label="모임 목록을 불러오는 중"
+            className="flex min-h-full flex-col gap-8.75 pt-8"
+          >
+            <InProgressMeetingSectionSkeleton />
+            <ConfirmedMeetingSectionSkeleton />
+          </div>
         )}
         {isError && (
           <p className="flex flex-1 items-center justify-center text-medium-14 text-neutral-400">

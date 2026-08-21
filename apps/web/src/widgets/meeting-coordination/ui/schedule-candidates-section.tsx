@@ -18,6 +18,7 @@ import { Icon } from '@/shared/ui/icon';
 
 import { useMeetingHost } from '../model/use-meeting-host';
 import { useViewerIdentity } from '../model/use-viewer-identity';
+import { CoordinationItemsSkeleton } from './coordination-items-skeleton';
 import { useEditResponseAvailability } from '../model/use-edit-response-availability';
 
 const SORT_DESCRIPTIONS: Record<ScheduleSort, string> = {
@@ -92,9 +93,7 @@ export function ScheduleCandidatesSection({
           <span className="text-bold-12 text-neutral-700">{SORT_DESCRIPTIONS[sort]}</span>
         </div>
       </div>
-      {isLoading && (
-        <p className="pt-8 text-center text-medium-14 text-neutral-400">불러오는 중...</p>
-      )}
+      {isLoading && <CoordinationItemsSkeleton />}
       {isError && (
         <p className="pt-8 text-center text-medium-14 text-neutral-400">
           일정 정보를 불러오지 못했어요

@@ -44,7 +44,7 @@ describe('HomePage', () => {
     expect(document.body).toHaveTextContent('확정된 모임1');
   });
 
-  it('useMeetingsQuery가 isLoading: true를 반환하도록 mock되면 로딩 안내 텍스트가 표시된다', () => {
+  it('useMeetingsQuery가 isLoading: true를 반환하도록 mock되면 목록 스켈레톤이 표시된다', () => {
     useMeetingsQueryMock.mockReturnValue({
       data: { inProgress: [], confirmed: [] },
       isLoading: true,
@@ -53,7 +53,8 @@ describe('HomePage', () => {
 
     render(<HomePage />);
 
-    expect(screen.getByText('불러오는 중...')).toBeInTheDocument();
+    expect(screen.getByRole('status', { name: '모임 목록을 불러오는 중' })).toBeInTheDocument();
+    expect(document.querySelectorAll('[data-slot="skeleton"]')).not.toHaveLength(0);
   });
 
   it('useMeetingsQuery가 isError: true를 반환하도록 mock되면 에러 안내 텍스트가 표시된다', () => {

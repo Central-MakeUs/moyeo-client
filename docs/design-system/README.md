@@ -62,7 +62,7 @@ design-system/
 
 ### components/
 
-구현된 것(`button` · `input` · `calendar`)과 시안만 있는 것(`controls` · `icons` · `layout` · `overlay` · `pickers`)으로 나뉜다. 각 문서 제목에 `✅ 구현 / 🚧 구현 중 / 🎨 시안만` 표기.
+구현된 것(`button` · `input` · `calendar` · `skeleton`)과 시안만 있는 것(`controls` · `icons` · `layout` · `overlay` · `pickers`)으로 나뉜다. 각 문서 제목에 `✅ 구현 / 🚧 구현 중 / 🎨 시안만` 표기.
 
 ### guidelines.md
 
@@ -89,6 +89,7 @@ design-system/
 | ------------------------------ | ---------- | -------------------------------- |
 | Button                         | ✅ 구현    | `shared/ui/primitives/button/`   |
 | Input / InputField             | ✅ 구현    | `shared/ui/primitives/input/`    |
+| Skeleton                       | ✅ 구현    | `shared/ui/skeleton/`            |
 | Calendar                       | 🚧 구현 중 | `shared/ui/primitives/calendar/` |
 | Input Select · Picker · Switch | 🎨 시안만  | `assets/common-components`       |
 | Modal · Dim · Header · CTA 등  | 🎨 시안만  | `assets/common-components`       |
