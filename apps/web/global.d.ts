@@ -29,6 +29,8 @@ interface KakaoFeedTemplate {
     title: string;
     description: string;
     imageUrl: string;
+    imageWidth?: number;
+    imageHeight?: number;
     link: KakaoShareLink;
   };
   buttonTitle?: string;
