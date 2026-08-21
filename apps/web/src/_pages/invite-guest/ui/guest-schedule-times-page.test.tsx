@@ -1,5 +1,5 @@
 ﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, render, screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { useParticipationDraft } from '@/features/meeting/invite-participation';
@@ -43,7 +43,7 @@ const CANDIDATES = [
 const SERVER_TODAY = '2026-08-01';
 
 const renderPage = (candidates = CANDIDATES, serverToday = SERVER_TODAY) =>
-  render(
+  renderWithQuery(
     <GuestScheduleTimesPage
       inviteToken="ABC123"
       planningType="SCHEDULE_ONLY"

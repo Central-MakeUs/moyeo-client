@@ -1,5 +1,5 @@
 ﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { useParticipationDraft } from '@/features/meeting/invite-participation';
@@ -39,7 +39,7 @@ const GANGNAM = {
 };
 
 const renderPage = (planningType: 'PLACE_ONLY' | 'SCHEDULE_AND_PLACE' = 'PLACE_ONLY') =>
-  render(<DeparturePage inviteToken="ABC123" planningType={planningType} />);
+  renderWithQuery(<DeparturePage inviteToken="ABC123" planningType={planningType} />);
 
 beforeEach(() => {
   push.mockReset();
