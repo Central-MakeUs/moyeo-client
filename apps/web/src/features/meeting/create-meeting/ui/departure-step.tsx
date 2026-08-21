@@ -30,6 +30,7 @@ export function DepartureStep({
 
   return (
     <WizardStepLayout
+      isSubmitting={isSubmitting}
       header={
         <PageHeader
           title="출발지와 이동수단을 알려주세요"
@@ -56,6 +57,7 @@ export function DepartureStep({
           label="출발지"
           value={departure?.name}
           placeholder="출발지를 입력해주세요"
+          disabled={isSubmitting}
           onClick={onSearch}
         />
 
@@ -66,6 +68,7 @@ export function DepartureStep({
           <DepartureRadioGroup
             aria-labelledby="transportation-mode-label"
             value={draft.transportationMode ?? ''}
+            disabled={isSubmitting}
             onChangeValue={setTransportationMode}
           />
         </div>

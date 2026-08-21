@@ -57,6 +57,7 @@ export function SchedulePage({
   return (
     <div className="flex h-full flex-col">
       <WizardStepLayout
+        isSubmitting={isSubmitting}
         header={
           <PageHeader
             title="가능한 날짜를 알려주세요"
@@ -79,6 +80,7 @@ export function SchedulePage({
         }
       >
         <DraggableCalendar
+          disabled={isSubmitting}
           className="mx-auto"
           value={parseScheduleCandidateDates(selectedDates)}
           onChange={(next) =>

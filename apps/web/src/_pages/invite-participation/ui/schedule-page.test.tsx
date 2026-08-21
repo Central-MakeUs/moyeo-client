@@ -1,5 +1,5 @@
 ﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { useParticipationDraft } from '@/features/meeting/invite-participation';
@@ -199,7 +199,10 @@ describe('SchedulePage', () => {
     await userEvent.click(submit);
 
     expect(joinGuest).toHaveBeenCalledTimes(1);
-    resolveJoin({});
+    await act(async () => {
+      resolveJoin({});
+      await Promise.resolve();
+    });
   });
 
   it('제출이 실패하면 고른 날짜가 유지되고 참여 버튼이 다시 활성이다', async () => {
@@ -255,5 +258,22 @@ describe('SchedulePage', () => {
 
     expect(joinGuest).toHaveBeenCalledTimes(1);
     expect(writeGuestSession).not.toHaveBeenCalled();
+  });
+
+  it('제출 중에는 날짜를 다시 고를 수 없다', async () => {
+    let resolveJoin: (value: unknown) => void = () => {};
+    joinGuest.mockReturnValue(
+      new Promise((resolve) => {
+        resolveJoin = resolve;
+      })
+    );
+    const { container } = renderPage();
+
+    await userEvent.click(dateCell('2026-08-15'));
+    await userEvent.click(screen.getByRole('button', { name: '참여하기' }));
+    await userEvent.click(dateCell('2026-08-20'));
+
+    expect(container.querySelectorAll('button[data-selected="true"]')).toHaveLength(1);
+    resolveJoin({});
   });
 });

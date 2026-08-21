@@ -2,12 +2,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { getGetMyMeetingsQueryKey } from '@/shared/api';
 
 import { useCreateMeetingDraft, type CreateMeetingDraftState } from './create-meeting-draft';
 import { useSubmitMeeting } from './use-submit-meeting';
+import { useSubmissionLock } from '@/shared/model';
 
 /**
  * 네트워크 경계의 흐름을 본다 — 요청이 나가는지, 중복이 막히는지, 성공/실패 후 draft가 어떻게 되는지.
@@ -64,6 +65,7 @@ function renderSubmit(onSuccess: (response: unknown) => void = () => {}) {
 
 beforeEach(() => {
   requestCount = 0;
+  useSubmissionLock.getState().unlock();
   useCreateMeetingDraft.getState().reset();
   useCreateMeetingDraft.setState(DRAFT);
 });
@@ -214,5 +216,54 @@ describe('useSubmitMeeting', () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.isSubmitting).toBe(false);
+  });
+
+  it('제출을 시작하면 화면 잠금이 켜진다', async () => {
+    const { result } = renderSubmit();
+
+    act(() => result.current.submit());
+
+    await waitFor(() => expect(useSubmissionLock.getState().isSubmitting).toBe(true));
+  });
+
+  it('제출이 실패하면 화면 잠금이 풀린다', async () => {
+    server.use(
+      http.post('*/api/meetings', () => HttpResponse.json({ message: 'boom' }, { status: 500 }))
+    );
+    const { result } = renderSubmit();
+
+    act(() => result.current.submit());
+
+    await waitFor(() => expect(useSubmissionLock.getState().isSubmitting).toBe(false));
+  });
+
+  it('제출 성공 후 화면이 언마운트되면 잠금이 풀린다', async () => {
+    const onSuccess = vi.fn();
+    const { result, unmount } = renderSubmit(onSuccess);
+
+    act(() => result.current.submit());
+    await waitFor(() => expect(onSuccess).toHaveBeenCalled());
+
+    expect(useSubmissionLock.getState().isSubmitting).toBe(true);
+
+    unmount();
+
+    expect(useSubmissionLock.getState().isSubmitting).toBe(false);
+  });
+
+  it('서버 성공 후 화면 처리에서 예외가 나도 재제출 잠금을 유지한다', async () => {
+    const { result } = renderSubmit(() => {
+      throw new Error('navigation failed');
+    });
+
+    act(() => result.current.submit());
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    expect(result.current.isSubmitting).toBe(true);
+    expect(useSubmissionLock.getState().isSubmitting).toBe(true);
+
+    act(() => result.current.submit());
+
+    expect(requestCount).toBe(1);
   });
 });

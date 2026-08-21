@@ -246,4 +246,20 @@ describe('ScheduleDatesStep', () => {
 
     expect(screen.getByRole('button', { name: '다음' })).toBeDisabled();
   });
+
+  it('제출 중에는 날짜 선택을 바꿀 수 없다', async () => {
+    const { container } = render(<ScheduleDatesStep onNext={vi.fn()} isSubmitting />);
+
+    await userEvent.click(screen.getByText('12'));
+
+    expect(selectedDays(container)).toHaveLength(0);
+  });
+
+  it('제출 중에는 표시 월을 바꿀 수 없다', async () => {
+    render(<ScheduleDatesStep onNext={vi.fn()} isSubmitting />);
+
+    await userEvent.click(screen.getByRole('button', { name: /next/i }));
+
+    expect(screen.getByText('2026년 7월')).toBeInTheDocument();
+  });
 });

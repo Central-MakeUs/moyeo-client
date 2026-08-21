@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { runBackHandlers, useSubmissionLock } from '@/shared/model';
+
 import { useParticipationDraft } from '../model/participation-draft';
 import { ParticipationTopBar } from './participation-top-bar';
 
@@ -34,6 +36,7 @@ const clickBack = () => userEvent.click(screen.getByRole('button', { name: '뒤�
 
 beforeEach(() => {
   replace.mockReset();
+  useSubmissionLock.getState().unlock();
   pathname.current = '/i/ABC123/respond/schedule';
   useParticipationDraft.setState({
     identity: GUEST_IDENTITY,
@@ -136,5 +139,35 @@ describe('ParticipationTopBar 뒤로가기', () => {
     await clickBack();
 
     expect(replace).toHaveBeenCalledWith('/i/ABC123');
+  });
+
+  it('제출 중에는 뒤로가기 버튼이 잠긴다', () => {
+    useSubmissionLock.getState().lock();
+    renderTopBar();
+
+    expect(screen.getByRole('button', { name: '뒤로가기' })).toBeDisabled();
+  });
+
+  it('제출 중에는 하드웨어 뒤로가기가 화면을 옮기지 않는다', () => {
+    useSubmissionLock.getState().lock();
+    renderTopBar();
+
+    expect(runBackHandlers()).toBe(true);
+    expect(replace).not.toHaveBeenCalled();
+  });
+
+  it('하드웨어 뒤로가기도 상단바 버튼과 같은 스텝 순서를 따른다', () => {
+    renderTopBar('SCHEDULE_AND_PLACE');
+
+    expect(runBackHandlers()).toBe(true);
+    expect(replace).toHaveBeenCalledWith('/i/ABC123/guest');
+  });
+
+  it('참여 입력 화면이 아니면 하드웨어 뒤로가기를 가져가지 않는다', () => {
+    // 완료·검색 화면은 자기 상단바를 쓴다. 여기서 가져가면 그 화면의 뒤로가기가 죽는다.
+    pathname.current = '/i/ABC123/complete';
+    renderTopBar();
+
+    expect(runBackHandlers()).toBe(false);
   });
 });

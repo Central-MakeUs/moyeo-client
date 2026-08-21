@@ -97,4 +97,11 @@ describe('DepartureStep', () => {
 
     expect(useCreateMeetingDraft.getState().transportationMode).toBe('CAR');
   });
+
+  it('모임 생성 요청 중에는 출발지와 이동수단을 바꿀 수 없다', () => {
+    renderStep({ isSubmitting: true });
+
+    expect(screen.getByRole('button', { name: /출발지/ })).toBeDisabled();
+    expect(screen.getByRole('radio', { name: '자동차' })).toBeDisabled();
+  });
 });

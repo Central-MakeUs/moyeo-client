@@ -12,6 +12,9 @@ import {
   getGetScheduleViewQueryKey,
 } from '@/shared/api';
 
+import { useSubmissionLock } from '@/shared/model';
+import { toast } from '@/shared/ui';
+
 import { useParticipationDraft } from './participation-draft';
 import { useSubmitParticipation } from './use-submit-participation';
 
@@ -47,6 +50,7 @@ const COMPLETE_SCHEDULE = { availableDates: ['2026-08-15'] };
 
 beforeEach(() => {
   joinGuest.mockReset();
+  useSubmissionLock.getState().unlock();
   joinMember.mockReset();
   replace.mockReset();
   writeGuestSession.mockReset();
@@ -246,5 +250,56 @@ describe('useSubmitParticipation', () => {
     await act(() => result.current.submit());
 
     expect(joinGuest).toHaveBeenCalledTimes(2);
+  });
+
+  it('제출을 시작하면 화면 잠금이 켜진다', async () => {
+    useParticipationDraft.setState({ scheduleResponse: COMPLETE_SCHEDULE });
+    const { result } = renderSubmit('SCHEDULE_ONLY');
+
+    await act(() => result.current.submit());
+
+    expect(useSubmissionLock.getState().isSubmitting).toBe(true);
+  });
+
+  it('제출이 실패하면 화면 잠금이 풀린다', async () => {
+    joinGuest.mockRejectedValueOnce(new Error('network'));
+    useParticipationDraft.setState({ scheduleResponse: COMPLETE_SCHEDULE });
+    const { result } = renderSubmit('SCHEDULE_ONLY');
+
+    await act(() => result.current.submit());
+
+    expect(useSubmissionLock.getState().isSubmitting).toBe(false);
+  });
+
+  it('제출 성공 후 화면이 언마운트되면 잠금이 풀린다', async () => {
+    useParticipationDraft.setState({ scheduleResponse: COMPLETE_SCHEDULE });
+    const { result, unmount } = renderSubmit('SCHEDULE_ONLY');
+
+    await act(() => result.current.submit());
+    unmount();
+
+    expect(useSubmissionLock.getState().isSubmitting).toBe(false);
+  });
+
+  it('참여 성공 후 화면 처리에서 예외가 나도 재제출 잠금을 유지한다', async () => {
+    const toastSpy = vi.spyOn(toast, 'add');
+    replace.mockImplementationOnce(() => {
+      throw new Error('navigation failed');
+    });
+    useParticipationDraft.setState({ scheduleResponse: COMPLETE_SCHEDULE });
+    const { result } = renderSubmit('SCHEDULE_ONLY');
+
+    await act(() => result.current.submit());
+
+    expect(result.current.isSubmitting).toBe(true);
+    expect(useSubmissionLock.getState().isSubmitting).toBe(true);
+    expect(toastSpy).toHaveBeenCalledWith({
+      id: 'post-join-failed',
+      description: '참여는 완료됐지만 화면을 이동하지 못했어요. 새로고침해주세요',
+    });
+
+    await act(() => result.current.submit());
+
+    expect(joinGuest).toHaveBeenCalledTimes(1);
   });
 });
