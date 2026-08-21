@@ -17,6 +17,7 @@ import { isSameDeparture } from '../model/is-same-response';
 import { toDepartureSeed } from '../model/to-departure-seed';
 import { useCloseEditScreen } from '../model/use-close-edit-screen';
 import { useInviteCodeParam } from '../model/use-invite-code-param';
+import { DepartureEditorSkeleton } from './departure-editor-skeleton';
 import { EditResponseLayout } from './edit-response-layout';
 
 /**
@@ -51,8 +52,16 @@ function EditDepartureContent(): React.JSX.Element {
     if (data) open(inviteCode, toDepartureSeed(data.departure));
   }, [data, inviteCode, open]);
 
+  if (isLoading) {
+    return (
+      <EditResponseLayout onBack={close} isLoading>
+        <DepartureEditorSkeleton />
+      </EditResponseLayout>
+    );
+  }
+
   if (!data) {
-    return <EditResponseLayout onBack={close} isLoading={isLoading} isError={isError} />;
+    return <EditResponseLayout onBack={close} isError={isError} />;
   }
 
   const isComplete = departure !== null && transportationMode !== null;

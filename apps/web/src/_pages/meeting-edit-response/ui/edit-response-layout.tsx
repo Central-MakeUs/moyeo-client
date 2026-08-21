@@ -6,12 +6,12 @@ import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/button';
 import { CTASection } from '@/shared/ui/cta-section';
 import { IconButton } from '@/shared/ui/icon-button';
-import { PageHeader } from '@/shared/ui/page-header';
-import { Spinner } from '@/shared/ui/spinner';
+import { PageHeader, PageHeaderSkeleton } from '@/shared/ui/page-header';
+import { Skeleton } from '@/shared/ui/skeleton';
 import { TopAppBar } from '@/shared/ui/top-app-bar';
 
-const LOADING_LABEL = '내 응답을 불러오는 중';
 const ERROR_MESSAGE = '내 응답을 불러오지 못했어요';
+const LOADING_LABEL = '내 응답을 불러오는 중';
 
 export interface EditResponseLayoutProps {
   /** 뒤로가기. 화면을 닫는 방법은 `useCloseEditScreen`이 정한다. */
@@ -24,6 +24,11 @@ export interface EditResponseLayoutProps {
   isSaveDisabled?: boolean;
   isSaving?: boolean;
   onSave?: () => void;
+  /**
+   * 조회 중인지. 제목과 CTA 자리를 자리표시자로 채운다.
+   *
+   * 본문이 무엇인지는 여기서 정하지 않는다 — 화면마다 다르므로 `children`으로 받는다.
+   */
   isLoading?: boolean;
   isError?: boolean;
   /** 고칠 수 없는 상태를 알리는 문구. 있으면 본문 대신 이것만 그린다. */
@@ -62,19 +67,20 @@ export function EditResponseLayout({
       />
 
       {/* 좌우 여백은 본문이 통째로 갖는다 — 헤더와 내용이 같은 선에 맞는다(WizardStepLayout과 동일). */}
+      {/* 뒤로가기까지 live region에 들어가지 않도록 로딩 상태는 상단바 밖에서 알린다. */}
       <main
+        role={isLoading ? 'status' : undefined}
+        aria-label={isLoading ? LOADING_LABEL : undefined}
         className={cn(
           'flex flex-1 flex-col gap-12 px-5',
           isScrollLocked && 'min-h-0 overflow-hidden pb-10'
         )}
       >
-        {title && <PageHeader className="pt-10" title={title} description={description} />}
-
-        {isLoading && (
-          <div className="flex justify-center pt-8">
-            <Spinner label={LOADING_LABEL} />
-          </div>
+        {isLoading && <PageHeaderSkeleton className="pt-10" />}
+        {!isLoading && title && (
+          <PageHeader className="pt-10" title={title} description={description} />
         )}
+
         {isError && (
           <p className="pt-8 text-center text-medium-14 text-neutral-400">{ERROR_MESSAGE}</p>
         )}
@@ -83,7 +89,10 @@ export function EditResponseLayout({
         {children}
       </main>
 
-      {onSave && (
+      {/* 자리표시자도 같은 CTASection에 담는다 — 여백·radius가 바뀌면 함께 따라온다. */}
+      {isLoading ? (
+        <CTASection primaryAction={<Skeleton className="h-12 w-full" />} />
+      ) : onSave ? (
         <CTASection
           primaryAction={
             <Button fullWidth disabled={isSaveDisabled} isLoading={isSaving} onClick={onSave}>
@@ -91,7 +100,7 @@ export function EditResponseLayout({
             </Button>
           }
         />
-      )}
+      ) : null}
     </div>
   );
 }

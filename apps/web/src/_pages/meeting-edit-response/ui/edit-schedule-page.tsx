@@ -27,6 +27,7 @@ import { isSameDates, isSameTimeRanges } from '../model/is-same-response';
 import { useCloseEditScreen } from '../model/use-close-edit-screen';
 import { useInviteCodeParam } from '../model/use-invite-code-param';
 import { EditResponseLayout } from './edit-response-layout';
+import { ScheduleEditorSkeleton } from './schedule-editor-skeleton';
 
 const CLOSED_NOTICE = '지금은 일정을 수정할 수 없어요';
 
@@ -68,8 +69,16 @@ function EditScheduleContent(): React.JSX.Element {
     participation.isLoading || invitation.isLoading || serverTodayStatus === 'pending';
   const isError = participation.isError || invitation.isError || serverTodayStatus === 'error';
 
+  if (isLoading) {
+    return (
+      <EditResponseLayout onBack={close} isLoading>
+        <ScheduleEditorSkeleton />
+      </EditResponseLayout>
+    );
+  }
+
   if (!participation.data || serverToday === null) {
-    return <EditResponseLayout onBack={close} isLoading={isLoading} isError={isError} />;
+    return <EditResponseLayout onBack={close} isError={isError} />;
   }
 
   const candidates = invitation.data?.scheduleCandidateDates ?? [];
