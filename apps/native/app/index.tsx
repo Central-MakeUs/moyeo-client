@@ -100,8 +100,6 @@ const BUNDLED_ICONS: ConnectionIcons = { error: ERROR_ICON, undo: UNDO_ICON };
 type WebViewLoadState = 'loading' | 'loaded' | 'checking' | 'error';
 type WebViewRecoveryStrategy = 'reload' | 'remount';
 
-const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
-
 /**
  * 웹에 넘길 커버 사진의 긴 변 상한(px)과 JPEG 품질.
  *
@@ -211,6 +209,10 @@ export default function HomeScreen() {
 
   /** 최초 판정과 실제 오프라인 복구를 구분하기 위한 직전 연결 상태다. */
   const wasOfflineRef = useRef(false);
+  /** 오프라인 진입 전에 이미 표시할 문서가 있었는지 보존한다. */
+  const wasLoadedBeforeOfflineRef = useRef(false);
+  /** 마지막으로 성공한 문서가 현재 WebView에 남아 있는지 나타낸다. */
+  const hasLoadedContentRef = useRef(false);
   /** 로드 시도를 구분하는 증가 값. 늦게 끝난 오류 판정이 최신 상태를 덮지 않게 한다. */
   const loadAttemptRef = useRef(0);
   /** 백그라운드에서 생긴 복구 요청. 앱이 다시 활성화될 때 실행한다. */
@@ -232,20 +234,37 @@ export default function HomeScreen() {
   } | null>(null);
   /** 종료 안내가 유효한 동안 살아 있는 타이머. `null`이면 안내 전 상태다. */
   const exitConfirmTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** WebView 오류 후 네트워크 판정을 기다리는 타이머다. */
+  const networkVerdictTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const postMessageToWeb = useCallback((message: NativeToWebMessage) => {
     webViewRef.current?.postMessage(JSON.stringify(message));
   }, []);
 
   const updateOfflineState = useCallback((nextIsOffline: boolean) => {
+    if (!wasOfflineRef.current && nextIsOffline) {
+      wasLoadedBeforeOfflineRef.current = hasLoadedContentRef.current;
+    }
+
     // 자동 reload 대신 복구 버튼을 제공한다. 최초 온라인 판정(false -> false)은 제외한다.
-    // 확인 중이면 확인이 끝나면서 상태가 정해지므로 여기서 앞질러 오류로 바꾸지 않는다.
     if (wasOfflineRef.current && !nextIsOffline) {
-      setWebViewLoadState((current) =>
-        current === 'checking' || (isProcessRecoveryRef.current && current === 'loading')
-          ? current
-          : 'error'
-      );
+      const shouldRestoreLoadedContent = wasLoadedBeforeOfflineRef.current;
+
+      setWebViewLoadState((current) => {
+        // 이미 표시된 화면을 다시 불러오면 사용자가 입력 중인 내용을 잃을 수 있다.
+        if (shouldRestoreLoadedContent) {
+          loadAttemptRef.current += 1;
+          return 'loaded';
+        }
+
+        // 확인 중이면 확인이 끝나면서 상태가 정해진다. 여기서 앞질러 오류로 바꾸지 않는다.
+        if (current === 'checking') return current;
+        if (isProcessRecoveryRef.current && current === 'loading') return current;
+
+        return 'error';
+      });
+
+      wasLoadedBeforeOfflineRef.current = false;
     }
 
     wasOfflineRef.current = nextIsOffline;
@@ -306,6 +325,7 @@ export default function HomeScreen() {
     loadAttemptRef.current += 1;
     pendingRecoveryRef.current = null;
     isProcessRecoveryRef.current = false;
+    hasLoadedContentRef.current = false;
     setWebViewLoadState('loading');
     webViewRef.current?.reload();
   }, [isOffline]);
@@ -315,6 +335,7 @@ export default function HomeScreen() {
     loadAttemptRef.current += 1;
     pendingRecoveryRef.current = null;
     isProcessRecoveryRef.current = false;
+    hasLoadedContentRef.current = true;
     setWebViewLoadState('loaded');
   }, []);
 
@@ -322,6 +343,7 @@ export default function HomeScreen() {
   const recoverWebViewProcess = useCallback((strategy: WebViewRecoveryStrategy) => {
     pendingRecoveryRef.current = null;
     isProcessRecoveryRef.current = true;
+    hasLoadedContentRef.current = false;
     loadAttemptRef.current += 1;
     setWebViewLoadState('loading');
 
@@ -401,9 +423,18 @@ export default function HomeScreen() {
   // 새 App Link로 진입하면 직전의 복구 주소는 무효다. 그대로 두면 초대 링크가 열리지 않는다.
   useEffect(() => {
     setRecoveredUrl(null);
+    hasLoadedContentRef.current = false;
     currentUrlRef.current = null;
     canGoBackRef.current = false;
   }, [webViewUrl]);
+
+  /** 판정 대기를 취소한다. 이 타이머가 끝나야만 로드 실패로 확정된다. */
+  const clearNetworkVerdictTimer = useCallback(() => {
+    if (networkVerdictTimerRef.current === null) return;
+
+    clearTimeout(networkVerdictTimerRef.current);
+    networkVerdictTimerRef.current = null;
+  }, []);
 
   /**
    * WebView가 문서를 불러오지 못했을 때의 처리.
@@ -415,7 +446,7 @@ export default function HomeScreen() {
    * 안내로 바꾸면 사용자는 서로 다른 원인을 두 번 읽게 된다. 기다리는 동안 NetInfo가 오프라인을
    * 확정하면 오버레이는 그 즉시 오프라인 안내로 넘어간다.
    */
-  const handleWebViewError = useCallback(async () => {
+  const handleWebViewError = useCallback(() => {
     const isInactive = appStateRef.current === 'background' || appStateRef.current === 'inactive';
     if (isInactive) {
       // 백그라운드에서는 네트워크와 WebView가 모두 정지할 수 있다. 오류로 확정하지 않고
@@ -439,13 +470,17 @@ export default function HomeScreen() {
       // 조회에 실패하면 구독이 마지막으로 확인한 연결 상태를 그대로 쓴다.
     });
 
-    await delay(NETWORK_VERDICT_TIMEOUT_MS);
+    clearNetworkVerdictTimer();
+    networkVerdictTimerRef.current = setTimeout(() => {
+      networkVerdictTimerRef.current = null;
 
-    // 기다리는 동안 로드가 성공했거나 사용자가 재시도했으면 이 판정은 이미 지난 것이다.
-    if (attemptId !== loadAttemptRef.current) return;
+      // 기다리는 동안 로드가 성공했거나 사용자가 재시도했으면 이 판정은 이미 지난 것이다.
+      if (attemptId !== loadAttemptRef.current) return;
 
-    setWebViewLoadState('error');
-  }, []);
+      hasLoadedContentRef.current = false;
+      setWebViewLoadState('error');
+    }, NETWORK_VERDICT_TIMEOUT_MS);
+  }, [clearNetworkVerdictTimer]);
 
   /**
    * 웹이 READY를 보내면 보관 중인 토큰으로 답한다.
@@ -714,6 +749,9 @@ export default function HomeScreen() {
   // 화면을 벗어날 때 남은 종료 안내 타이머를 정리한다.
   useEffect(() => clearExitConfirm, [clearExitConfirm]);
 
+  // 화면을 벗어날 때 남은 판정 대기를 정리한다.
+  useEffect(() => clearNetworkVerdictTimer, [clearNetworkVerdictTimer]);
+
   /** 방문 기록 유무를 갱신한다. 화면이 바뀌면 직전의 종료 안내는 무효다. */
   const handleNavigationStateChange = useCallback(
     (navState: WebViewNavigation) => {
@@ -774,7 +812,7 @@ export default function HomeScreen() {
           isOffline || webViewLoadState !== 'loaded' ? 'no-hide-descendants' : 'auto'
         }
         onLoad={handleWebViewLoad}
-        onError={() => void handleWebViewError()}
+        onError={handleWebViewError}
         onContentProcessDidTerminate={handleContentProcessDidTerminate}
         onRenderProcessGone={handleRenderProcessGone}
         onMessage={handleMessage}
