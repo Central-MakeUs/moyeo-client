@@ -61,6 +61,8 @@ export function shareInviteKakao({ shareUrl, senderNickname }: ShareInviteKakaoP
       title: `${createInviteShareTitle(senderNickname)}💌`,
       description: INVITE_SHARE_MESSAGE,
       imageUrl: getInviteShareImageUrl(),
+      imageWidth: 1200,
+      imageHeight: 630,
       link,
     },
     buttonTitle: '초대장 보기',
