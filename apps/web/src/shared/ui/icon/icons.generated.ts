@@ -25,6 +25,7 @@ import Close from '@/shared/assets/icons/close.svg';
 import Confetti from '@/shared/assets/icons/confetti.svg';
 import Edit from '@/shared/assets/icons/edit.svg';
 import Envelope from '@/shared/assets/icons/envelope.svg';
+import Error from '@/shared/assets/icons/error.svg';
 import EyeOff from '@/shared/assets/icons/eye-off.svg';
 import Eye from '@/shared/assets/icons/eye.svg';
 import Feedback from '@/shared/assets/icons/feedback.svg';
@@ -52,6 +53,7 @@ import Pinned from '@/shared/assets/icons/pinned.svg';
 import Plane from '@/shared/assets/icons/plane.svg';
 import Plus from '@/shared/assets/icons/plus.svg';
 import Search from '@/shared/assets/icons/search.svg';
+import Undo from '@/shared/assets/icons/undo.svg';
 
 export const ICONS = {
   apple: Apple,
@@ -80,6 +82,7 @@ export const ICONS = {
   confetti: Confetti,
   edit: Edit,
   envelope: Envelope,
+  error: Error,
   'eye-off': EyeOff,
   eye: Eye,
   feedback: Feedback,
@@ -107,6 +110,7 @@ export const ICONS = {
   plane: Plane,
   plus: Plus,
   search: Search,
+  undo: Undo,
 } as const;
 
 export type IconName = keyof typeof ICONS;

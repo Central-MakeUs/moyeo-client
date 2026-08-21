@@ -1,5 +1,15 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { BackHandler, Platform, StyleSheet, ToastAndroid, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  AppState,
+  BackHandler,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  ToastAndroid,
+  View,
+} from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import type {
@@ -7,6 +17,9 @@ import type {
   WebViewNavigation,
 } from 'react-native-webview/lib/WebViewTypes';
 import Constants from 'expo-constants';
+import { Asset } from 'expo-asset';
+import { Image, type ImageSource } from 'expo-image';
+import NetInfo from '@react-native-community/netinfo';
 import * as Haptics from 'expo-haptics';
 import * as Linking from 'expo-linking';
 import * as SecureStore from 'expo-secure-store';
@@ -60,6 +73,32 @@ const BACK_RESULT_TIMEOUT_MS = 500;
 const EXIT_CONFIRM_WINDOW_MS = 2000;
 
 const EXIT_CONFIRM_MESSAGE = '한 번 더 누르면 종료됩니다';
+
+/**
+ * WebView 로드가 실패한 뒤 네트워크 판정을 기다리는 상한.
+ *
+ * NetInfo의 인터넷 도달 여부는 실제 요청을 한 번 보내 정해지므로, 오류 직후에 읽으면 끊기기
+ * 전의 값이 그대로 남아 있다. 그 값으로 안내 문구를 고르면 오프라인인데도 일반 오류 문구가
+ * 먼저 보였다가 뒤늦게 오프라인 안내로 바뀐다.
+ *
+ * 그래서 이 시간 동안은 문구 없이 진행 표시만 둔다. 그사이 오프라인이 확정되면 구독이 즉시
+ * 반영하고, 확정되지 않은 채 시간이 지나면 일반 로드 실패로 본다.
+ */
+const NETWORK_VERDICT_TIMEOUT_MS = 1500;
+
+const ERROR_ICON: number = require('../assets/images/error.png');
+const UNDO_ICON: number = require('../assets/images/undo.png');
+
+interface ConnectionIcons {
+  error: ImageSource | number;
+  undo: ImageSource | number;
+}
+
+/** 앱에 포함된 원본 에셋. 개발 빌드에서는 미리 받아 둔 로컬 파일로 바뀐다. */
+const BUNDLED_ICONS: ConnectionIcons = { error: ERROR_ICON, undo: UNDO_ICON };
+
+type WebViewLoadState = 'loading' | 'loaded' | 'checking' | 'error';
+type WebViewRecoveryStrategy = 'reload' | 'remount';
 
 /**
  * 웹에 넘길 커버 사진의 긴 변 상한(px)과 JPEG 품질.
@@ -161,9 +200,31 @@ export default function HomeScreen() {
   // App Link의 origin을 제외한 `/i/{inviteToken}` 경로다.
   const { appLinkPath } = useLocalSearchParams<{ appLinkPath?: string | string[] }>();
   const webViewUrl = useMemo(() => toWebViewUrl(appLinkPath), [appLinkPath]);
+  const [isOffline, setIsOffline] = useState(false);
+  const [webViewLoadState, setWebViewLoadState] = useState<WebViewLoadState>('loading');
+  const [webViewInstanceKey, setWebViewInstanceKey] = useState(0);
+  /** 프로세스 종료 복구로 다시 열 주소. `null`이면 진입 주소를 쓴다. */
+  const [recoveredUrl, setRecoveredUrl] = useState<string | null>(null);
+  const [connectionIcons, setConnectionIcons] = useState<ConnectionIcons>(BUNDLED_ICONS);
 
+  /** 최초 판정과 실제 오프라인 복구를 구분하기 위한 직전 연결 상태다. */
+  const wasOfflineRef = useRef(false);
+  /** 오프라인 진입 전에 이미 표시할 문서가 있었는지 보존한다. */
+  const wasLoadedBeforeOfflineRef = useRef(false);
+  /** 마지막으로 성공한 문서가 현재 WebView에 남아 있는지 나타낸다. */
+  const hasLoadedContentRef = useRef(false);
+  /** 로드 시도를 구분하는 증가 값. 늦게 끝난 오류 판정이 최신 상태를 덮지 않게 한다. */
+  const loadAttemptRef = useRef(0);
+  /** 백그라운드에서 생긴 복구 요청. 앱이 다시 활성화될 때 실행한다. */
+  const pendingRecoveryRef = useRef<WebViewRecoveryStrategy | null>(null);
+  /** 자동 복구 중 온라인 판정이 로딩 상태를 일반 오류로 바꾸지 않게 구분한다. */
+  const isProcessRecoveryRef = useRef(false);
+  /** 이벤트 콜백에서 최신 앱 활성 상태를 동기적으로 읽기 위한 값이다. */
+  const appStateRef = useRef(AppState.currentState);
   /** WebView에 돌아갈 방문 기록이 있는지. 웹이 뒤로가기를 넘겼을 때의 폴백 판단에 쓴다. */
   const canGoBackRef = useRef(false);
+  /** WebView가 마지막으로 연 주소. 프로세스가 죽었을 때 돌아갈 곳으로 쓴다. */
+  const currentUrlRef = useRef<string | null>(null);
   /** 뒤로가기 요청을 구분하는 증가 값. 늦게 도착한 이전 응답을 무시하는 데 쓴다. */
   const backSequenceRef = useRef(0);
   /** 응답을 기다리는 중인 뒤로가기 요청. 응답이 없으면 타임아웃이 대신 끝낸다. */
@@ -173,10 +234,253 @@ export default function HomeScreen() {
   } | null>(null);
   /** 종료 안내가 유효한 동안 살아 있는 타이머. `null`이면 안내 전 상태다. */
   const exitConfirmTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** WebView 오류 후 네트워크 판정을 기다리는 타이머다. */
+  const networkVerdictTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const postMessageToWeb = useCallback((message: NativeToWebMessage) => {
     webViewRef.current?.postMessage(JSON.stringify(message));
   }, []);
+
+  const updateOfflineState = useCallback((nextIsOffline: boolean) => {
+    if (!wasOfflineRef.current && nextIsOffline) {
+      wasLoadedBeforeOfflineRef.current = hasLoadedContentRef.current;
+    }
+
+    // 자동 reload 대신 복구 버튼을 제공한다. 최초 온라인 판정(false -> false)은 제외한다.
+    if (wasOfflineRef.current && !nextIsOffline) {
+      const shouldRestoreLoadedContent = wasLoadedBeforeOfflineRef.current;
+
+      setWebViewLoadState((current) => {
+        // 이미 표시된 화면을 다시 불러오면 사용자가 입력 중인 내용을 잃을 수 있다.
+        if (shouldRestoreLoadedContent) {
+          loadAttemptRef.current += 1;
+          return 'loaded';
+        }
+
+        // 확인 중이면 확인이 끝나면서 상태가 정해진다. 여기서 앞질러 오류로 바꾸지 않는다.
+        if (current === 'checking') return current;
+        if (isProcessRecoveryRef.current && current === 'loading') return current;
+
+        return 'error';
+      });
+
+      wasLoadedBeforeOfflineRef.current = false;
+    }
+
+    wasOfflineRef.current = nextIsOffline;
+    setIsOffline(nextIsOffline);
+  }, []);
+
+  /**
+   * 개발 빌드에서 쓸 아이콘을 로컬 파일로 미리 받아 둔다.
+   *
+   * 개발 빌드에서 `require`한 이미지는 앱 안에 들어 있지 않고 Metro 개발 서버에서 그때그때
+   * 내려받는다. 그래서 정작 이 안내가 필요한 순간 — 연결이 끊겼거나 개발 PC에 닿지 못하는
+   * 순간 — 에 이미지 요청도 같이 실패해 아이콘 자리가 빈 칸이 된다. 미리 받아 둔 파일을
+   * 가리키면 그때도 네트워크 없이 그릴 수 있다.
+   *
+   * 프로덕션 번들은 이미지가 앱에 포함돼 있어 이 준비가 필요 없다. 그래서 개발 빌드에서만 한다.
+   */
+  useEffect(() => {
+    if (!__DEV__) return;
+
+    let isActive = true;
+
+    Asset.loadAsync([ERROR_ICON, UNDO_ICON])
+      .then(([errorAsset, undoAsset]) => {
+        const error = errorAsset?.localUri;
+        const undo = undoAsset?.localUri;
+        if (!isActive || !error || !undo) return;
+
+        setConnectionIcons({ error: { uri: error }, undo: { uri: undo } });
+      })
+      .catch(() => {
+        // 미리 받기에 실패하면 앱에 포함된 원본 에셋을 그대로 쓴다.
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    return NetInfo.addEventListener((state) => {
+      // 백그라운드에서는 OS가 실제 연결과 무관하게 네트워크를 일시 정지할 수 있다.
+      // 이 값을 화면에 반영하지 않고, active 복귀 때 refresh한 결과를 기다린다.
+      if (appStateRef.current === 'background' || appStateRef.current === 'inactive') return;
+
+      // null은 아직 판정 중인 상태다. 오프라인으로 취급하면 앱 시작 때 안내가 깜빡인다.
+      const isConfirmedOffline = state.isConnected === false || state.isInternetReachable === false;
+      const isConfirmedOnline = state.isConnected === true && state.isInternetReachable === true;
+
+      if (isConfirmedOffline) updateOfflineState(true);
+      if (isConfirmedOnline) updateOfflineState(false);
+    });
+  }, [updateOfflineState]);
+
+  const retryWebViewLoad = useCallback(() => {
+    if (isOffline) return;
+
+    // 이 재시도가 최신이다. 앞선 오류의 판정이 뒤늦게 끝나 이 로딩을 덮으면 안 된다.
+    loadAttemptRef.current += 1;
+    pendingRecoveryRef.current = null;
+    isProcessRecoveryRef.current = false;
+    hasLoadedContentRef.current = false;
+    setWebViewLoadState('loading');
+    webViewRef.current?.reload();
+  }, [isOffline]);
+
+  /** 로드 성공. 기다리는 중이던 이전 오류 판정은 이 시점부터 무효다. */
+  const handleWebViewLoad = useCallback(() => {
+    loadAttemptRef.current += 1;
+    pendingRecoveryRef.current = null;
+    isProcessRecoveryRef.current = false;
+    hasLoadedContentRef.current = true;
+    setWebViewLoadState('loaded');
+  }, []);
+
+  /** 앱이 활성 상태일 때 WebView 프로세스를 실제로 복구한다. */
+  const recoverWebViewProcess = useCallback((strategy: WebViewRecoveryStrategy) => {
+    pendingRecoveryRef.current = null;
+    isProcessRecoveryRef.current = true;
+    hasLoadedContentRef.current = false;
+    loadAttemptRef.current += 1;
+    setWebViewLoadState('loading');
+
+    if (strategy === 'reload') {
+      webViewRef.current?.reload();
+      return;
+    }
+
+    // 새 인스턴스에는 방문 기록이 없다. 첫 방문 기록 콜백 전의 뒤로가기도 이에 맞춘다.
+    canGoBackRef.current = false;
+    setRecoveredUrl(currentUrlRef.current);
+    setWebViewInstanceKey((current) => current + 1);
+  }, []);
+
+  /** 백그라운드라면 복구를 미루고, 활성 상태라면 즉시 실행한다. */
+  const requestWebViewRecovery = useCallback(
+    (strategy: WebViewRecoveryStrategy) => {
+      const isInactive = appStateRef.current === 'background' || appStateRef.current === 'inactive';
+
+      if (isInactive) {
+        loadAttemptRef.current += 1;
+        pendingRecoveryRef.current = strategy;
+        isProcessRecoveryRef.current = true;
+        setWebViewLoadState('loading');
+        return;
+      }
+
+      recoverWebViewProcess(strategy);
+    },
+    [recoverWebViewProcess]
+  );
+
+  /**
+   * iOS: 콘텐츠 프로세스가 회수됐을 때의 복구.
+   *
+   * WKWebView 자체는 살아 있고 방문 기록도 그대로 남아 있어서 다시 불러오기만 하면 된다.
+   * 인스턴스를 새로 만들면 그 기록까지 버리게 되므로 여기서는 재생성하지 않는다.
+   */
+  const handleContentProcessDidTerminate = useCallback(() => {
+    requestWebViewRecovery('reload');
+  }, [requestWebViewRecovery]);
+
+  /**
+   * Android: 렌더러 프로세스가 죽었을 때의 복구.
+   *
+   * 죽은 렌더러를 가진 WebView는 다시 쓸 수 없어 `reload()`로는 살아나지 않는다. 그래서
+   * 인스턴스를 새로 만들되, 진입 주소가 아니라 죽기 직전에 보고 있던 주소로 되돌린다 —
+   * 상세나 작성 중이던 화면에 있었다면 홈으로 튕기는 셈이 되기 때문이다.
+   *
+   * 주소는 종료 이벤트가 아니라 방문 기록 콜백에서 모아 둔 값을 쓴다. 이벤트의 타입에는
+   * `didCrash`만 있어서 주소를 읽으려면 타입을 우회해야 한다.
+   *
+   * 반복해서 죽는 기기에서는 이 재생성도 반복된다. 횟수 제한은 초기화 기준까지 함께 정해야
+   * 해서 이번 범위에 넣지 않았다.
+   */
+  const handleRenderProcessGone = useCallback(() => {
+    requestWebViewRecovery('remount');
+  }, [requestWebViewRecovery]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      appStateRef.current = nextState;
+      if (nextState !== 'active') return;
+
+      // 백그라운드에서 무시한 연결 상태를 활성화 시점에 다시 판정한다.
+      void NetInfo.refresh().catch(() => {});
+
+      const pendingRecovery = pendingRecoveryRef.current;
+      if (!pendingRecovery) return;
+
+      recoverWebViewProcess(pendingRecovery);
+    });
+
+    return () => subscription.remove();
+  }, [recoverWebViewProcess]);
+
+  // 새 App Link로 진입하면 직전의 복구 주소는 무효다. 그대로 두면 초대 링크가 열리지 않는다.
+  useEffect(() => {
+    setRecoveredUrl(null);
+    hasLoadedContentRef.current = false;
+    currentUrlRef.current = null;
+    canGoBackRef.current = false;
+  }, [webViewUrl]);
+
+  /** 판정 대기를 취소한다. 이 타이머가 끝나야만 로드 실패로 확정된다. */
+  const clearNetworkVerdictTimer = useCallback(() => {
+    if (networkVerdictTimerRef.current === null) return;
+
+    clearTimeout(networkVerdictTimerRef.current);
+    networkVerdictTimerRef.current = null;
+  }, []);
+
+  /**
+   * WebView가 문서를 불러오지 못했을 때의 처리.
+   *
+   * 원인 판정은 NetInfo에만 맡긴다. WebView가 주는 오류 코드는 플랫폼마다 다르고, 연결이
+   * 끊긴 경우와 서버까지 못 간 경우가 같은 코드로 오기도 해서 그것만으로는 문구를 고를 수 없다.
+   *
+   * 판정이 서기 전에는 문구 없이 진행 표시만 둔다. 일반 오류 문구를 먼저 띄웠다가 오프라인
+   * 안내로 바꾸면 사용자는 서로 다른 원인을 두 번 읽게 된다. 기다리는 동안 NetInfo가 오프라인을
+   * 확정하면 오버레이는 그 즉시 오프라인 안내로 넘어간다.
+   */
+  const handleWebViewError = useCallback(() => {
+    const isInactive = appStateRef.current === 'background' || appStateRef.current === 'inactive';
+    if (isInactive) {
+      // 백그라운드에서는 네트워크와 WebView가 모두 정지할 수 있다. 오류로 확정하지 않고
+      // 활성화된 뒤 다시 불러온다. 이후 렌더러 종료 이벤트가 오면 remount로 덮어쓴다.
+      if (!pendingRecoveryRef.current) pendingRecoveryRef.current = 'reload';
+      isProcessRecoveryRef.current = true;
+      loadAttemptRef.current += 1;
+      setWebViewLoadState('loading');
+      return;
+    }
+
+    const attemptId = ++loadAttemptRef.current;
+    isProcessRecoveryRef.current = false;
+
+    // Android는 실패 시 finish 이벤트를 error보다 먼저 보낼 수 있다. 실패한 WebView는 곧바로 가린다.
+    setWebViewLoadState('checking');
+
+    // 도달 여부를 다시 확인시키기만 하고 기다리지는 않는다. 기다리면 전체 대기가 상한을 넘는다.
+    // 갱신된 판정은 NetInfo 구독이 `isOffline`에 반영한다.
+    void NetInfo.refresh().catch(() => {
+      // 조회에 실패하면 구독이 마지막으로 확인한 연결 상태를 그대로 쓴다.
+    });
+
+    clearNetworkVerdictTimer();
+    networkVerdictTimerRef.current = setTimeout(() => {
+      networkVerdictTimerRef.current = null;
+
+      // 기다리는 동안 로드가 성공했거나 사용자가 재시도했으면 이 판정은 이미 지난 것이다.
+      if (attemptId !== loadAttemptRef.current) return;
+
+      hasLoadedContentRef.current = false;
+      setWebViewLoadState('error');
+    }, NETWORK_VERDICT_TIMEOUT_MS);
+  }, [clearNetworkVerdictTimer]);
 
   /**
    * 웹이 READY를 보내면 보관 중인 토큰으로 답한다.
@@ -445,10 +749,14 @@ export default function HomeScreen() {
   // 화면을 벗어날 때 남은 종료 안내 타이머를 정리한다.
   useEffect(() => clearExitConfirm, [clearExitConfirm]);
 
+  // 화면을 벗어날 때 남은 판정 대기를 정리한다.
+  useEffect(() => clearNetworkVerdictTimer, [clearNetworkVerdictTimer]);
+
   /** 방문 기록 유무를 갱신한다. 화면이 바뀌면 직전의 종료 안내는 무효다. */
   const handleNavigationStateChange = useCallback(
     (navState: WebViewNavigation) => {
       canGoBackRef.current = navState.canGoBack;
+      currentUrlRef.current = navState.url;
       clearExitConfirm();
     },
     [clearExitConfirm]
@@ -493,9 +801,20 @@ export default function HomeScreen() {
       ]}
     >
       <WebView
+        key={webViewInstanceKey}
         ref={webViewRef}
         style={styles.container}
-        source={{ uri: webViewUrl }}
+        source={{ uri: recoveredUrl ?? webViewUrl }}
+        bounces={false}
+        overScrollMode="never"
+        accessibilityElementsHidden={isOffline || webViewLoadState !== 'loaded'}
+        importantForAccessibility={
+          isOffline || webViewLoadState !== 'loaded' ? 'no-hide-descendants' : 'auto'
+        }
+        onLoad={handleWebViewLoad}
+        onError={handleWebViewError}
+        onContentProcessDidTerminate={handleContentProcessDidTerminate}
+        onRenderProcessGone={handleRenderProcessGone}
         onMessage={handleMessage}
         onShouldStartLoadWithRequest={handleShouldStartLoad}
         onNavigationStateChange={handleNavigationStateChange}
@@ -509,6 +828,55 @@ export default function HomeScreen() {
         thirdPartyCookiesEnabled
         sharedCookiesEnabled
       />
+
+      {(isOffline || webViewLoadState !== 'loaded') && (
+        <View style={styles.connectionOverlay}>
+          {(webViewLoadState === 'loading' || webViewLoadState === 'checking') && !isOffline ? (
+            <View style={styles.loadingContent}>
+              <ActivityIndicator size="large" color="#8a8a8a" />
+            </View>
+          ) : (
+            <View style={styles.errorContent}>
+              <Image
+                source={connectionIcons.error}
+                style={styles.errorIcon}
+                contentFit="contain"
+                accessible={false}
+              />
+              <Text selectable accessibilityRole="alert" style={styles.connectionTitle}>
+                {isOffline ? '네트워크 연결이 끊겼어요' : '결과를 불러오지 못했어요'}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ disabled: isOffline }}
+                disabled={isOffline}
+                onPress={retryWebViewLoad}
+                style={({ pressed }) => [
+                  styles.retryButton,
+                  isOffline && styles.retryButtonDisabled,
+                  pressed && !isOffline && styles.retryButtonPressed,
+                ]}
+              >
+                <View style={styles.retryIconSlot}>
+                  <Image
+                    source={connectionIcons.undo}
+                    style={styles.retryIcon}
+                    contentFit="contain"
+                    // expo-image는 style이 아니라 prop으로 색을 덧입힌다.
+                    tintColor={isOffline ? '#ffffff' : undefined}
+                    accessible={false}
+                  />
+                </View>
+                <Text
+                  style={[styles.retryButtonLabel, isOffline && styles.retryButtonLabelDisabled]}
+                >
+                  {isOffline ? '연결을 기다리는 중' : '다시 시도하기'}
+                </Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
+      )}
     </View>
   );
 }
@@ -520,5 +888,70 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+  },
+  connectionOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffffff',
+  },
+  loadingContent: {
+    alignItems: 'center',
+    gap: 20,
+  },
+  errorContent: {
+    alignItems: 'center',
+    gap: 20,
+    paddingVertical: 40,
+    transform: [{ translateY: -1 }],
+  },
+  connectionTitle: {
+    color: '#474747',
+    fontSize: 16,
+    fontWeight: '600',
+    lineHeight: 24,
+    textAlign: 'center',
+  },
+  errorIcon: {
+    width: 50,
+    height: 50,
+  },
+  retryButton: {
+    height: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    paddingHorizontal: 28,
+    borderWidth: 1,
+    borderColor: '#e7e7e7',
+    borderRadius: 8,
+    backgroundColor: '#ffffff',
+  },
+  retryButtonDisabled: {
+    backgroundColor: '#e7e7e7',
+  },
+  retryButtonPressed: {
+    transform: [{ translateY: 1 }],
+  },
+  retryButtonLabel: {
+    color: '#737373',
+    fontSize: 14,
+    fontWeight: '600',
+    lineHeight: 21,
+  },
+  retryButtonLabelDisabled: {
+    color: '#ffffff',
+  },
+  retryIconSlot: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  retryIcon: {
+    width: 12,
+    height: 12,
   },
 });
