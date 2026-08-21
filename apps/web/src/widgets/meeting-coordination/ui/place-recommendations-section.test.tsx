@@ -129,12 +129,13 @@ describe('PlaceRecommendationsSection', () => {
     expect(screen.getByText('추천 위치 후보가 없어요')).toBeInTheDocument();
   });
 
-  it('isLoading이 true이면 로딩 안내가 표시된다', () => {
+  it('isLoading이 true이면 목록 스켈레톤이 표시된다', () => {
     usePlaceViewQueryMock.mockReturnValue({ data: undefined, isLoading: true, isError: false });
 
     render(<PlaceRecommendationsSection inviteCode="29NRVBGXGP" />);
 
-    expect(screen.getByText('불러오는 중...')).toBeInTheDocument();
+    expect(screen.getByRole('status', { name: '조율 정보를 불러오는 중' })).toBeInTheDocument();
+    expect(document.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(2);
   });
 
   it('isError가 true이면 에러 안내가 표시된다', () => {

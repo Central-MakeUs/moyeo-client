@@ -11,6 +11,7 @@ import { ConfirmPlaceDialog, useConfirmPlace } from '@/features/meeting/confirm-
 import { useGetMeetingView } from '@/shared/api';
 
 import { useMeetingHost } from '../model/use-meeting-host';
+import { CoordinationItemsSkeleton } from './coordination-items-skeleton';
 
 /**
  * 추천이 의미를 갖는 최소 인원(방장 포함).
@@ -67,9 +68,7 @@ export function PlaceRecommendationsSection({
         </span>
       </h2>
 
-      {isLoading && (
-        <p className="pt-8 text-center text-medium-14 text-neutral-400">불러오는 중...</p>
-      )}
+      {isLoading && <CoordinationItemsSkeleton />}
       {isError && (
         <p className="pt-8 text-center text-medium-14 text-neutral-400">
           위치 정보를 불러오지 못했어요

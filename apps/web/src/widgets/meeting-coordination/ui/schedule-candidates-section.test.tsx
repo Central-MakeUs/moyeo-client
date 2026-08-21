@@ -196,12 +196,13 @@ describe('ScheduleCandidatesSection', () => {
     expect(screen.queryByRole('button', { name: '내 응답 수정하기' })).not.toBeInTheDocument();
   });
 
-  it('isLoading이 true이면 로딩 안내가 표시된다', () => {
+  it('isLoading이 true이면 목록 스켈레톤이 표시된다', () => {
     useScheduleViewQueryMock.mockReturnValue({ data: undefined, isLoading: true, isError: false });
 
     render(<ScheduleCandidatesSection inviteCode="29NRVBGXGP" />);
 
-    expect(screen.getByText('불러오는 중...')).toBeInTheDocument();
+    expect(screen.getByRole('status', { name: '조율 정보를 불러오는 중' })).toBeInTheDocument();
+    expect(document.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(2);
   });
 
   it('isError가 true이면 에러 안내가 표시된다', () => {

@@ -6,6 +6,7 @@ import { isViewerParticipant } from '@/entities/participant';
 import { PlaceParticipantListItem, usePlaceViewQuery } from '@/entities/place';
 
 import { useViewerIdentity } from '../model/use-viewer-identity';
+import { CoordinationItemsSkeleton } from './coordination-items-skeleton';
 
 export interface ParticipantDeparturesSectionProps {
   inviteCode: string;
@@ -29,9 +30,7 @@ export function ParticipantDeparturesSection({
         </span>
       </h2>
 
-      {isLoading && (
-        <p className="pt-8 text-center text-medium-14 text-neutral-400">불러오는 중...</p>
-      )}
+      {isLoading && <CoordinationItemsSkeleton />}
       {isError && (
         <p className="pt-8 text-center text-medium-14 text-neutral-400">
           위치 정보를 불러오지 못했어요

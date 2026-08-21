@@ -11,8 +11,9 @@ import {
 } from '@/entities/meeting';
 import { CoordinationSection } from '@/widgets/meeting-coordination';
 import { MeetingOverviewTopBar } from '@/widgets/meeting-overview-top-bar';
-import { Spinner } from '@/shared/ui/spinner';
 import { Thumbnail } from '@/shared/ui/thumbnail';
+
+import { MeetingOverviewSkeleton } from './meeting-overview-skeleton';
 
 /**
  * create-meeting의 invitePath()와 같은 쿼리 키.
@@ -77,11 +78,7 @@ function MeetingOverviewContent(): React.JSX.Element {
           <div ref={sentinelRef} aria-hidden className="absolute inset-x-0 bottom-0 h-0" />
         </div>
 
-        {isLoading && (
-          <div className="flex justify-center pt-8">
-            <Spinner label="모임 정보를 불러오는 중" />
-          </div>
-        )}
+        {isLoading && <MeetingOverviewSkeleton />}
         {isError && (
           <p className="pt-8 text-center text-medium-14 text-neutral-400">
             모임 정보를 불러오지 못했어요
