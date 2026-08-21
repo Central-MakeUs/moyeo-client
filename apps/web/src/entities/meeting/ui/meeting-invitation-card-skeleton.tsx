@@ -17,15 +17,15 @@ export function MeetingInvitationCardSkeleton(): React.JSX.Element {
     >
       <div className="flex w-full flex-col items-center gap-2 border-b border-b-accessible-100 pb-5">
         {/* 모임 이름 */}
-        <Skeleton variant="text" tone="accessible" textStyle="bold-18" className="w-40" />
+        <Skeleton variant="text" textStyle="bold-18" className="w-40" />
         {/* 모임 설명 */}
-        <Skeleton variant="text" tone="accessible" textStyle="semibold-14" className="w-full" />
+        <Skeleton variant="text" textStyle="semibold-14" className="w-4/5" />
       </div>
 
       <div className="flex w-full items-center justify-end gap-1.5">
         {/* 방장 아이콘과 닉네임 */}
-        <Skeleton variant="circular" tone="accessible" className="size-5" />
-        <Skeleton variant="text" tone="accessible" textStyle="semibold-14" className="w-16" />
+        <Skeleton variant="circular" className="size-5" />
+        <Skeleton variant="text" textStyle="semibold-14" className="w-16" />
       </div>
     </div>
   );

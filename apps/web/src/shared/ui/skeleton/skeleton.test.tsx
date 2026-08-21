@@ -13,7 +13,13 @@ describe('Skeleton', () => {
   it('기본값은 블록 자리표시자다', () => {
     const skeleton = renderSkeleton(<Skeleton data-testid="skeleton" />);
 
-    expect(skeleton).toHaveClass('rounded-8', 'animate-pulse', 'bg-neutral-50');
+    expect(skeleton).toHaveClass(
+      'rounded-8',
+      'bg-neutral-50',
+      'relative',
+      'overflow-hidden',
+      'after:animate-skeleton-wave'
+    );
   });
 
   it('표현 전용이라 스크린 리더에서 숨긴다', () => {
@@ -23,9 +29,9 @@ describe('Skeleton', () => {
     );
   });
 
-  it('애니메이션을 줄이는 사용자에게는 깜빡이지 않는다', () => {
+  it('애니메이션을 줄이는 사용자에게는 wave가 움직이지 않는다', () => {
     expect(renderSkeleton(<Skeleton data-testid="skeleton" />)).toHaveClass(
-      'motion-reduce:animate-none'
+      'motion-reduce:after:animate-none'
     );
   });
 

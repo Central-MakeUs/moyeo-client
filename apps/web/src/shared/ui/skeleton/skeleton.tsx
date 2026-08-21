@@ -51,7 +51,8 @@ export type SkeletonTone = keyof typeof TONE_CLASS;
  */
 const LINE_BOX_CHAR = '\u200B';
 
-const BASE_CLASS = 'animate-pulse motion-reduce:animate-none';
+const BASE_CLASS =
+  "relative overflow-hidden after:pointer-events-none after:absolute after:inset-0 after:-translate-x-full after:animate-skeleton-wave after:bg-linear-to-r after:from-transparent after:via-white/55 after:to-transparent after:content-[''] motion-reduce:after:animate-none";
 
 type SkeletonBaseProps = Omit<React.HTMLAttributes<HTMLElement>, 'children'> & {
   /** 올라갈 면의 색 계열. 배경과 색이 가까우면 자리표시자가 보이지 않는다. */
