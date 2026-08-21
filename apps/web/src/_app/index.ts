@@ -1,3 +1,4 @@
+export { ClarityInitializer } from './analytics/clarity-initializer';
 export { NativeBackProvider } from './providers/native-back-provider';
 export { QueryProvider } from './providers/query-provider';
 export { DevAuthPanelMount } from './dev-tools/dev-auth-panel-mount';
