@@ -5,6 +5,7 @@ import * as React from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { createMeeting, getGetMyMeetingsQueryKey, type CreateMeetingResponse } from '@/shared/api';
+import { useSubmissionLock } from '@/shared/model';
 
 import { useCreateMeetingDraft } from './create-meeting-draft';
 import { toCreateMeetingRequest } from './to-create-meeting-request';
@@ -36,6 +37,10 @@ export interface UseSubmitMeetingOptions {
  * `isPending`은 아직 false라, 같은 프레임에 들어온 두 번째 호출이 그대로 통과한다.
  * 렌더와 무관하게 즉시 바뀌는 ref로 막는다.
  *
+ * 요청이 성공해도 잠금은 풀지 않는다. `router.replace`를 호출한 뒤 기존 화면이 잠시 남을 수
+ * 있어, 네트워크 요청이 끝난 시점에 잠금을 풀면 같은 모임을 다시 생성할 수 있다. 실패한
+ * 경우에만 잠금을 풀고, 성공한 경우에는 화면 전환으로 훅이 언마운트될 때까지 유지한다.
+ *
  * ⚠️ **여기서 draft를 비우지 않는다.** `router.replace`는 위저드 페이지를 동기적으로
  * 언마운트하지 않아서, 곧바로 reset하면 아직 살아 있는 페이지가 리렌더되고 `useStepGuard`가
  * 빈 draft를 보고 홈으로 되돌려 방금 건 이동을 덮어쓴다. 비우는 일은 위저드를 완전히 벗어난
@@ -45,7 +50,14 @@ export interface UseSubmitMeetingOptions {
  */
 export function useSubmitMeeting({ onSuccess }: UseSubmitMeetingOptions) {
   const queryClient = useQueryClient();
-  const inFlightRef = React.useRef(false); // 제출 요청이 진행 중인지를 담고 있는 플래그
+  const isSubmissionLockedRef = React.useRef(false);
+  const hasCreatedMeetingRef = React.useRef(false);
+
+  const { lock, unlock } = useSubmissionLock.getState();
+
+  React.useEffect(() => {
+    return () => unlock();
+  }, [unlock]);
 
   const mutation = useMutation({
     mutationFn: () => {
@@ -55,14 +67,21 @@ export function useSubmitMeeting({ onSuccess }: UseSubmitMeetingOptions) {
       return createMeeting(toCreateMeetingRequest(draft), draft.coverImage);
     },
     onSuccess: (response) => {
+      // 서버 생성이 끝난 뒤의 화면 처리에서 예외가 나도 동일 모임을 다시 제출하면 안 된다.
+      hasCreatedMeetingRef.current = true;
+
       // 방금 만든 모임이 홈 목록에 나타나야 한다. 목록에는 기본 staleTime(60초) 동안 이전
       // 응답이 남아 있어, 비우지 않으면 만든 직후 홈에 갔을 때 새 모임이 빠진 목록을 본다.
       void queryClient.invalidateQueries({ queryKey: getGetMyMeetingsQueryKey() });
 
       onSuccess(response);
     },
-    onSettled: () => {
-      inFlightRef.current = false;
+    onError: () => {
+      if (hasCreatedMeetingRef.current) return;
+
+      // 화면에 머물러 재시도할 수 있는 실패에서만 잠금을 해제한다.
+      isSubmissionLockedRef.current = false;
+      unlock();
     },
   });
 
@@ -70,11 +89,13 @@ export function useSubmitMeeting({ onSuccess }: UseSubmitMeetingOptions) {
 
   return {
     submit: () => {
-      if (inFlightRef.current) return;
-      inFlightRef.current = true;
+      if (isSubmissionLockedRef.current) return;
+      isSubmissionLockedRef.current = true;
+      lock();
       mutate();
     },
-    isPending: mutation.isPending,
+    /** 현재 화면에서 다시 제출할 수 없으면 `true`. 성공 후 화면 전환 중인 상태를 포함한다. */
+    isSubmitting: mutation.isPending || mutation.isSuccess || hasCreatedMeetingRef.current,
     isError: mutation.isError,
     error: mutation.error,
   };

@@ -14,6 +14,7 @@ import {
   InputButton,
   InputField,
   NumberPicker,
+  TextareaField,
 } from '@/shared/ui';
 import { PageHeader } from '@/shared/ui/page-header';
 
@@ -94,10 +95,13 @@ export function BasicStep({ onNext }: BasicStepProps) {
             errorMessage={nameError}
           />
 
-          <InputField
+          <TextareaField
+            className="h-[92px]"
             label="모임 설명"
             hint="(선택)"
             placeholder="어떤 모임인지 설명해주세요"
+            characterCountVisibility="auto"
+            maxLength={50}
             value={description}
             onChange={(e) => {
               setDescription(e.target.value);

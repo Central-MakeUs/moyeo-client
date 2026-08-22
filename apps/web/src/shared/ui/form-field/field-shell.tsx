@@ -10,21 +10,24 @@ const fieldShellClasses = cn(
   'border-transparent bg-neutral-10',
 
   // activated
-  '[&:has([data-slot=field-control]:not(:placeholder-shown)):not(:hover):not(:focus-within):not(:has([data-slot=field-control]:disabled)):not([data-invalid])]:border-neutral-20',
+  '[&:has([data-slot=field-control]:not(:placeholder-shown)):not(:hover):not(:focus-within):not(:has([data-slot=field-control]:disabled)):not([data-invalid]):not([data-limit-reached])]:border-neutral-20',
   '[&:has([data-slot=field-control]:not(:placeholder-shown)):not(:hover):not(:focus-within):not(:has([data-slot=field-control]:disabled))]:bg-white',
 
   // hover
-  '[&:hover:not(:focus-within):not(:has([data-slot=field-control]:disabled)):not([data-invalid])]:border-accessible-200',
+  '[&:hover:not(:focus-within):not(:has([data-slot=field-control]:disabled)):not([data-invalid]):not([data-limit-reached])]:border-accessible-200',
   '[&:hover:not(:focus-within):not(:has([data-slot=field-control]:disabled))]:bg-white',
 
   // focus
-  '[&:focus-within:not([data-invalid])]:border-accessible-400 focus-within:bg-white',
+  '[&:focus-within:not([data-invalid]):not([data-limit-reached])]:border-accessible-400 focus-within:bg-white',
 
   // filled
   '[&:has([data-slot=field-control]:not(:placeholder-shown))]:bg-white',
 
   // error
   '[&[data-invalid]:not(:has([data-slot=field-control]:disabled))]:border-accessible-600',
+
+  // limit reached
+  '[&[data-limit-reached]:not(:has([data-slot=field-control]:disabled))]:border-accessible-600',
 
   // disabled
   '[&:has([data-slot=field-control]:disabled)]:border-transparent',
@@ -44,6 +47,7 @@ interface FieldShellProps {
   hint?: React.ReactNode;
   description?: string;
   errorMessage?: string;
+  isLimitReached?: boolean;
   ariaDescribedBy?: string;
   children: (props: FieldShellRenderProps) => React.ReactNode;
 }
@@ -55,6 +59,7 @@ export function FieldShell({
   hint,
   description,
   errorMessage,
+  isLimitReached,
   ariaDescribedBy,
   children,
 }: FieldShellProps) {
@@ -77,6 +82,7 @@ export function FieldShell({
       <div
         data-slot="field-shell"
         data-invalid={isInvalid || undefined}
+        data-limit-reached={isLimitReached || undefined}
         className={cn(fieldShellClasses, className)}
       >
         {label ? (

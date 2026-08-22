@@ -60,6 +60,7 @@ export function ScheduleDatesStep({
 
   return (
     <WizardStepLayout
+      isSubmitting={isSubmitting}
       header={
         <PageHeader
           title="일정을 정해볼까요?"
@@ -93,6 +94,7 @@ export function ScheduleDatesStep({
 
       {status === 'success' && serverToday !== null && (
         <DraggableCalendar
+          disabled={isSubmitting}
           className="mx-auto"
           value={selected}
           onChange={(next) => setScheduleCandidateDates(formatScheduleCandidateDates(next))}

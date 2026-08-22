@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import '@/_app/globals.css';
-import { DevAuthPanelMount, NativeBackProvider, QueryProvider } from '@/_app';
+import { ClarityInitializer, DevAuthPanelMount, NativeBackProvider, QueryProvider } from '@/_app';
 import { suit } from '@/_app/fonts';
 import { SessionProvider } from '@/entities/session';
 import { AppLayout } from '@/shared/ui/layouts/app-layout';
@@ -48,6 +48,8 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={`${suit.variable}`}>
+        {/* 인증 상태와 관계없이 앱 진입 시 Clarity를 초기화한다. */}
+        <ClarityInitializer />
         <QueryProvider>
           <SessionProvider>
             <AppLayout>{children}</AppLayout>

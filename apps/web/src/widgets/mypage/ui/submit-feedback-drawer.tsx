@@ -67,11 +67,11 @@ export function SubmitFeedbackDrawer({ trigger }: SubmitFeedbackDrawerProps) {
         <DrawerBody className="pb-8">
           <TextareaField
             maxLength={1000}
-            errorMessage={feedback.length >= 1000 ? '최대 1000자 입력 가능합니다.' : undefined}
             className="h-24"
             placeholder={`예) 이런 기능이 있으면 좋겠어요,
                 OO가 불편했어요, OO가 좋았어요`}
             value={feedback}
+            characterCountVisibility="always"
             onChange={(e) => setFeedback(e.target.value)}
           />
         </DrawerBody>

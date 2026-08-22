@@ -66,6 +66,7 @@ export function GuestScheduleTimesPage({
     // 높이·상단바는 (participant) 레이아웃이 잡는다. 여기서 h-dvh를 다시 잡으면
     // 상단바·진행바 높이만큼 넘쳐 body에 스크롤이 생긴다.
     <WizardStepLayout
+      isSubmitting={isSubmitting}
       className="overflow-hidden"
       header={
         <PageHeader
@@ -89,6 +90,7 @@ export function GuestScheduleTimesPage({
       }
     >
       <AvailabilityTimeGrid
+        disabled={isSubmitting}
         columns={columns}
         rows={rows}
         value={selectedCellKeys}

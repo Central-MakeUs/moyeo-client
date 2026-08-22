@@ -19,11 +19,11 @@ export interface InviteLandingPageProps {
   invitation: MeetingInvitation | null;
   participationStatus?: ParticipationStatusResponse | null;
 }
-const DEFAULT_TITLE = '모임 초대장이 왔어요!';
-const DEFAULT_DESCRIPTION = '모임에 참여해서 일정과 장소를 정해보세요';
-
-/** 참여하지 않고 빠져나가는 곳. 다른 완료 화면의 "홈으로 돌아가기"와 같은 목적지다. */
-const HOME_PATH = '/home';
+import {
+  INVITE_LANDING_DESCRIPTION,
+  INVITE_LANDING_HOME_PATH,
+  INVITE_LANDING_TITLE,
+} from '../config/copy';
 
 export function InviteLandingPage({
   inviteCode,
@@ -67,7 +67,11 @@ export function InviteLandingPage({
       <TopAppBar className="shrink-0" />
       <CompletionLayout
         header={
-          <PageHeader align="center" title={DEFAULT_TITLE} description={DEFAULT_DESCRIPTION} />
+          <PageHeader
+            align="center"
+            title={INVITE_LANDING_TITLE}
+            description={INVITE_LANDING_DESCRIPTION}
+          />
         }
         visual={<Celebration icon="invitation" hasConfetti />}
         footer={
@@ -82,7 +86,7 @@ export function InviteLandingPage({
                 </div>
               ) : (
                 <Button variant="link" asChild>
-                  <Link href={HOME_PATH}>홈으로 가기</Link>
+                  <Link href={INVITE_LANDING_HOME_PATH}>홈으로 가기</Link>
                 </Button>
               )
             }

@@ -66,6 +66,7 @@ describe('MeetingOverviewPage', () => {
     render(<MeetingOverviewPage />);
 
     expect(screen.getByRole('status', { name: '모임 정보를 불러오는 중' })).toBeInTheDocument();
+    expect(document.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(8);
   });
 
   it('isError가 true이면 에러 안내 텍스트가 표시된다', () => {

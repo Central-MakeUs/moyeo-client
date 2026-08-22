@@ -16,15 +16,16 @@ export function MeetingInvitationCardSkeleton(): React.JSX.Element {
       className="flex w-full flex-col items-center gap-4.5 rounded-12 border border-accessible-100 bg-[#FFF9F9] px-5 py-6"
     >
       <div className="flex w-full flex-col items-center gap-2 border-b border-b-accessible-100 pb-5">
-        {/* 이름: text-bold-18 한 줄 */}
-        <Skeleton className="h-[25px] w-40" />
-        {/* 설명: text-semibold-14 한 줄 */}
-        <Skeleton className="h-[20px] w-full" />
+        {/* 모임 이름 */}
+        <Skeleton variant="text" textStyle="bold-18" className="w-40" />
+        {/* 모임 설명 */}
+        <Skeleton variant="text" textStyle="semibold-14" className="w-4/5" />
       </div>
 
       <div className="flex w-full items-center justify-end gap-1.5">
-        <Skeleton className="size-5 rounded-full" />
-        <Skeleton className="h-[20px] w-16" />
+        {/* 방장 아이콘과 닉네임 */}
+        <Skeleton variant="circular" className="size-5" />
+        <Skeleton variant="text" textStyle="semibold-14" className="w-16" />
       </div>
     </div>
   );

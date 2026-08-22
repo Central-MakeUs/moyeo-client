@@ -164,4 +164,12 @@ describe('ScheduleTimesStep', () => {
 
     expect(useCreateMeetingDraft.getState().scheduleResponse?.availableTimeRanges).toHaveLength(1);
   });
+
+  it('제출 중에는 시간 선택을 바꿀 수 없다', async () => {
+    const { container } = render(<ScheduleTimesStep onNext={vi.fn()} isSubmitting />);
+
+    await userEvent.click(cell(container, '2026-07-10 18:00')!);
+
+    expect(selectedCells(container)).toHaveLength(0);
+  });
 });

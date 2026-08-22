@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { toast } from '@/shared/ui';
@@ -68,7 +68,9 @@ describe('SubmitFeedbackDrawer', () => {
 
     await userEvent.type(textarea, '좋았어요');
     await userEvent.click(screen.getByRole('button', { name: '보내기' }));
-    mutateCallbacks().onSuccess?.();
+    act(() => {
+      mutateCallbacks().onSuccess?.();
+    });
 
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });

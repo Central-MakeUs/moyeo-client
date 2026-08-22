@@ -416,3 +416,69 @@ describe('AvailabilityTimeGrid — 터치 롱프레스', () => {
     expect(onChange).toHaveBeenCalledWith(['2026-07-10 18:00', '2026-07-10 19:00']);
   });
 });
+
+describe('AvailabilityTimeGrid — 제출 중 잠금', () => {
+  const drag = (container: HTMLElement, fromKey: string, toKey: string) => {
+    fireEvent.pointerDown(cell(container, fromKey)!);
+    fireEvent.pointerEnter(cell(container, toKey)!);
+    fireEvent.pointerUp(cell(container, toKey)!);
+  };
+
+  it('should not call onChange when tapping a cell while disabled', async () => {
+    const onChange = vi.fn();
+    const { container } = render(
+      <AvailabilityTimeGrid columns={COLUMNS} rows={ROWS} value={[]} onChange={onChange} disabled />
+    );
+
+    await userEvent.click(cell(container, '2026-07-10 18:00')!);
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('should not call onChange when dragging while disabled', () => {
+    // 드래그 핸들러는 셀이 아니라 컨테이너에 있어, 셀 disabled만으로는 이 경로가 막히지 않는다.
+    const onChange = vi.fn();
+    const { container } = render(
+      <AvailabilityTimeGrid columns={COLUMNS} rows={ROWS} value={[]} onChange={onChange} disabled />
+    );
+
+    drag(container, '2026-07-10 18:00', '2026-07-11 19:00');
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('should not preview a selection while disabled', () => {
+    const { container } = render(
+      <AvailabilityTimeGrid columns={COLUMNS} rows={ROWS} value={[]} onChange={vi.fn()} disabled />
+    );
+
+    fireEvent.pointerDown(cell(container, '2026-07-10 18:00')!);
+    fireEvent.pointerEnter(cell(container, '2026-07-11 19:00')!);
+
+    expect(container.querySelectorAll('[data-cell-key][aria-pressed="true"]')).toHaveLength(0);
+  });
+
+  it('should keep the grid scrollable while disabled', () => {
+    const { container } = render(
+      <AvailabilityTimeGrid columns={COLUMNS} rows={ROWS} value={[]} onChange={vi.fn()} disabled />
+    );
+
+    expect(scrollGrid(container)).toHaveClass('overflow-auto');
+    expect(scrollGrid(container)).not.toHaveClass('pointer-events-none');
+  });
+
+  it('should keep already selected cells visible while disabled', () => {
+    // 잠금은 "바꿀 수 없다"이지 "안 보인다"가 아니다.
+    const { container } = render(
+      <AvailabilityTimeGrid
+        columns={COLUMNS}
+        rows={ROWS}
+        value={['2026-07-10 18:00']}
+        onChange={vi.fn()}
+        disabled
+      />
+    );
+
+    expect(cell(container, '2026-07-10 18:00')).toHaveClass('bg-accessible-100');
+  });
+});
