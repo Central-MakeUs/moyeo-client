@@ -1,0 +1,26 @@
+# figma 스냅샷 (Figma에서 눈으로 확인된 사실만 — 기획 식별자/라우트/API 없음)
+# 스키마: .claude/skills/user-flow-diagram/references/source-schema.md §2
+scope: VIEW # 모임 현황·확정
+source:
+  url: https://www.figma.com/design/2aUk6ATnyVjjBTlhHRwsbT/CMC-19th--%EB%AA%A8%EC%97%AC-MOYEO-?node-id=2564-16578
+  node_id: 2564-16578
+  synced_at: 2026-07-21
+
+nodes:
+  - { id: view, label: 모임 현황 (VIEW), type: main }
+  - { id: resp, label: 응답 상태 확인, type: feature }
+  - { id: editResp, label: 내 응답 수정, type: feature }
+  - { id: best, label: 최적 일정 후보, type: feature }
+  - { id: rec, label: 추천 위치 후보, type: feature }
+  - { id: isHost, label: 모임장, type: branch }
+  - { id: confirm, label: 일정/위치 확정, type: detail }
+  - { id: viewDone, label: 모임 확정 완료, type: terminal }
+
+edges:
+  - { from: view, to: resp }
+  - { from: resp, to: editResp }
+  - { from: editResp, to: best }
+  - { from: best, to: rec }
+  - { from: rec, to: isHost }
+  - { from: isHost, to: confirm, label: Y }
+  - { from: confirm, to: viewDone }

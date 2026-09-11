@@ -1,0 +1,50 @@
+# figma 스냅샷 (Figma에서 눈으로 확인된 사실만 — 기획 식별자/라우트/API 없음)
+# 스키마: .claude/skills/user-flow-diagram/references/source-schema.md §2
+scope: INV # 초대 참여
+source:
+  url: https://www.figma.com/design/2aUk6ATnyVjjBTlhHRwsbT/CMC-19th--%EB%AA%A8%EC%97%AC-MOYEO-?node-id=2564-16578
+  node_id: 2564-16578
+  synced_at: 2026-07-21
+
+nodes:
+  - { id: invEnter, label: 초대 링크 진입, type: terminal }
+  - { id: linkin, label: 링크 진입, type: detail }
+  - { id: progress, label: 진행상황 확인, type: feature }
+  - { id: join, label: 모임 참여, type: feature }
+  - { id: canJoin, label: 참여 가능, type: branch }
+  - { id: member, label: 회원, type: branch }
+  - { id: guest, label: 게스트 로그인, type: feature }
+  - { id: acc, label: 로그인/회원가입 (ACC), type: main }
+  - { id: invJoin, label: 모임 참여 (INV), type: main }
+  - { id: type1, label: 모임 유형, type: branch }
+  - { id: schedIn, label: 일정 정보 입력, type: conditional }
+  - { id: avail, label: 가능 날짜/시간대 입력, type: feature }
+  - { id: type2, label: 모임 유형, type: branch }
+  - { id: depart, label: 출발지 정보 입력, type: conditional }
+  - { id: pStart, label: 출발지 입력, type: feature }
+  - { id: pMove, label: 이동수단 입력, type: feature }
+  - { id: invDone, label: 모임 참여 완료, type: terminal }
+
+edges:
+  - { from: invEnter, to: linkin }
+  - { from: linkin, to: progress }
+  - { from: progress, to: join }
+  - { from: join, to: canJoin }
+  - { from: canJoin, to: member, label: Y }
+  - { from: member, to: acc, label: Y }
+  - { from: member, to: guest, label: N }
+  - { from: guest, to: invJoin }
+  - { from: acc, to: invJoin }
+  - { from: invJoin, to: type1 }
+  - { from: type1, to: schedIn, label: 일정만 / 둘 다 }
+  - { from: type1, to: depart, label: 위치만 }
+  - { from: schedIn, to: avail }
+  - { from: avail, to: type2 }
+  - { from: type2, to: depart, label: 둘 다 }
+  - { from: type2, to: invDone, label: 일정만 }
+  - { from: depart, to: pStart }
+  - { from: pStart, to: pMove }
+  - { from: pMove, to: invDone }
+  # 크로스 서브플로우 (그림 상 다른 열로 이어짐)
+  - { from: progress, to: view, label: 모임 현황 (VIEW)로 이어짐 } # → figma.view.yaml
+  - { from: invDone, to: view, label: 모임 현황 (VIEW)로 이어짐 }

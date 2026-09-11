@@ -1,0 +1,36 @@
+# figma 스냅샷 (Figma에서 눈으로 확인된 사실만 — 기획 식별자/라우트/API 없음)
+# 스키마: .claude/skills/user-flow-diagram/references/source-schema.md §2
+scope: CRT
+source:
+  url: https://www.figma.com/design/2aUk6ATnyVjjBTlhHRwsbT/CMC-19th--%EB%AA%A8%EC%97%AC-MOYEO-?node-id=2564-16578
+  node_id: 2564-16578
+  synced_at: 2026-07-21
+
+# 변경 이력: 2026-07-20 시안부터 CRT가 선형으로 단순화됨.
+#   이전(node 1411-13117): 모임 유형 분기 + 일정 정하기/중간지점 찾기 조건부.
+#   현재(node 2564-16578): 생성은 선형 위저드, 일정/위치 조율 분기는 참여(INV) 플로우로 이동.
+
+nodes:
+  - { id: crt, label: 모임 생성 (CRT), type: main }
+  - { id: info, label: 기본 정보 입력, type: detail }
+  - { id: name, label: 모임 이름 입력, type: feature }
+  - { id: count, label: 모임 인원 입력, type: feature }
+  - { id: type, label: 모임 유형 선택, type: detail }
+  - { id: range, label: 시간 범위 설정, type: detail }
+  - { id: deadline, label: 마감 시간 설정, type: detail }
+  - { id: cover, label: 커버사진 등록, type: detail }
+  - { id: link, label: 링크 생성 / 공유, type: detail }
+  - { id: crtDone, label: 모임 생성 완료, type: terminal }
+
+edges:
+  - { from: crt, to: info }
+  - { from: info, to: name }
+  - { from: name, to: count }
+  - { from: count, to: type }
+  - { from: type, to: range }
+  - { from: range, to: deadline }
+  - { from: deadline, to: cover }
+  - { from: cover, to: link }
+  - { from: link, to: crtDone }
+  # 크로스 서브플로우 (그림 상 커버사진 등록에서 참여 열로 분기)
+  - { from: cover, to: invJoin, label: '모임 참여 (INV)로 이어짐' } # → figma.invite.yaml
