@@ -39,3 +39,7 @@
 - [ ] `Thumbnail` 원격 이미지 `unoptimized` → `images.remotePatterns` 등록 후 최적화 (`image-convention.md` §1)
 - [ ] 이슈 #234(`next.config.js` `process` no-undef)는 현재 `pnpm lint`에서 재현되지 않는다 — 이미 해소됐다면 이슈 닫기
 - [ ] `radix-ui`와 `@base-ui/react`(toast만 사용) 중복 정리 여부 결정 (`component-convention.md` §3)
+- [ ] 2026-11-25 · `eslint-plugin-react-hooks` 7의 React Compiler 규칙 14개를 켜면 web에서 29건(11개 파일: `set-state-in-effect`·`refs`·`immutability` 등)이 나온다. 주요 위치: `shared/ui/calendar/use-drag-select.ts`, `shared/ui/time-grid/use-axis-locked-touch-scroll.ts`, `shared/ui/carousel/carousel.tsx`, `features/meeting/create-meeting/model/use-submit-meeting.ts`, `entities/guest-session/model/use-guest-session.ts`. 정리 후 `packages/eslint-config`의 규칙 2개 나열을 `configs.recommended.rules`로 되돌린다 · 발견: INFRA-295
+- [ ] 2026-11-25 · steiger 0.10 `fsd/segments-by-purpose`가 `shared/assets`, `_pages/onboarding/assets`를 잡는다 — 둘 다 쓰는 곳 옆으로 옮기고 `apps/web/steiger.config.js`의 임시 off 블록 삭제 (`fsd-shared.md` §1) · 발견: INFRA-295
+- [ ] 2026-11-25 · **orval 8.49는 쓸 수 없다**: 같은 명세로 재생성하면 `generated/meeting/meeting.faker.ts`·`meeting.msw.ts`·`schemas/index.faker.ts`에서 TS 에러 26건(nullable 필드의 faker 값이 `| null`로 나와 스키마 타입과 충돌). 8.22.0은 0건. 8.22.0 고정 유지하고, 이후 버전에서 고쳐졌는지 주기적으로 확인 · 발견: INFRA-295
+- [ ] 2026-11-25 · **백엔드 명세가 `generated/`보다 앞서 있다**: 서버에 `refresh`·`logout` 엔드포인트와 `AuthResponse.refreshToken`이 추가됐고 일부 설명이 바뀌었다(8.22.0 재생성 시 16파일, +320/-18, 타입 에러 0건). 의존성 PR에 섞지 않고 별도로 재생성한다. 자동 로그인(갱신 토큰) 작업과 함께 처리 · 발견: INFRA-295
