@@ -15,6 +15,7 @@ paths:
 | 전체 (unit)          | `pnpm test` (turbo → `@repo/web`의 `vitest run --project unit`)           |
 | 단건                 | `pnpm --filter @repo/web exec vitest run --project unit -t "테스트 이름"` |
 | 파일                 | `pnpm --filter @repo/web exec vitest run --project unit <경로>`           |
+| Red 테스트           | `pnpm --filter @repo/web test:red` — 의도적으로 실패하는 테스트만 실행    |
 | Storybook (브라우저) | `pnpm --filter @repo/web test:storybook` — 스토리가 렌더되는지만 본다     |
 
 도구: Vitest 4 + jsdom + React Testing Library + jest-dom + user-event + MSW(`msw/node`)
@@ -85,3 +86,12 @@ import { describe, it, expect, vi } from 'vitest';
 
 아직 지원하지 않는 동작은 테스트와 구현 범위에서 함께 제외하고 작업 기록에 남긴다.
 이미 보장하기로 한 동작이 깨졌다면 고치거나, 명세 변경 승인을 받은 뒤 테스트를 함께 수정한다.
+
+## 6. Red 테스트 — CI 밖에서 의도를 보존한다
+
+"이 동작이 맞다"고 판단했지만 지금 구현하지 않기로 한 것은 `*.red.test.tsx`로 미리 박아 둘 수 있다.
+
+- `pnpm test`·`pnpm verify`·CI에서는 제외된다(`vitest.config.ts`의 `red` 프로젝트로 분리). `pnpm --filter @repo/web test:red`로만 실행한다
+- 파일 첫머리 주석에 **무엇이 왜 아직 실패하는지**를 적는다. 구현하면 초록이 된다
+- 구현해서 초록이 되면 파일명에서 `.red`를 지워 일반 테스트로 승격한다. 안 하기로 했으면 파일째 지운다
+- CI를 초록으로 만들려고 일반 테스트를 `.red`로 바꾸지 않는다 — 이미 보장하기로 한 동작이 깨진 것이면 §5를 따른다

@@ -2,9 +2,15 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { useMeetingsQuery } from './use-meetings-query';
+
+// 에셋 URL의 기준 경로는 환경변수에서 온다. 개발자의 .env.local 값에 기대면 CI에서 결과가 달라지므로
+// axios-instance가 읽히기 전에 테스트가 직접 지정한다.
+vi.hoisted(() => {
+  vi.stubEnv('NEXT_PUBLIC_API_PROXY_PATH', '/backend-api');
+});
 
 const server = setupServer(
   http.get('*/api/meetings/me', () =>
@@ -20,7 +26,10 @@ const server = setupServer(
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+afterAll(() => {
+  server.close();
+  vi.unstubAllEnvs();
+});
 
 function renderMeetingsQuery() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });

@@ -74,6 +74,7 @@ pnpm verify         # format:check → lint(eslint+steiger) → typecheck → te
 # 테스트 (⚠️ 실행은 사용자가 직접 한다 — .claude/rules/test-policy.md)
 pnpm test           # turbo run test → web: vitest run --project unit (jsdom)
 pnpm --filter @repo/web test:storybook   # 스토리 렌더 확인 (브라우저, Playwright)
+pnpm --filter @repo/web test:red         # 의도적 실패 테스트(*.red.test.tsx)만. CI·verify 제외
 
 # 생성
 pnpm --filter @repo/web orval   # OpenAPI → src/shared/api/generated (clean 재생성)

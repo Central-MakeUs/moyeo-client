@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { toast } from '@/shared/ui';
@@ -90,7 +90,10 @@ describe('EditNicknameDrawer', () => {
     await userEvent.clear(input);
     await userEvent.type(input, '새이름');
     await userEvent.click(screen.getByRole('button', { name: '완료' }));
-    mutateCallbacks().onSuccess?.({ id: 1, nickname: '새이름', onboardingCompleted: true });
+    // 콜백이 상태를 바꾸므로 act로 감싸 반영을 끝낸 뒤 단언한다.
+    act(() => {
+      mutateCallbacks().onSuccess?.({ id: 1, nickname: '새이름', onboardingCompleted: true });
+    });
 
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['/api/auth/me'] });
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();

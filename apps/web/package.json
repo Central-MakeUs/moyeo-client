@@ -16,6 +16,7 @@
     "build-storybook": "storybook build",
     "test": "vitest run --project unit",
     "test:watch": "vitest --project unit",
+    "test:red": "vitest run --project red",
     "test:storybook": "vitest run --project storybook",
     "orval": "orval --config ./orval.config.ts"
   },
