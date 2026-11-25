@@ -8,8 +8,7 @@ const replaceMock = vi.fn();
 const mutateMock = vi.fn();
 const setQueryDataMock = vi.fn();
 let mutationOptions:
-  | { mutation?: { onSuccess?: (user: { id: number; nickname: string }) => void } }
-  | undefined;
+  { mutation?: { onSuccess?: (user: { id: number; nickname: string }) => void } } | undefined;
 
 const searchParams = new URLSearchParams();
 

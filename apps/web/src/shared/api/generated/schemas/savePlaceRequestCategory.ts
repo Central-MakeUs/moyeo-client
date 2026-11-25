@@ -11,8 +11,7 @@
  * @nullable
  */
 export type SavePlaceRequestCategory =
-  | (typeof SavePlaceRequestCategory)[keyof typeof SavePlaceRequestCategory]
-  | null;
+  (typeof SavePlaceRequestCategory)[keyof typeof SavePlaceRequestCategory] | null;
 
 export const SavePlaceRequestCategory = {
   HOME: 'HOME',
