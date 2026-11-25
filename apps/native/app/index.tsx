@@ -42,7 +42,7 @@ const devHost = Constants.expoConfig?.hostUri?.split(':')[0];
 const WEB_URL =
   __DEV__ && devHost
     ? `http://${devHost}:3000`
-    : (process.env.EXPO_PUBLIC_WEB_URL ?? 'https://moyeo-web.vercel.app');
+    : (process.env.EXPO_PUBLIC_WEB_URL ?? 'https://www.moyeo.app');
 
 function toWebViewUrl(appLinkPath: string | string[] | undefined): string {
   const path = Array.isArray(appLinkPath) ? appLinkPath[0] : appLinkPath;
