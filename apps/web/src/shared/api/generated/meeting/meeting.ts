@@ -337,8 +337,7 @@ export type CreateMeetingWithCoverMutationResult = NonNullable<
   Awaited<ReturnType<typeof createMeetingWithCover>>
 >;
 export type CreateMeetingWithCoverMutationBody =
-  | BodyType<CreateMeetingWithCoverBodyTwo>
-  | undefined;
+  BodyType<CreateMeetingWithCoverBodyTwo> | undefined;
 export type CreateMeetingWithCoverMutationError = ErrorType<CreateMeetingResponse>;
 
 /**

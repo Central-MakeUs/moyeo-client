@@ -20,8 +20,7 @@ const mocks = vi.hoisted(() => ({
   setQueryData: vi.fn(),
   exchangeApple: vi.fn(),
   appleMutation: undefined as
-    | { onSuccess?: (data: unknown) => void; onError?: (error: unknown) => void }
-    | undefined,
+    { onSuccess?: (data: unknown) => void; onError?: (error: unknown) => void } | undefined,
 }));
 
 vi.mock('next/navigation', () => ({

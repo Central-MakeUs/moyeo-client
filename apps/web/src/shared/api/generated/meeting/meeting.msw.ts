@@ -582,8 +582,7 @@ export const getReplaceCoverImageMockHandler = (
 
 export const getDeleteCoverImageMockHandler = (
   overrideResponse?:
-    | void
-    | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
+    void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
   options?: RequestHandlerOptions
 ) => {
   return http.delete(
@@ -884,8 +883,7 @@ export const getGetMyMeetingDetailMockHandler = (
 
 export const getDeleteMeetingMockHandler = (
   overrideResponse?:
-    | void
-    | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
+    void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
   options?: RequestHandlerOptions
 ) => {
   return http.delete(
@@ -1071,8 +1069,7 @@ export const getGetGuestParticipationMockHandler = (
 
 export const getGetCoverImageMockHandler = (
   overrideResponse?:
-    | string
-    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<string> | string),
+    string | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<string> | string),
   options?: RequestHandlerOptions
 ) => {
   return http.get(
@@ -1093,8 +1090,7 @@ export const getGetCoverImageMockHandler = (
 
 export const getLeaveMeetingMockHandler = (
   overrideResponse?:
-    | void
-    | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
+    void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
   options?: RequestHandlerOptions
 ) => {
   return http.delete(
@@ -1112,8 +1108,7 @@ export const getLeaveMeetingMockHandler = (
 
 export const getLeaveGuestMockHandler = (
   overrideResponse?:
-    | void
-    | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
+    void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
   options?: RequestHandlerOptions
 ) => {
   return http.delete(

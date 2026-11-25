@@ -78,7 +78,7 @@ stub은 시그니처(이름·파라미터·반환 타입)만 옮긴 껍데기이
 
 - 같은 함수의 메서드는 중첩 describe를 쓴다.
   - `describe('useDragSelect', () => {
-  describe('paint', () => { ... })
+describe('paint', () => { ... })
 })`
 
 - `it`: **[조건]일 때 [동작]하면 [기대 결과]한다** 형식 (한국어 BDD)
