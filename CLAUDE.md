@@ -51,7 +51,7 @@ apps/web/
     ├── widgets/    # 독립 UI 블록
     ├── features/   # 사용자 행동 단위
     ├── entities/   # 도메인 엔티티 (room 등)
-    └── shared/     # 공용 기반: ui/primitives(shadcn), ui/layouts, lib(cn), api, model
+    └── shared/     # 공용 기반: ui(shadcn 포함), ui/layouts, lib(cn), api(orval), model(네이티브 브릿지), assets
 ```
 
 ## Commands
@@ -70,14 +70,20 @@ pnpm typecheck      # turbo run check-types (next typegen + tsc --noEmit)
 pnpm format         # prettier . --write
 pnpm format:check   # prettier . --check
 
-# web 단독 (apps/web에서)
-pnpm --filter @repo/web lint:steiger   # FSD 경계 검사 (steiger)
+# 테스트 (⚠️ 실행은 사용자가 직접 한다 — .claude/rules/test-policy.md)
+pnpm test           # turbo run test → web: vitest run --project unit (jsdom)
+pnpm --filter @repo/web test:storybook   # 스토리 렌더 확인 (브라우저, Playwright)
 
-# ⚠️ 테스트 실행(pnpm test / test:watch)은 아직 미연결 — Follow-ups 참고
+# 생성
+pnpm --filter @repo/web orval   # OpenAPI → src/shared/api/generated (clean 재생성)
+pnpm generate:icons             # src/shared/assets/icons/*.svg → shared/ui/icon/icons.generated.ts
+
+# web 단독
+pnpm --filter @repo/web lint:steiger   # FSD 경계 검사 (steiger)
 
 # shadcn/ui 컴포넌트 추가 (apps/web)
 npx shadcn add <component>   # style: radix-nova, baseColor: neutral
-                             # 추가물은 aliases에 따라 src/shared/ui/primitives 로 배치
+                             # 추가물은 aliases에 따라 src/shared/ui 로 배치
 ```
 
 ## Tech Stack (web)
@@ -89,7 +95,8 @@ npx shadcn add <component>   # style: radix-nova, baseColor: neutral
 - **날짜/피커**: `date-fns`, `react-day-picker`, `@ncdai/react-wheel-picker`, `vaul`(drawer/bottom-sheet)
 - **아이콘**: `lucide-react`
 - **폰트**: SUIT Variable (`next/font/local`, `--font-suit`)
-- **테스트**: Storybook 10 + Vitest 4 (browser mode, Playwright chromium)
+- **API**: orval(OpenAPI → TanStack Query 훅 + MSW 핸들러) + axios `customInstance`
+- **테스트**: Vitest 4 unit(jsdom + RTL + MSW) · Storybook 10(상태 문서, 브라우저 렌더 확인)
 - **FSD 린트**: `steiger` + `@feature-sliced/steiger-plugin`
 - **Lint/Format**: ESLint 9 (flat config, `@repo/eslint-config`) + Prettier 3 (`prettier-plugin-tailwindcss`)
 - **Package manager**: pnpm 9 (`packageManager: pnpm@9.0.0`), Node ≥ 18, `node-linker=hoisted`
@@ -111,8 +118,10 @@ _pages → widgets → features → entities → shared
   steiger가 이를 오타로 보지 않도록 `steiger.config.js`에서 예외 처리돼 있다.
 - **경계 검사**: `steiger`가 FSD public-api·레이어 위반을 검사한다. `shared`는 public-api 강제 off.
   pre-commit 시 변경된 `apps/web/src`에 대해 `lint:steiger`가 자동 실행된다.
-- 신규 코드는 정통 FSD 위치를 따르고, 예제/디버그 slice(`_pages/example`, `features/fsd-debug-mode`,
-  `__steiger-delete-me__`)는 참고용 스캐폴드이므로 여기에 실제 기능을 얹지 않는다.
+- **편집 시 훅**: `.claude/hooks/fsd-layer-check.mjs`가 Edit/Write 직전에 상향·cross-slice·레이어 넘는
+  상대경로·`@/shared/api/generated` 직접 참조와 생성물 편집을 차단한다.
+- **slice group**: `features/meeting/*`처럼 `index.ts` 없는 그룹 폴더 아래가 slice다. 그룹 안끼리도 cross-slice.
+- 레이어별 상세 규칙은 `.claude/rules/fsd-*.md` (해당 경로 파일을 열 때 자동 로드).
 
 ## Code Style & Conventions
 
@@ -130,12 +139,11 @@ _pages → widgets → features → entities → shared
 - **컬러/타이포**: 하드코딩 금지, `@theme` 토큰 클래스(`bg-primary`, `text-neutral-900`, `text-bold-16`) 사용.
   자세한 규칙은 `docs/design-system/` 참고.
 
-## Testing — 🔴 미연결 (Follow-ups 참고)
+## Testing
 
-- Vitest 4 + Storybook 10 브라우저 테스트 **설정·의존성은 존재**한다 (`apps/web/vitest.config.ts`,
-  `@storybook/addon-vitest` + `@vitest/browser-playwright`). 컴포넌트 `*.stories.tsx`가 테스트 대상.
-- 다만 **`test` 실행 스크립트가 root/web/turbo 어디에도 연결돼 있지 않다.** `pnpm test`는 **아직 동작하지 않는다.**
-- 테스트 방식(브라우저 vs jsdom)과 스크립트 연결은 하네스 후속 이슈에서 확정한다 → Follow-ups.
+- `pnpm test` = Vitest **unit** 프로젝트(jsdom + RTL + MSW). 대상은 `src/**`·`app/**`의 `*.test.ts(x)`, 대상과 같은 폴더에 둔다.
+- Storybook(`*.stories.tsx`)은 **컴포넌트 상태 문서**다. 테스트 대용이 아니다.
+- **실행은 사용자가 직접 한다.** 무엇을 테스트하는지·작성 규칙은 `.claude/rules/test-policy.md`.
 
 ## Design System
 
@@ -158,18 +166,35 @@ _pages → widgets → features → entities → shared
 
 ## Claude Workflow
 
-- 프로젝트 스킬: `.claude/skills/<skill-name>/SKILL.md`
+**룰** — `.claude/rules/*.md`. `paths` frontmatter가 있는 룰은 해당 경로 파일을 다룰 때만 로드된다.
+
+| 룰                                                                                       | 다루는 것                         |
+| ---------------------------------------------------------------------------------------- | --------------------------------- |
+| `fsd-{shared,entities,features,widgets,pages}`                                           | 레이어별 배치·import 범위         |
+| `import-convention` · `component-convention` · `className-convention`                    | import·컴포넌트·Tailwind 함정     |
+| `state-convention` · `api-convention` · `constants-convention`                           | Zustand/Query · orval · 상수 추출 |
+| `test-policy` · `image-convention`                                                       | 테스트 대상 판정 · 이미지         |
+| `code-quality` · `design-source-policy` · `i18n-policy` · `git-workflow` · `work-record` | 항상 적용                         |
+
+- **훅**: `.claude/settings.json`에 PreToolUse `fsd-layer-check` 등록.
+- **스킬**: `.claude/skills/<skill-name>/SKILL.md`
+  - 기능: `feature-planner` → `issue-reviewer` → `test-scenarios` → `tdd-red` → `tdd-green` → `tdd-refactor` → `security-review` → `pr-writer`
+  - 기능이 아닌 무거운 작업(하네스·업그레이드·리팩터·네이티브): `ai-plan`
+- **작업 기록**: 기능은 `docs/features/{ID}/`, 그 외는 `docs/work/{TYPE}-{이슈}-{설명}/plan.md`.
+  범위 밖 발견은 `docs/work/backlog.md`에 한 줄 (`work-record.md`).
 - AC 독립 검증 agent: `.claude/agents/ac-verifier.md`
+- **커밋·push·PR은 사용자가 한다.** AI는 스테이징까지.
 
 ## Important Notes
 
 - **pnpm 전용**: `packageManager: pnpm@9.0.0`. `.npmrc`는 `node-linker=hoisted`.
-- **생성물 편집 금지**: Next 타입(`.next/types`, `next-env.d.ts`)은 `next typegen`/build가 생성한다.
-- **환경변수**: Next.js 규칙대로 클라이언트 노출 변수는 `NEXT_PUBLIC_*` 접두사. (현재 사용처 없음)
-- **API 클라이언트**: 아직 미구현 (`src/shared/api/`에 README만). 공통 타입/유틸/API는 당분간
-  web `src/shared`에 둔다. `packages/shared`는 존재하지 않으며 공유 타입은 `@repo/types` 사용.
+- **생성물 편집 금지**: Next 타입(`.next/types`, `next-env.d.ts`), orval `src/shared/api/generated/`,
+  `shared/ui/icon/icons.generated.ts`. 훅이 차단한다.
+- **환경변수**: 클라이언트 노출 변수는 `NEXT_PUBLIC_*` (API base URL·프록시 경로, OAuth client id·redirect 등).
+- **API 클라이언트**: orval 생성물 + `customInstance`. 상위 레이어는 **`@/shared/api` 배럴만** 본다 (`api-convention.md`).
+  `packages/shared`는 존재하지 않으며 공유 타입은 `@repo/types` 사용.
 - **`@repo/ui`**: 현재 turborepo starter의 stub(button/card/code). 실제 UI 프리미티브는
-  web `src/shared/ui/primitives`에 있다.
+  web `src/shared/ui/`에 있다.
 - **배포**: web은 **Vercel** (`main` → 프로덕션, `develop` → preview). native 앱이 이 web을 WebView로 소비.
 
 ## Follow-ups (하네스 후속 — 아직 미도입)
@@ -177,12 +202,8 @@ _pages → widgets → features → entities → shared
 아래는 **현재 레포에 없거나 미연결**이며, 에픽 **#33 "하네스 구축"** 의 서브이슈에서 도입 예정이다.
 도입 전까지 "있는 것"처럼 실행/전제하지 말 것. (각 항목이 실제로 커밋되면 해당 내용을 위 본문으로 올린다.)
 
-| 항목                                     | 현재 상태                                          | 도입 예정          |
-| ---------------------------------------- | -------------------------------------------------- | ------------------ |
-| 테스트 실행 연결 (`pnpm test`)           | 스크립트 없음 (Vitest/Storybook 설정만 존재)       | 테스트 하네스 이슈 |
-| `.claude/skills/issue-creator/*` (TDD)   | 레포에 없음 (타 프로젝트서 가져와 moyeo 맞춤 검토) | 스킬 이슈          |
-| `.claude/rules/{conventions,fsd}`        | 빈 디렉토리 (내용 없음)                            | rules 이슈         |
-| `.claude/settings.json` + PostToolUse 훅 | 파일 없음 (design-check 훅 도입 여부 미정)         | rules/훅 이슈      |
-| CI (`.github/workflows/`)                | 없음 (PR 검사 미자동화)                            | CI 이슈            |
-
-> 참고: `docs/features/{기능}/` 에 기능별 기획 문서가 있다 (예: `CRT-02/F02`). TDD 스킬 도입 후 활성 워크플로우로 연결된다.
+| 항목                                   | 현재 상태                                                                  | 도입 예정     |
+| -------------------------------------- | -------------------------------------------------------------------------- | ------------- |
+| `.claude/skills/issue-creator/*`       | 레포에 없음 (타 프로젝트서 가져와 moyeo 맞춤 검토)                         | 스킬 이슈     |
+| design-check 훅 (토큰 하드코딩 검사)   | 도입 여부 미정 (지금은 `className-convention` 룰만)                        | rules/훅 이슈 |
+| PR 검사 CI (lint·typecheck·test·build) | 없음. `.github/workflows/storybook.yml`은 develop push 시 Storybook 배포만 | CI 이슈       |
