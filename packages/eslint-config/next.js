@@ -18,6 +18,7 @@ export const nextJsConfig = [
     'out/**',
     'build/**',
     'next-env.d.ts',
+    'storybook-static/**',
   ]),
   {
     ...pluginReact.configs.flat.recommended,

@@ -46,3 +46,7 @@ yarn-error.log*
 *.log
 .env*
 !.env.example
+
+# Codex 개인 로컬용 (공용 정본은 .claude/)
+.agents/
+.codex/agents/

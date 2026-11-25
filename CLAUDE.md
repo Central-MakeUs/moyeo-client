@@ -69,6 +69,7 @@ pnpm lint           # turbo run lint (각 앱 eslint --max-warnings 0)
 pnpm typecheck      # turbo run check-types (next typegen + tsc --noEmit)
 pnpm format         # prettier . --write
 pnpm format:check   # prettier . --check
+pnpm verify         # format:check → lint(eslint+steiger) → typecheck → test → build. PR CI(verify.yml)와 같은 진입점. 사용자가 직접 실행
 
 # 테스트 (⚠️ 실행은 사용자가 직접 한다 — .claude/rules/test-policy.md)
 pnpm test           # turbo run test → web: vitest run --project unit (jsdom)
@@ -117,7 +118,7 @@ _pages → widgets → features → entities → shared
 - **`_app` / `_pages` 접두사**: Next.js 예약 폴더명(`app`/`pages`)과 충돌을 피하려 `_`를 붙였다.
   steiger가 이를 오타로 보지 않도록 `steiger.config.js`에서 예외 처리돼 있다.
 - **경계 검사**: `steiger`가 FSD public-api·레이어 위반을 검사한다. `shared`는 public-api 강제 off.
-  pre-commit 시 변경된 `apps/web/src`에 대해 `lint:steiger`가 자동 실행된다.
+  `pnpm lint`(eslint + steiger)에 포함돼 `pnpm verify`와 PR CI에서 돈다. pre-commit에서는 돌지 않는다(느림).
 - **편집 시 훅**: `.claude/hooks/fsd-layer-check.mjs`가 Edit/Write 직전에 상향·cross-slice·레이어 넘는
   상대경로·`@/shared/api/generated` 직접 참조와 생성물 편집을 차단한다.
 - **slice group**: `features/meeting/*`처럼 `index.ts` 없는 그룹 폴더 아래가 slice다. 그룹 안끼리도 cross-slice.
@@ -162,7 +163,7 @@ _pages → widgets → features → entities → shared
 - **브랜치**: `type/#이슈번호/설명` (예: `feat/#31/customize-calendar`)
 - **머지 흐름**: `feat/*` → `develop`(Squash) → `release/x.y.z`(Merge) → `main`(Rebase) → tag `vX.Y.Z`.
   `hotfix/*`는 `main`에서 분기. `main` 직접 push 금지, `develop`도 PR로만.
-- **pre-commit**(husky + lint-staged): 변경 파일에 eslint --fix + prettier, web `src`는 steiger 검사.
+- **pre-commit**(husky + lint-staged): 변경 파일에 `eslint --fix --max-warnings=0` + prettier. 경고가 남으면 커밋 중단. steiger는 CI(`pnpm lint`).
 
 ## Claude Workflow
 
@@ -184,6 +185,7 @@ _pages → widgets → features → entities → shared
   범위 밖 발견은 `docs/work/backlog.md`에 한 줄 (`work-record.md`).
 - AC 독립 검증 agent: `.claude/agents/ac-verifier.md`
 - **커밋·push·PR은 사용자가 한다.** AI는 스테이징까지.
+- **Codex**: `AGENTS.md`가 이 문서를 가리키는 포인터다. `.claude/`를 공용으로 읽고(복사본 없음), `.codex/hooks.json`이 같은 FSD 훅을 연결한다. `.agents/`·`.codex/agents/`는 개인 로컬용이라 커밋하지 않는다.
 
 ## Important Notes
 
@@ -202,8 +204,7 @@ _pages → widgets → features → entities → shared
 아래는 **현재 레포에 없거나 미연결**이며, 에픽 **#33 "하네스 구축"** 의 서브이슈에서 도입 예정이다.
 도입 전까지 "있는 것"처럼 실행/전제하지 말 것. (각 항목이 실제로 커밋되면 해당 내용을 위 본문으로 올린다.)
 
-| 항목                                   | 현재 상태                                                                  | 도입 예정     |
-| -------------------------------------- | -------------------------------------------------------------------------- | ------------- |
-| `.claude/skills/issue-creator/*`       | 레포에 없음 (타 프로젝트서 가져와 moyeo 맞춤 검토)                         | 스킬 이슈     |
-| design-check 훅 (토큰 하드코딩 검사)   | 도입 여부 미정 (지금은 `className-convention` 룰만)                        | rules/훅 이슈 |
-| PR 검사 CI (lint·typecheck·test·build) | 없음. `.github/workflows/storybook.yml`은 develop push 시 Storybook 배포만 | CI 이슈       |
+| 항목                                 | 현재 상태                                           | 도입 예정     |
+| ------------------------------------ | --------------------------------------------------- | ------------- |
+| `.claude/skills/issue-creator/*`     | 레포에 없음 (타 프로젝트서 가져와 moyeo 맞춤 검토)  | 스킬 이슈     |
+| design-check 훅 (토큰 하드코딩 검사) | 도입 여부 미정 (지금은 `className-convention` 룰만) | rules/훅 이슈 |

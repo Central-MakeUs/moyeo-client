@@ -109,5 +109,5 @@ import { toMeetingSummary } from './to-meeting-summary'; // 4. 상대 경로
 정적 import뿐 아니라 동적 `import()`와 `require()`도 잡는다.
 차단되면 **우회하지 말고 사유대로 고친다.** 정말 필요하다면 구조가 잘못된 것이다.
 
-> 훅은 **새로 쓰는 내용만** 본다. 기존 위반은 `pnpm --filter @repo/web lint:steiger`가 사후에 잡는다
-> (pre-commit에서도 돈다). `*.test.ts(x)`·`*.stories.tsx`는 훅 검사 대상이 아니다.
+> 훅은 **새로 쓰는 내용만** 본다. 기존 위반은 `pnpm lint`의 steiger가 사후에 잡는다
+> (`pnpm verify`·PR CI에서 돈다. pre-commit에서는 돌지 않는다). `*.test.ts(x)`·`*.stories.tsx`는 훅 검사 대상이 아니다.

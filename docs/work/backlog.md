@@ -37,8 +37,5 @@
 - [ ] `src/test-setup.ts`에 `vi.restoreAllMocks()` 추가 — 기존 테스트가 서로의 mock에 기대는지 확인 (`test-policy.md` §3)
 - [ ] `shared/config/` 만들고 흩어진 `process.env.NEXT_PUBLIC_*` 읽기를 모으기 (`fsd-shared.md` §4, `constants-convention.md`)
 - [ ] `Thumbnail` 원격 이미지 `unoptimized` → `images.remotePatterns` 등록 후 최적화 (`image-convention.md` §1)
+- [ ] 이슈 #234(`next.config.js` `process` no-undef)는 현재 `pnpm lint`에서 재현되지 않는다 — 이미 해소됐다면 이슈 닫기
 - [ ] `radix-ui`와 `@base-ui/react`(toast만 사용) 중복 정리 여부 결정 (`component-convention.md` §3)
-
-### 문서
-
-- [ ] `docs/conventions/README.md` 치트시트에 "`pnpm test` 아직 미연결"이 남아 있음 — 실제로는 연결됨

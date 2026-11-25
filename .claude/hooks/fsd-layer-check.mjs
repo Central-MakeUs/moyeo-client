@@ -9,7 +9,7 @@
  *
  * 설계 메모
  * - Node 로 쓴 이유: Windows 환경이다. bash + jq 셸 훅은 jq 가 없으면 통째로 죽는다.
- * - **새로 쓰는 내용의 import 구문만** 본다. 기존 위반은 `pnpm --filter @repo/web lint:steiger` 가 잡는다.
+ * - **새로 쓰는 내용의 import 구문만** 본다. 기존 위반은 `pnpm lint`(steiger 포함)와 CI 가 잡는다.
  * - slice group 지원: `features/meeting/` 처럼 index.ts 없는 폴더는 그룹으로 보고
  *   그 아래 폴더(`features/meeting/create-meeting`)를 slice 로 판정한다.
  * - 내부 오류가 나면 막지 않고 통과시킨다(fail-open). 대신 stderr 에 남긴다.

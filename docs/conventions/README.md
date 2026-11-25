@@ -27,7 +27,8 @@ pnpm build       # 전체 빌드
 pnpm lint        # 린트
 pnpm typecheck   # 타입 체크
 pnpm format      # 포맷 정리
-# pnpm test — 아직 미연결 (테스트 하네스 이슈 후 활성)
+pnpm test        # 유닛 테스트 (직접 실행)
+pnpm verify      # PR CI와 같은 전체 검사
 ```
 
 **커밋 메시지**

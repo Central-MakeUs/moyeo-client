@@ -11,7 +11,7 @@
 - 작업 브랜치는 `develop`에서 딴다. 이름은 `type/#이슈번호/설명`
 - `feat/*` → `develop`은 **Squash**. `develop` → `release/x.y.z`(Merge) → `main`(Rebase) → 태그
 - `main`·`develop` 직접 push 금지. PR로만
-- 커밋은 `type(scope): 내용` — commitlint가 강제한다. pre-commit은 eslint --fix + prettier + steiger
+- 커밋은 `type(scope): 내용` — commitlint가 강제한다. pre-commit은 `eslint --fix --max-warnings=0` + prettier (steiger는 `pnpm lint`·CI)
 
 ## 2. 커밋·push·PR은 사용자가 한다
 
