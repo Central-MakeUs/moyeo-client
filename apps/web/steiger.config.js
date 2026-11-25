@@ -15,6 +15,20 @@ export default defineConfig([
     },
   },
   {
+    // providers 는 전역 provider 모음을 가리키는 관용 이름이다. 내용물 이름이 아니라 역할 이름으로 쓴다.
+    files: ['./src/_app/providers/**'],
+    rules: {
+      'fsd/segments-by-purpose': 'off',
+    },
+  },
+  {
+    // steiger 0.10 부터 잡히는 위반. assets 를 쓰는 곳 옆으로 옮기면(.claude/rules/fsd-shared.md §1) 이 블록을 지운다.
+    files: ['./src/shared/assets/**', './src/_pages/onboarding/assets/**'],
+    rules: {
+      'fsd/segments-by-purpose': 'off',
+    },
+  },
+  {
     rules: {
       // 초기 예제 slice는 작게 유지하므로 참조 횟수 기반 검사를 비활성화
       'fsd/insignificant-slice': 'off',
