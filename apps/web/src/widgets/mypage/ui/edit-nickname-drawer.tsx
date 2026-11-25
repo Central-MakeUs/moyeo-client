@@ -28,11 +28,13 @@ export interface EditNicknameDrawerProps {
 export function EditNicknameDrawer({ trigger, currentNickname }: EditNicknameDrawerProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [nickname, setNickname] = React.useState(currentNickname);
-  const isNicknameValid = isValidNickname(nickname);
+  // 보내는 값(trim)과 같은 값으로 검사한다. 원문으로 검사하면 앞뒤 공백이 있는 입력은 trim이 실행되기 전에 막힌다.
+  const trimmedNickname = nickname.trim();
+  const isNicknameValid = isValidNickname(trimmedNickname);
   const mutate = useUpdateNickname();
   const queryClient = useQueryClient();
 
-  const isChanged = nickname.trim() !== currentNickname;
+  const isChanged = trimmedNickname !== currentNickname;
 
   const handleOpenChange = (next: boolean) => {
     setIsOpen(next);
@@ -42,7 +44,7 @@ export function EditNicknameDrawer({ trigger, currentNickname }: EditNicknameDra
   const handleSubmit = () => {
     if (!isChanged || !isNicknameValid) return;
     mutate.mutate(
-      { data: { nickname: nickname.trim() } },
+      { data: { nickname: trimmedNickname } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: [...getMeQueryOptions().queryKey] });

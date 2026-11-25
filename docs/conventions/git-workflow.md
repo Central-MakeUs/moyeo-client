@@ -98,18 +98,18 @@ v1.1.1   # 버그 수정
 
 커밋 시 자동 실행된다.
 
-- **pre-commit** (`lint-staged`): 변경 파일에 `eslint --fix` + `prettier --write`,
-  web `src` 변경 시 `steiger` FSD 검사.
+- **pre-commit** (`lint-staged`): 변경 파일에 `eslint --fix --max-warnings=0` + `prettier --write`.
+  자동 수정 후에도 경고가 남으면 커밋이 중단된다. FSD 경계(`steiger`)는 느려서 pre-commit에서 빼고
+  `pnpm lint`(= eslint + steiger)와 CI가 검사한다.
 - **commit-msg** (`commitlint`): 커밋 메시지 형식 검사 ([git-conventions.md](./git-conventions.md)).
 
 ## CI
 
-> 현재 `.github/workflows/` 가 없어 **PR 자동 검사 파이프라인은 아직 없다.**
-> 도입 시 PR에서 아래를 통과 조건으로 거는 것을 목표로 한다.
+`develop`·`main`으로 향하는 PR마다 `.github/workflows/verify.yml`이 `pnpm verify`를 실행한다.
+로컬에서 PR 전에 같은 명령을 돌려 볼 수 있다.
 
 ```bash
-pnpm lint
-pnpm typecheck
-pnpm build
-pnpm test
+pnpm verify   # format:check → lint(eslint + steiger) → typecheck → test → build
 ```
+
+`develop` push 시에는 `storybook.yml`이 Storybook을 GitHub Pages에 배포한다.

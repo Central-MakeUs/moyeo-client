@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "clean": "node ./scripts/clean.mjs",
-    "lint": "eslint --max-warnings 0",
+    "lint": "eslint --max-warnings 0 && steiger src",
     "lint:steiger": "steiger src",
     "check-types": "next typegen && tsc --noEmit",
     "format": "prettier . --write --config prettier.config.mjs",
@@ -16,6 +16,7 @@
     "build-storybook": "storybook build",
     "test": "vitest run --project unit",
     "test:watch": "vitest --project unit",
+    "test:red": "vitest run --project red",
     "test:storybook": "vitest run --project storybook",
     "orval": "orval --config ./orval.config.ts"
   },
